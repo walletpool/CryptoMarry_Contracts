@@ -11,9 +11,21 @@ async function deploy(name, ...params) {
 
 async function main() {
   console.log("Construction started.....");
+  
+  const nftViewContract = await deploy(
+    "nftview",
+    "0x196eC7109e127A353B709a20da25052617295F6f"
+  );
+
+  console.log(
+    "NFT View Contract deployed:",
+    nftViewContract.address,
+    nftViewContract.deployTransaction.gasLimit
+  );
+
   const nftContract = await deploy(
     "nftmint2",
-    "0x196eC7109e127A353B709a20da25052617295F6f"
+    nftViewContract.address
   );
 
   console.log(
@@ -74,25 +86,32 @@ async function main() {
 
   //    Passing parameters
 
+  await nftViewContract.changenftmainAddress(nftContract.address);
+  console.log("NFT Main Address updated");
+
+  await nftViewContract.changeMainAddress(WavePortal7.address);
+  console.log("NFT Address updated in View");
+
   await nftContract.changeMainAddress(WavePortal7.address);
   console.log("NFT Address updated");
+
   await WaverFactory.changeAddress(WavePortal7.address);
   console.log("Wavefactory Main Address updated");
 
   await WavePortal7.changeaddressNFTSplit(nftSplit.address);
   console.log("WavePortal Split Address updated");
 
-  await nftContract.addheartPatterns(0, "0x3c726563742f3e");
-  await nftContract.addadditionalGraphics(0, "0x3c726563742f3e");
-  await nftContract.addcertBackground(
+  await nftViewContract.addheartPatterns(0, "0x3c726563742f3e");
+  await nftViewContract.addadditionalGraphics(0, "0x3c726563742f3e");
+  await nftViewContract.addcertBackground(
     0,
     "0x3c6c696e6561724772616469656e742069643d2242222078313d2230222079313d2230222078323d22333135222079323d2233313022206772616469656e74556e6974733d227573657253706163654f6e557365223e3c73746f702073746f702d636f6c6f723d2223636235656565222f3e3c73746f70206f66667365743d2231222073746f702d636f6c6f723d2223306364376534222073746f702d6f7061636974793d222e3939222f3e3c2f6c696e6561724772616469656e743e"
   );
-  await nftContract.addcertBackground(
+  await nftViewContract.addcertBackground(
     1001,
     "0x3c6c696e6561724772616469656e742069643d2242222078313d22353025222079313d223025222078323d22353025222079323d2231303025223e3c73746f70206f66667365743d223025222073746f702d636f6c6f723d2223374135464646223e3c616e696d617465206174747269627574654e616d653d2273746f702d636f6c6f72222076616c7565733d22233741354646463b20233031464638393b202337413546464622206475723d2234732220726570656174436f756e743d22696e646566696e697465222f3e3c2f73746f703e3c73746f70206f66667365743d2231303025222073746f702d636f6c6f723d2223303146463839223e3c616e696d617465206174747269627574654e616d653d2273746f702d636f6c6f72222076616c7565733d22233031464638393b20233741354646463b202330314646383922206475723d2234732220726570656174436f756e743d22696e646566696e697465222f3e3c2f73746f703e3c2f6c696e6561724772616469656e743e"
   );
-  await nftContract.addheartPatterns(
+  await nftViewContract.addheartPatterns(
     101,
     "0x3c6c696e6561724772616469656e742069643d2270222078313d2230222078323d22313131222079313d223330222079323d22323022206772616469656e74556e6974733d227573657253706163654f6e557365223e3c73746f702073746f702d636f6c6f723d222346463542393922206f66667365743d22313025222f3e3c73746f702073746f702d636f6c6f723d222346463534343722206f66667365743d22323025222f3e3c73746f702073746f702d636f6c6f723d222346463742323122206f66667365743d22343025222f3e3c73746f702073746f702d636f6c6f723d222345414643333722206f66667365743d22363025222f3e3c73746f702073746f702d636f6c6f723d222334464342364222206f66667365743d22383025222f3e3c73746f702073746f702d636f6c6f723d222335314637464522206f66667365743d2231303025222f3e3c2f6c696e6561724772616469656e743e"
   );
@@ -164,8 +183,8 @@ async function main() {
 
   txn = await nftContract.nftHolders(accounts[0].address, accounts[1].address);
   console.log("Your NFT ID is", txn.toNumber());
-  // const txn2 = await nftContract.tokenURI(txn.toNumber());
-  // console.log("Your NFT URI is", txn2); 
+   const txn2 = await nftContract.tokenURI(txn.toNumber());
+   console.log("Your NFT URI is", txn2); 
 
   //  Checking Buying of LOV tokens
  
@@ -232,7 +251,7 @@ async function main() {
         var balance = await hre.ethers.provider.getBalance(instance.address);
         console.log("Contract Balance before transfer",hre.ethers.utils.formatEther(balance))
         console.log("Balance before",await hre.ethers.provider.getBalance(accounts[2].address))
-        txn = await instance.connect(accounts[1]).executeVoting(2,1);
+        txn = await instance.connect(accounts[1]).executeVoting(2,1,0);
         balance = await hre.ethers.provider.getBalance(instance.address);
         console.log("Contract Balance after transfer",hre.ethers.utils.formatEther(balance))
     
@@ -240,7 +259,7 @@ async function main() {
          //   hre.ethers.utils.parseEther("10002.97")
           // );
           expect(await hre.ethers.provider.getBalance(instance.address)).to.equal(
-            hre.ethers.utils.parseEther("9.89")
+            hre.ethers.utils.parseEther("10.89")
           ); 
 
     txn = await WavePortal7.connect(accounts[0]).transfer(instance.address,hre.ethers.utils.parseEther("10"));
@@ -256,20 +275,20 @@ async function main() {
    txn = await instance.createProposal("test3", 2,1,0, hre.ethers.utils.parseEther("1"),accounts[2].address,WavePortal7.address,hre.ethers.utils.parseEther("5"),1);
    console.log(await instance.connect(accounts[1]).getVotingStatuses(1))
    txn = await instance.connect(accounts[1]).voteResponse(3,hre.ethers.utils.parseEther("1"), 2,1);
-    txn = await instance.connect(accounts[1]).executeVoting(3,1);
+    txn = await instance.connect(accounts[1]).executeVoting(3,1,0);
     expect(await WavePortal7.balanceOf(accounts[2].address)).to.equal(
-       hre.ethers.utils.parseEther("5") );
+       hre.ethers.utils.parseEther("4.95") );
 
       console.log(await instance.connect(accounts[1]).getVotingStatuses(1)) 
 
 // Sending ERC721 Token 
-    txn = await instance.createProposal("test4", 4,1,0, hre.ethers.utils.parseEther("1"),accounts[2].address,nftContract.address,1,1);
+    txn = await instance.createProposal("test4", 5,1,0, hre.ethers.utils.parseEther("1"),accounts[2].address,nftContract.address,1,1);
       console.log(await instance.connect(accounts[1]).getVotingStatuses(1))
       // txn = await instance.connect(accounts[0]).cancelVoting(4,1);
       console.log(await instance.connect(accounts[1]).getVotingStatuses(1)) 
 
       txn = await instance.connect(accounts[1]).voteResponse(4,hre.ethers.utils.parseEther("1"), 2,1);
-       txn = await instance.connect(accounts[1]).executeVoting(4,1);
+       txn = await instance.connect(accounts[1]).executeVoting(4,1,0);
        expect(await nftContract.ownerOf(1)).to.equal(accounts[2].address);
          
 
@@ -335,7 +354,7 @@ async function main() {
       txn = await WavePortal7.changePolicy(1);
       console.log("policy changed")
 
-      txn = await instance.createProposal("test7", 3,1,0, hre.ethers.utils.parseEther("10"),"0x0000000000000000000000000000000000000000","0x0000000000000000000000000000000000000000",0,1);
+      txn = await instance.createProposal("test7", 4,1,0, hre.ethers.utils.parseEther("10"),"0x0000000000000000000000000000000000000000","0x0000000000000000000000000000000000000000",0,1);
       console.log("Divorce initiated ")
       txn = await WavePortal7.connect(accounts[0]).transfer(instance.address,hre.ethers.utils.parseEther("10"));
       console.log("LOVE sent ")
@@ -358,7 +377,9 @@ async function main() {
       txn = await nftContract.connect(accounts[2]).transferFrom(accounts[2].address, instance.address, 1);
       expect(await nftContract.ownerOf(1)).to.equal(instance.address);
 
-      txn = await instance.connect(accounts[1]).executeVoting(7,1);
+      console.log("Checkpoint 1 *****")
+
+      txn = await instance.connect(accounts[0]).executeVoting(7,1,0);
       
       console.log("=====================================")
       console.log("Balance of ETH :",await hre.ethers.provider.getBalance(accounts[0].address));
@@ -373,8 +394,9 @@ async function main() {
       console.log("*************************************")
       txn = await nftContract.nftHolders(accounts[0].address, accounts[1].address);
       console.log("Your NFT ID is", txn.toNumber());
-       txn2 = await nftContract.tokenURI(txn.toNumber());
-      console.log("Your NFT URI is", txn2);
+      
+      txn8 = await nftContract.tokenURI(txn.toNumber());
+      console.log("Your NFT URI is", txn8);
 
       txn = await instance.SplitNFT(nftContract.address,1,"{first,", "second}");
       txn = await  nftSplit.uri(1); 
