@@ -76,6 +76,9 @@ contract WavePortal7 is
     address public waverFactoryAddress;
     address public forwarderAddress;
     address public swapRouterAddress;
+    
+    uint24 public poolFee;
+    uint256 public cmFee;
      
 
     //Struct
@@ -142,6 +145,7 @@ contract WavePortal7 is
         nftLeft[101][0][0] = 1e3;
         nftLeft[101][1001][0] = 1e2;
         swapRouterAddress = _swaprouter;
+        poolFee = 3000; 
     }
 
 
