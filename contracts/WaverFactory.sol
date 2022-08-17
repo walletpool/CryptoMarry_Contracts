@@ -42,7 +42,7 @@ return thisWaverBeacon.implementation();}
     uint id,
     address _waver,
     address _proposed, 
-    uint256 _marryDate
+    uint256 _cmFee
   )
   public
  returns (address)
@@ -56,7 +56,7 @@ return thisWaverBeacon.implementation();}
         id,
         _waver,
         _proposed, 
-        _marryDate
+        _cmFee
       );
       
       BeaconProxy NewMarriageBeaconProxy = new BeaconProxy(

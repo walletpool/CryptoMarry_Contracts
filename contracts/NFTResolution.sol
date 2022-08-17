@@ -74,9 +74,8 @@ constructor (address _mainaddress) ERC1155 ("") {
     }
 
 function checkStatus (uint _tokenID) external view returns (bool) {
-  if (balanceOf(msg.sender,_tokenID) == 2) {return true;}
-  else {return false;}
-}
+      return balanceOf(msg.sender,_tokenID) == 2;
+    }
 
 function addressToString(address addr)
         private
@@ -157,11 +156,11 @@ function uri(uint256 _tokenId) public view override returns (string memory) {
   NFTAttributes memory nftAttributes = nftHolderAttributes[_tokenId];
 
   string memory json = Base64.encode(
-    bytes(
-      string(
+    
+      
         abi.encodePacked(nftAttributes.nft_json1,'{"trait_type": "CryptoMarry Split:", "value": "1 out of 2"},','{"trait_type": "Original owned by:", "value": "',addressToString(nftAttributes.implementationAddr),'"},',nftAttributes.nft_json2)
-      )
-    )
+      
+    
   );
   string memory output = string(
   abi.encodePacked("data:application/json;base64,", json)

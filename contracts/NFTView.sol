@@ -207,10 +207,10 @@ contract nftview {
         pure
         returns (string memory)
     {
-        uint256 wholepart = _stake / 1000000000000000000;
-        uint256 tenth = _stake / 100000000000000000 - wholepart * 10;
+        uint256 wholepart = _stake / 1e18;
+        uint256 tenth = _stake / 1e17 - wholepart * 10;
         uint256 hundredth = _stake /
-            10000000000000000 -
+            1e16 -
             wholepart *
             100 -
             tenth *
@@ -252,8 +252,7 @@ contract nftview {
         }
 
         string memory json = Base64.encode(
-            bytes(
-                string(
+            
                     abi.encodePacked(
                         '{"name": "',
                         "CryptoMarry Certificate.",
@@ -303,8 +302,8 @@ contract nftview {
                       charAttributes.Status,
                         '"}]}'
                     )
-                )
-            )
+                
+            
         );
 
         string memory output = string(

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.12;
+pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/metatx/ERC2771ContextUpgradeable.sol";
@@ -21,17 +21,14 @@ pragma abicoder v2;
 
 //Functions to interact with the main contract
 abstract contract WaverContract {
-    function mint(address _to, uint256 _amount) external virtual;
-    function balanceOf(address _to) external virtual returns (uint256);
     function burn(address _to, uint256 _amount) external virtual;
     function policyDays() external virtual returns (uint256);
-    function saleCap() external virtual returns (uint256);
     function addFamilyMember(address, uint256) external virtual;
+    function cancel(uint256) external virtual;
     function deleteFamilyMember(address) external virtual;
     function divorceUpdate(uint256 _id) external virtual;
     function addressNFTSplit() external virtual returns (address);
     function poolFee() external virtual returns (uint24);
-    function cmFee() external virtual returns (uint256);
 }
 
 //Functions to split NFTs
@@ -62,7 +59,7 @@ contract WaverImplementation is
      
     //Variables to check different statuses
     uint256 internal voteid; //tracking multiple voting initiatives
-    uint256 public familyMembers;
+    uint256 internal familyMembers;
     address internal forwarderAddr;
 
     //main Addresses for the contract
@@ -70,12 +67,11 @@ contract WaverImplementation is
 
     // Address for uniswap router 
 
-    IUniswapRouter public swapRouter;
+    IUniswapRouter internal swapRouter;
 
     //Family Statuses
-    uint8 public MarriageStatus; // 2 Divorced
+    MarriageStatus public marriageStatus; 
     uint256 public MarryDate;
-
 
     
     //Structs
@@ -83,7 +79,10 @@ contract WaverImplementation is
         uint256 id;
         address waver;
         address proposed;
+        uint cmFee;
     }
+
+  Wave internal props;
 
     enum Status{
         notProposed,
@@ -117,6 +116,14 @@ contract WaverImplementation is
          ETHSwap
     }
 
+    enum MarriageStatus {
+        Proposed,
+        Declined, 
+        Cancelled,
+        Married,
+        Divorced
+    }
+
     struct VoteProposal {
         uint256 id;
         address proposer;
@@ -132,8 +139,8 @@ contract WaverImplementation is
     }
 
     //mappings
-    mapping(address => Wave) internal proposalAttributes;
-    mapping(address => uint256) public claimtimer; //timer for claiming Tokens.
+    mapping(address => bool) internal hasAccess;
+
 
     // this is related to voting
     uint256[] internal findVoteId;
@@ -146,7 +153,7 @@ contract WaverImplementation is
     mapping(uint256 => uint256) public VotersLeft;
 
     //This is related to NFT Splitting
-    mapping (address => mapping(uint => bool)) public wasDistributed; 
+    mapping (address => mapping(uint => uint8)) public wasDistributed; 
 
     //Events Related to Staking of ETH 
 
@@ -171,38 +178,37 @@ contract WaverImplementation is
         address _addressWaveContract,
         MinimalForwarderUpgradeable _Forwarder,
         IUniswapRouter _swapRouter,
-        uint256 id,
+        uint256 _id,
         address _waver,
         address _proposed,
-        uint256 _marryDate
+        uint256 _cmFee
 
     ) public initializer {
         __ERC2771Context_init(address(_Forwarder));
         voteid += 1;
         addressWaveContract = _addressWaveContract;
-        MarriageStatus = 1;
+        marriageStatus = MarriageStatus.Proposed;
         //maybe need to send it to the main contract... 
+        hasAccess[_waver] = true;
 
-        proposalAttributes[_waver] = proposalAttributes[_proposed] = Wave({
-            id: id,
+        props = Wave({
+            id: _id, 
             waver: _waver,
-            proposed: _proposed
+            proposed: _proposed,
+            cmFee: _cmFee
         });
+        
         swapRouter = _swapRouter;
-        MarryDate = _marryDate;
-      
         familyMembers = 2;
         forwarderAddr = address(_Forwarder);
     }
 
-    //Check whether msgSender belongs to this contract
-    function checkAuth(address msgSender) internal view returns (Wave storage) {
-        Wave storage waver = proposalAttributes[msgSender];
-        require(waver.id > 0, "Not Auth");
-        return (waver);
+
+  modifier onlyAccess() {
+        require(hasAccess[_msgSender()] == true);
+        _;
     }
 
-   
     //User creates proposals within the contract and each family member votes for it.
     function createProposal(
         string memory _message,
@@ -214,18 +220,16 @@ contract WaverImplementation is
         address _tokenID,
         uint256 _amount,
         uint256 txfee
-    ) external {
+    ) external onlyAccess{
 
         address msgSender_ = _msgSender();
-        Wave storage waver = checkAuth(msgSender_);
         
-        require(MarriageStatus == 1);
+        require(marriageStatus == MarriageStatus.Married);
 
         if (_votestarts < block.timestamp) {
             _votestarts = block.timestamp;
         }
 
-        
         WaverContract _wavercContract = WaverContract(addressWaveContract);
         uint256 policyDays = _wavercContract.policyDays();
        
@@ -233,7 +237,7 @@ contract WaverImplementation is
             require(
                 MarryDate + policyDays < block.timestamp
             );
-            require(waver.proposed == msgSender_ || waver.waver == msgSender_);
+            require(props.proposed == msgSender_ || props.waver == msgSender_);
         }
 
         findVoteId.push(voteid);
@@ -274,10 +278,9 @@ contract WaverImplementation is
         uint256 _numTokens,
         uint8 responsetype,
         uint256 txfee
-    ) external {
+    ) external onlyAccess {
         address msgSender_ = _msgSender();
-        checkAuth(msgSender_);
-
+  
         require(votingStatus[_id][msgSender_] != true);
         
         VoteProposal storage voteProposal = voteProposalAttributes[_id];
@@ -339,9 +342,8 @@ contract WaverImplementation is
     }
 
     //If deadline passes vote can be ended by date through this function
-    function endVotingByTime(uint256 _id, uint256 txfee) external {
+    function endVotingByTime(uint256 _id, uint256 txfee) external onlyAccess{
         address msgSender_ = _msgSender();
-        checkAuth(msgSender_);
         VoteProposal storage voteProposal = voteProposalAttributes[_id];
         require(
             voteProposal.voteStarts + voteProposal.voteends < block.timestamp
@@ -363,14 +365,158 @@ contract WaverImplementation is
         );
     }
 
-    //Votes can be executed through this function
+
+
+
+    //This is how  new family members are added/deleted. Can be called by main partners of the marriage
+    function addFamilyMember(address _member, uint256 txfee) external onlyAccess{
+        address msgSender_ = _msgSender();
+      
+        require(props.waver == msgSender_ || props.proposed == msgSender_);
+        require(props.waver != _member && props.proposed != _member);
+        WaverContract _waverContract = WaverContract(addressWaveContract);
+        _waverContract.addFamilyMember(_member, props.id);
+        if (msg.sender == forwarderAddr) {
+            processtxn(payable(addressWaveContract), txfee);
+        }
+        emit VoteStatus(0, msgSender_, Status.FamilyAdded, block.timestamp);
+
+    }
+
+    modifier onlyContract() {
+        require(addressWaveContract == msg.sender);
+        _;
+    }
+
+    function _addFamilyMember (address _member) external  onlyContract{
+        hasAccess[_member] = true;
+        familyMembers += 1;
+    }
+
+
+    function deleteFamilyMember(address _member, uint256 txfee) external onlyAccess{
+        address msgSender_ = _msgSender();
+   
+        require(props.waver == msgSender_ || props.proposed == msgSender_);
+        require(props.waver != _member && props.proposed != _member);
+        WaverContract _waverContract = WaverContract(addressWaveContract);
+        delete hasAccess[_member];
+        familyMembers -= 1;
+        _waverContract.deleteFamilyMember(_member);
+        if (msg.sender == forwarderAddr) {
+            processtxn(payable(addressWaveContract), txfee);
+        }
+        emit VoteStatus(0, msgSender_, Status.FamilyDeleted, block.timestamp);
+    }
+
+    //If partners are divorced they can also split their ERC20 assets
+    function withdrawERC20(address _tokenID) external onlyAccess{
+        require(marriageStatus == MarriageStatus.Divorced );
+        uint256 amount;
+        amount = IERC20Upgradeable(_tokenID).balanceOf(address(this));
+    
+            transferToken(_tokenID, payable(addressWaveContract), amount * props.cmFee/ 10000)
+        ;
+        amount = IERC20Upgradeable(_tokenID).balanceOf(address(this));
+       
+            transferToken(_tokenID, payable(props.waver), (amount / 2))
+        ;
+    
+            transferToken(_tokenID, payable(props.proposed), (amount / 2))
+        ;
+    }
+
+    function checkOwnership (address _nft_Address, uint256 _tokenID) internal  view returns (bool){
+            address _owner; 
+            _owner = IERC721(_nft_Address).ownerOf(_tokenID);
+            return (address(this) == _owner); 
+            }
+
+    function SplitNFT (address _tokenAddr, uint _tokenID, string memory nft_json1, string memory nft_json2 ) external onlyAccess{
+        require(marriageStatus == MarriageStatus.Divorced);
+    
+        require (wasDistributed[_tokenAddr][_tokenID] == 0);
+        require (checkOwnership(_tokenAddr,_tokenID) == true);    
+     
+         WaverContract _wavercContract = WaverContract(addressWaveContract);
+         address nftSplitAddr = _wavercContract.addressNFTSplit();
+
+         nftSplitInstance nftSplit = nftSplitInstance(nftSplitAddr);
+         nftSplit.splitNFT(_tokenAddr, _tokenID, nft_json1, nft_json2, props.waver, props.proposed, address(this));
+         wasDistributed[_tokenAddr][_tokenID] == 1; 
+
+    }
+
+function sendNft (address nft_address, address receipent, uint nft_ID  ) external {
+     WaverContract _wavercContract = WaverContract(addressWaveContract);
+    require (_wavercContract.addressNFTSplit() == msg.sender);
+     IERC721(nft_address).safeTransferFrom(address(this),receipent, nft_ID);
+}
+
+    //These functions are called to load all votings
+
+    function getVoteLength() external view returns (uint256) {
+        return findVoteId.length;
+    }
+
+    function getVotingStatuses(uint256 _pagenumber)
+        external
+        view
+        onlyAccess
+        returns (VoteProposal[] memory)
+    {
+        
+        uint256 page = findVoteId.length / 20;
+        uint256 size;
+        uint256 start;
+        if (_pagenumber * 20 > findVoteId.length) {
+            size = findVoteId.length % 20;
+            if (size == 0) {
+                size = 20;
+                page -= 1;
+            }
+            start = page * 20;
+        } else if (_pagenumber * 20 <= findVoteId.length) {
+            size = 20;
+            start = (_pagenumber - 1) * 20;
+        }
+
+        VoteProposal[] memory votings = new VoteProposal[](size);
+
+        for (uint256 i = 0; i < size; i++) {
+            votings[i] = voteProposalAttributes[findVoteId[start + i]];
+        }
+        return votings;
+    }
+
+
+    function agreed() external onlyContract {
+     marriageStatus = MarriageStatus.Married; 
+     MarryDate = block.timestamp;
+     hasAccess[props.proposed] = true;
+    }
+ 
+    function declined() external onlyContract {
+     marriageStatus = MarriageStatus.Declined; 
+    }
+   
+   function cancel() external onlyAccess{
+   require(marriageStatus == MarriageStatus.Proposed || marriageStatus == MarriageStatus.Declined);
+   marriageStatus = MarriageStatus.Cancelled;
+   WaverContract _wavercContract = WaverContract(addressWaveContract);
+   _wavercContract.cancel(props.id);
+   processtxn(payable(props.waver),address(this).balance);
+
+   }
+
+          //Votes can be executed through this function
 function executeVoting(uint256 _id, uint256 txfee, uint256 _oracleprice)
         external
         nonReentrant
+        onlyAccess
     {
-        require(MarriageStatus == 1);
+        require(marriageStatus == MarriageStatus.Married);
         address msgSender_ = _msgSender();
-        Wave storage waver = checkAuth(msgSender_);
        
         if (msg.sender == forwarderAddr) {
             processtxn(payable(addressWaveContract), txfee);
@@ -383,12 +529,13 @@ function executeVoting(uint256 _id, uint256 txfee, uint256 _oracleprice)
                     addressWaveContract
                 );
 
-        uint256 _amount = voteProposal.amount * 99/100;
+        uint256 _amount = voteProposal.amount * (10000-props.cmFee)/10000;
+        uint256 _cmfees= voteProposal.amount - _amount;
 
 
         //If vote passes this makes transfers from the contract. 
         if (voteProposal.voteType == Type.TransferETH) {
-            processtxn(payable(addressWaveContract), voteProposal.amount / 100);
+            processtxn(payable(addressWaveContract), _cmfees);
                 
                 processtxn(
                     payable(voteProposal.receiver),
@@ -400,6 +547,14 @@ function executeVoting(uint256 _id, uint256 txfee, uint256 _oracleprice)
         } 
         
         else if (voteProposal.voteType == Type.TransferERC20) {
+
+             require(
+                    transferToken(
+                        voteProposal.tokenID,
+                        payable(addressWaveContract),
+                        _cmfees
+                    )
+                );
                 require(
                     transferToken(
                         voteProposal.tokenID,
@@ -413,20 +568,19 @@ function executeVoting(uint256 _id, uint256 txfee, uint256 _oracleprice)
         }
         //This is if two sides decide to divorce, funds are split between partners
        else if (voteProposal.voteType == Type.Divorce) {
-            MarriageStatus = 2;
+            marriageStatus =  MarriageStatus.Divorced;
 
             processtxn(
                 payable(addressWaveContract),
-                address(this).balance / 100
+                address(this).balance * props.cmFee/10000
             );
 
             uint256 splitamount = address(this).balance / 2;
-            processtxn(payable(waver.waver), splitamount);
-            processtxn(payable(waver.proposed), splitamount);
+            processtxn(payable(props.waver), splitamount);
+            processtxn(payable(props.proposed), splitamount);
            
             
-            
-           _wavercContract.divorceUpdate(waver.id);
+           _wavercContract.divorceUpdate(props.id);
           
             voteProposal.voteStatus = Status.Divorced;
 
@@ -434,11 +588,10 @@ function executeVoting(uint256 _id, uint256 txfee, uint256 _oracleprice)
        
         IERC721(voteProposal.tokenID).safeTransferFrom(address(this),voteProposal.receiver, voteProposal.amount);
         voteProposal.voteStatus = Status.NFTsent;
-
         } 
     
         else if (voteProposal.voteType == Type.InvestETH){
-           
+            processtxn(payable(addressWaveContract), _cmfees);
 
                 CEth cToken = CEth(voteProposal.receiver);
                 cToken.mint{ value: _amount}();
@@ -449,7 +602,7 @@ function executeVoting(uint256 _id, uint256 txfee, uint256 _oracleprice)
                     transferToken(
                         voteProposal.tokenID,
                         payable(addressWaveContract),
-                        voteProposal.amount / 100
+                        _cmfees
                     )
                 );
            
@@ -461,15 +614,7 @@ function executeVoting(uint256 _id, uint256 txfee, uint256 _oracleprice)
             } 
             
             else if (voteProposal.voteType == Type.RedeemETH){
-                require(
-                    transferToken(
-                        voteProposal.tokenID,
-                        payable(addressWaveContract),
-                        voteProposal.amount / 100
-                    )
-                   
-                );
-
+                
                 CEth cToken = CEth(voteProposal.receiver);
                 cToken.redeem(_amount); 
                 voteProposal.voteStatus = Status.Redeemed;
@@ -481,7 +626,7 @@ function executeVoting(uint256 _id, uint256 txfee, uint256 _oracleprice)
                     transferToken(
                         voteProposal.tokenID,
                         payable(addressWaveContract),
-                        voteProposal.amount / 100
+                        _cmfees
                     )
                 );
 
@@ -495,10 +640,9 @@ function executeVoting(uint256 _id, uint256 txfee, uint256 _oracleprice)
                     transferToken(
                         voteProposal.tokenID,
                         payable(addressWaveContract),
-                        voteProposal.amount / 100
+                         _cmfees
                     )
                 );
-           
             
             uint24 poolFee = _wavercContract.poolFee();
 
@@ -523,10 +667,9 @@ function executeVoting(uint256 _id, uint256 txfee, uint256 _oracleprice)
         
         else if (voteProposal.voteType == Type.ETHSwap){
            
-            processtxn(payable(addressWaveContract), voteProposal.amount / 100);
+            processtxn(payable(addressWaveContract), _cmfees);
             
           
-            
             uint24 poolFee = _wavercContract.poolFee();
 
             ISwapRouter.ExactInputSingleParams memory params =
@@ -557,153 +700,10 @@ function executeVoting(uint256 _id, uint256 txfee, uint256 _oracleprice)
         );
     }
 
-
-
-    //This is how  new family members are added/deleted. Can be called by main partners of the marriage
-    function addFamilyMember(address _member, uint256 txfee) external {
-        address msgSender_ = _msgSender();
-        Wave storage waver = checkAuth(msgSender_);
-        require(waver.waver == msgSender_ || waver.proposed == msgSender_);
-        require(waver.waver != _member && waver.proposed != _member);
-        WaverContract _waverContract = WaverContract(addressWaveContract);
-        _waverContract.addFamilyMember(_member, waver.id);
-        if (msg.sender == forwarderAddr) {
-            processtxn(payable(addressWaveContract), txfee);
-        }
-        emit VoteStatus(0, msgSender_, Status.FamilyAdded, block.timestamp);
-    }
-
-    function _addFamilyMember (address _member, address _owner ) external {
-        require(addressWaveContract == msg.sender);
-        proposalAttributes[_member] = proposalAttributes[_owner];
-        familyMembers += 1;
-    }
-
-
-    function deleteFamilyMember(address _member, uint256 txfee) external {
-        address msgSender_ = _msgSender();
-        Wave storage waver = checkAuth(msgSender_);
-        require(waver.waver == msgSender_ || waver.proposed == msgSender_);
-        require(waver.waver != _member && waver.proposed != _member);
-        WaverContract _waverContract = WaverContract(addressWaveContract);
-        delete proposalAttributes[_member];
-        familyMembers -= 1;
-        _waverContract.deleteFamilyMember(_member);
-        if (msg.sender == forwarderAddr) {
-            processtxn(payable(addressWaveContract), txfee);
-        }
-        emit VoteStatus(0, msgSender_, Status.FamilyDeleted, block.timestamp);
-    }
-
-    //If partners are divorced they can also split their ERC20 assets
-    function withdrawERC20(address _tokenID) external {
-        address msgSender_ = _msgSender();
-        require(MarriageStatus == 2);
-        Wave storage waver = checkAuth(msgSender_);
-        uint256 amount;
-        amount = IERC20Upgradeable(_tokenID).balanceOf(address(this));
-        require(
-            transferToken(_tokenID, payable(addressWaveContract), amount / 100)
-        );
-        amount = IERC20Upgradeable(_tokenID).balanceOf(address(this));
-        require(
-            transferToken(_tokenID, payable(waver.waver), (amount / 2))
-        );
-        require(
-            transferToken(_tokenID, payable(waver.proposed), (amount / 2))
-        );
-    }
-
-    function checkOwnership (address _nft_Address, uint256 _tokenID) internal  view returns (bool){
-            address _owner; 
-            _owner = IERC721(_nft_Address).ownerOf(_tokenID);
-            if (address(this) == _owner) { return true;}
-            else {return false;}
-            }
-
-    function SplitNFT (address _tokenAddr, uint _tokenID, string memory nft_json1, string memory nft_json2 ) external {
-        require(MarriageStatus == 2);
-        address msgSender_ = _msgSender();
-        Wave storage waver = checkAuth(msgSender_);
-
-        require (wasDistributed[_tokenAddr][_tokenID] == false);
-        require (checkOwnership(_tokenAddr,_tokenID) == true);    
-     
-         WaverContract _wavercContract = WaverContract(addressWaveContract);
-         address nftSplitAddr = _wavercContract.addressNFTSplit();
-
-         nftSplitInstance nftSplit = nftSplitInstance(nftSplitAddr);
-         nftSplit.splitNFT(_tokenAddr, _tokenID, nft_json1, nft_json2, waver.waver, waver.proposed, address(this));
-         wasDistributed[_tokenAddr][_tokenID] == true; 
-
-    }
-
-function sendNft (address nft_address, address receipent, uint nft_ID  ) external {
-     WaverContract _wavercContract = WaverContract(addressWaveContract);
-    require (_wavercContract.addressNFTSplit() == msg.sender);
-     IERC721(nft_address).safeTransferFrom(address(this),receipent, nft_ID);
-
-}
-
-    //These functions are called to load all votings
-
-    function getVoteLength() external view returns (uint256) {
-        return findVoteId.length;
-    }
-
-    function getVotingStatuses(uint256 _pagenumber)
-        external
-        view
-        returns (VoteProposal[] memory)
-    {
-        checkAuth(msg.sender);
-        uint256 page = findVoteId.length / 20;
-        uint256 size;
-        uint256 start;
-        if (_pagenumber * 20 > findVoteId.length) {
-            size = findVoteId.length % 20;
-            if (size == 0) {
-                size = 20;
-                page -= 1;
-            }
-            start = page * 20;
-        } else if (_pagenumber * 20 <= findVoteId.length) {
-            size = 20;
-            start = (_pagenumber - 1) * 20;
-        }
-
-        VoteProposal[] memory votings = new VoteProposal[](size);
-
-        for (uint256 i = 0; i < size; i++) {
-            votings[i] = voteProposalAttributes[findVoteId[start + i]];
-        }
-        return votings;
-    }
-
-    //These function used to claim LOVE tokens on periodic basis
-
-    function claimToken(uint256 txfee) external {
-        require(MarriageStatus == 1);
-        address msgSender_ = _msgSender();
-        checkAuth(msgSender_);
-        WaverContract _wavercContract = WaverContract(addressWaveContract);
-        uint256 policyDays = _wavercContract.policyDays();
-
-        require(claimtimer[msgSender_] + policyDays < block.timestamp);
-
-        uint256 amount = (address(this).balance * 10) / familyMembers;
-        claimtimer[msgSender_] = block.timestamp;
-        _wavercContract.mint(msgSender_, amount);
-        if (msg.sender == forwarderAddr) {
-            processtxn(payable(addressWaveContract), txfee);
-        }
-        emit VoteStatus(0, msgSender_, Status.Tokenclaimed, block.timestamp);
-    }
-
     //done
     function addstake() external payable {
-        require(MarriageStatus == 1);
-        processtxn(payable(addressWaveContract), (msg.value) / 100);
+        require(marriageStatus == MarriageStatus.Married);
+        processtxn(payable(addressWaveContract), (msg.value) * props.cmFee/ 10000);
         emit AddStake(msg.sender, address(this), block.timestamp, msg.value);
     }
 
@@ -715,8 +715,9 @@ function sendNft (address nft_address, address receipent, uint nft_ID  ) externa
 
     receive() external payable {
         require(msg.value > 0);
-        require(MarriageStatus == 1);
-        processtxn(payable(addressWaveContract), (msg.value ) / 100);
+        require(marriageStatus != MarriageStatus.Divorced);
+       
+        processtxn(payable(addressWaveContract), msg.value * props.cmFee/ 10000);
         emit AddStake(msg.sender, address(this), block.timestamp, msg.value);
     }
 }
