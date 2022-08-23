@@ -1,42 +1,57 @@
-# Advanced Sample Hardhat Project
+# CryptoMarry Contracts 
 
-This project demonstrates an advanced Hardhat use case, integrating other tools commonly used alongside Hardhat in the ecosystem.
+CryptoMarry (CM) allows marriage partners to create shared crypto account and manage crypto assets. Notable features: 
+    1) If partners both agree for the marriage partnership, a distinct contract will be created. 
+    2) CM allows for joint management of crypto assets including sending/receiving ERC20 and ERC721 tokens, and integration to Uniswap and Compound.
+    3) CM has built in voting mechanism to reach consensus between partners. Voting is done through LOVE tokens. 
+    4) LOVE tokens can be claimed depending on the balance of the marriage contract, or can be bought according to the exchange rate and the cap. 
+    5) If partners decide to divorce, the CM protocol provides settlement mechanisms, including: 
+       a) Splitting ETH balance 
+       b) Splitting ERC20 balance 
+       c) Splitting NFT assets 
+    6) Partners may decide to add other family members to the contract who can participate in the management of the crypto assets.  
+    7) Partners can mint tiered NFT certificates that certify the existance of account within the CM. 
+    8) CM has several other convenience functions such as sponsored transactions. 
 
-The project comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts. It also comes with a variety of other tools, preconfigured to work with the project code.
+# Contracts 
 
-Try running some of the following tasks:
+A few main contracts include: 
 
-```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
-npx hardhat node
-npx hardhat help
-REPORT_GAS=true npx hardhat test
-npx hardhat coverage
-npx hardhat run scripts/deploy.js
-node scripts/deploy.js
-npx eslint '**/*.js'
-npx eslint '**/*.js' --fix
-npx prettier '**/*.{json,sol,md}' --check
-npx prettier '**/*.{json,sol,md}' --write
-npx solhint 'contracts/**/*.sol'
-npx solhint 'contracts/**/*.sol' --fix
-```
+    **1) WaverContract  **
+    An entry contract where partners can create marriage contracts. This is the main contract that gives access to a proxy contract. 
+    **2) WaverImplementation**
+    A proxy contract that carries logic behind reaching consensus and management of crypto assets. 
 
-# Etherscan verification
+# Installation
 
-To try out Etherscan verification, you first need to deploy a contract to an Ethereum network that's supported by Etherscan, such as Ropsten.
+To run CM contracts, pull the repository from Github, and install its dependencies. You will need [npm](https://docs.npmjs.com/cli/install) installed.
 
-In this project, copy the .env.example file to a file named .env, and then edit it to fill in the details. Enter your Etherscan API key, your Ropsten node URL (eg from Alchemy), and the private key of the account which will send the deployment transaction. With a valid .env file in place, first deploy your contract:
 
-```shell
-hardhat run --network ropsten scripts/deploy.js
-```
+        git clone https://github.com/altyni86/CryptoMarry_Contracts.git
+        cd CryptoMarry_Contracts
+        run  `npm install`
 
-Then, copy the deployment address and paste it in to replace `DEPLOYED_CONTRACT_ADDRESS` in this command:
+# Compile 
 
-```shell
-npx hardhat verify --network ropsten DEPLOYED_CONTRACT_ADDRESS "Hello, Hardhat!"
-```
+You can compile contracts through:
+
+        npx hardhat compile
+
+# Testing 
+
+You can JS test the contract by running, you will need to have local node running:
+
+                npx hardhat run scripts/test.js  
+                npx hardhat run scripts/integrationtest.js
+Scenarios are already have been included for test purposes.  
+
+# Deployment 
+
+You can deploy the contracts through: 
+                npx hardhat run scripts/deploy.js 
+
+
+
+# Side notes 
+    1) Hardhat config is set for Forking - Local or Rinkeby Networks. You will need to include necessary information to env file
+    2) Due to issues in OpenZeppelin npm installations, ERC2771ContextUpgradeable.sol has been copied to contracts folder. 
