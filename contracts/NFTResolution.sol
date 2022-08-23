@@ -10,6 +10,16 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/common/ERC2981.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
+ /**
+ [MIT License]
+ @title NFT Splitter
+ @notice This contract transforms ERC721 NFTs into ERC1155 NFTs with 2 identical tokens. 
+ @author Ismailov Altynbek <altyni@gmail.com>
+*/
+
+
+/* The sale of NFT using this contract results in royalty for CM */
+
 abstract contract ERC1155Royalty is ERC2981, ERC1155 {
     /**
      * @dev See {IERC165-supportsInterface}.
@@ -27,56 +37,71 @@ abstract contract ERC1155Royalty is ERC2981, ERC1155 {
     }
 }
 
+/* If a partner collects two copies of the ERC721 NFT, a partner can retreive it from their proxy contract. */
 abstract contract Instance {
-function sendNft (address nft_address, address receipent, uint nft_ID  ) external virtual;
+    function sendNft (address nft_address, address receipent, uint nft_ID  ) external virtual;
 }
 
 
 contract nftSplit is ERC1155Royalty, Ownable{ 
   
-    using Counters for Counters.Counter;
-    Counters.Counter private _tokenIds;
-    address internal mainAddress;
+    using Counters for Counters.Counter; // Counting IDs 
+    Counters.Counter private _tokenIds; //Storing count IF
+    address internal mainAddress; //The address of the main contract 
 
-    // Tracking addresses of Proxy contracts that have right to mint NFT certificates
-    mapping(address => uint8) internal authrizedAddresses;
-     mapping (address => mapping (uint => uint)) public tokenTracker;
+   
+    mapping(address => uint8) internal authrizedAddresses; //Proxies have to authorized here to split NFTs
+    mapping (address => mapping (uint => uint)) public tokenTracker; //Tracking NFTs that were split
 
-
+/* NFTs that are to be splitted holds the following attrubutes*/
     struct NFTAttributes {
-        address nft_address;
-        string nft_json1;
-        string nft_json2;
-        uint256 nft_ID;
-        address implementationAddr;
+        address nft_address; //the address of the ERC721 NFT
+        string nft_json1; //first part of the json URI
+        string nft_json2; //second part of the json URI
+        uint256 nft_ID; //the ID of the ERC721 token
+        address implementationAddr; //The address that holds ERC721 NFT
     }
 
 
-// We create a mapping from the nft's tokenId => that NFTs attributes.
-  mapping(uint256 => NFTAttributes) internal nftHolderAttributes;
+  mapping(uint256 => NFTAttributes) internal nftHolderAttributes; //Storage of the ERC1155 NFTs attributes  
 
+/* The main address is passed to this NFT*/
 constructor (address _mainaddress) ERC1155 ("") {
      _tokenIds.increment();
-     _setDefaultRoyalty(_mainaddress,100);
-      mainAddress = _mainaddress;
+     _setDefaultRoyalty(_mainaddress,100); //Royalty is set to 1% of the sales price. 
+     mainAddress = _mainaddress; 
     }
 
-  // This is how authorized proxies are registered through main contract
+/**
+     * @notice Addresses of the proxy contracts needs to be added to authorize them to split NFTs held by the contract.   
+     * @param _addAddresses an Address of the proxy contract.
+     */
 
     function addAddresses(address _addAddresses) external {
         require(mainAddress == msg.sender);
         authrizedAddresses[_addAddresses] = 1;
     }
 
-      // This is main factory contract
+   /**
+     * @notice Changing the main address;
+     * @param _mainAddress an Address of the main contract that mints NFTs
+     */
     function changeMainAddress(address _mainAddress) external onlyOwner {
         mainAddress = _mainAddress;
     }
 
+
+/**
+     * @notice Checks whether an account holds both copies of ERC721 tokens 
+     * @dev TokenID of the ERC1155 token. 
+     * @param _tokenID The ID of the NFT stored within this contract 
+     */
 function checkStatus (uint _tokenID) external view returns (bool) {
       return balanceOf(msg.sender,_tokenID) == 2;
     }
 
+
+/* Utility function that transforms address to trimmed string address */
 function addressToString(address addr)
         private
         pure
@@ -120,26 +145,48 @@ function addressToString(address addr)
         return trimmed;
     }
 
+/**
+     * @notice Once divorced, partners can split ERC721 tokens owned by the proxy contract. 
+     * @dev Each partner/or other family member can call this function to split ERC721 token between partners.
+     Two identical copies of ERC721 will be created by the NFT Splitter contract creating a new ERC1155 token.
+      The token will be marked as "Copy". 
+     To retreive the original copy, the owner needs to have both copies of the NFT.
+     This function is called by the proxy contract.  
 
-  function splitNFT (address _nft_Address, uint _tokenID, string memory nft_json1,string memory nft_json2, address waver, address proposed, address _implementationAddr) external {
+     * @param _tokenAddr the address of the ERC721 token that is being split. 
+     * @param _tokenID the ID of the ERC721 token that is being split
+     * @param nft_json1 metadata of the ERC721.  
+     * @param nft_json2 metadata of the ERC721 part 2. 
+     * @param proposer A proposer
+     * @param proposed A proposed
+     * @param _implementationAddr An address of the proxy contract
+     */
+    
+
+  function splitNFT (address _tokenAddr, uint _tokenID, string memory nft_json1,string memory nft_json2, address proposer, address proposed, address _implementationAddr) external {
      require(authrizedAddresses[msg.sender] == 1, "NAuth Split");
       uint256 newItemId = _tokenIds.current();
-      _mint(waver,newItemId,1,"0x0");
+      _mint(proposer,newItemId,1,"0x0");
       _mint(proposed,newItemId,1,"0x0");
 
       nftHolderAttributes[newItemId] =  NFTAttributes({
-        nft_address: _nft_Address,
+        nft_address: _tokenAddr,
         nft_json1: nft_json1,
         nft_json2: nft_json2,
         nft_ID: _tokenID,
         implementationAddr: _implementationAddr
     });
 
-    tokenTracker[_nft_Address][_tokenID] = newItemId;
+    tokenTracker[_tokenAddr][_tokenID] = newItemId;
     
      _tokenIds.increment(); 
   }
 
+/**
+     * @notice If partner acquires both copies of NFTs, the NFT can be retreived by that partner through this function. 
+     * @dev The contract checks whether an address has both copies. Tokens are burnt once retreived.   
+     * @param _tokenID the ID of the ERC721 token that is being sent
+     */
 
 function joinNFT (uint256 _tokenID) external {
   require (balanceOf(msg.sender,_tokenID) == 2,"Not enough balance");
@@ -147,19 +194,15 @@ function joinNFT (uint256 _tokenID) external {
   Instance instance = Instance(nftAttributes.implementationAddr);
   instance.sendNft (nftAttributes.nft_address, msg.sender, nftAttributes.nft_ID);
   _burn(msg.sender,_tokenID,2);
-
 }
 
-
+/* A view function to see URI of the ERC1155 token*/
 function uri(uint256 _tokenId) public view override returns (string memory) {
   
   NFTAttributes memory nftAttributes = nftHolderAttributes[_tokenId];
 
   string memory json = Base64.encode(
-    
-      
         abi.encodePacked(nftAttributes.nft_json1,'{"trait_type": "CryptoMarry Split:", "value": "1 out of 2"},','{"trait_type": "Original owned by:", "value": "',addressToString(nftAttributes.implementationAddr),'"},',nftAttributes.nft_json2)
-      
     
   );
   string memory output = string(

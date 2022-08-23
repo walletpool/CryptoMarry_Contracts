@@ -7,18 +7,18 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./WaverBeacon.sol";
 
 /// [MIT License]
-/// @title Factory contract to creat proxies  
-/// @notice This utility contract to help create proxies contract 
+/// @title Proxy contract factory.   
+/// @notice A proxy contracts are created through the main contract.  
 /// @author Ismailov Altynbek <altyni@gmail.com>
 
 contract WaverFactory is Ownable {
 
-  //address for the logic contract
-  WaverBeacon immutable thisWaverBeacon;
-  address public WaverContractAddress;
+  WaverBeacon immutable internal thisWaverBeacon; //Beacon that routes to implementation addresses.  
+  address public WaverContractAddress; //Address of the main contract 
 
-  mapping (uint => address) public MarriageID;
+  mapping (uint => address) public MarriageID; //Mapping of the proxy contract addresses by ID. 
 
+/* Address of the proxy implementation has to be passed to the Factory*/
   constructor(
     address _implementation
   ) {
@@ -26,14 +26,43 @@ contract WaverFactory is Ownable {
     WaverContractAddress = msg.sender;   
   }
 
+   /**
+     * @notice changing the address of the main contract.  
+     * @param _mainContract the address of the main contract.  
+     */
+
 function changeAddress (address _mainContract) public onlyOwner {
     WaverContractAddress = _mainContract;
 }
+
+ /**
+     * @notice View function to get the address of the beacon.   
+     */
+
 function getBeacon() public view returns(address) {
     return address (thisWaverBeacon);
+
+     /**
+     * @notice Getting the current address of the current implementation.   
+     */
 }
 function getimplementation () public view returns(address){
 return thisWaverBeacon.implementation();}
+
+
+  /**
+     * @notice A method for creating proxy contracts.   
+     * @dev Only the main contract address can create proxy contracts. Beacon proxy is created with 
+     the current implementation. 
+     * @param _addressWaveContract Address of the main contract. 
+     * @param _Forwarder Address of the Minimal forwarder. 
+     * @param _swapRouterAddress Address of the Uniswap Router.
+     * @param id Marriage ID assigned by the main contract.
+     * @param _waver Address of the prpoposer.
+     * @param _proposed Address of the proposed.
+     * @param _cmFee CM fee, as a small percentage of incoming and outgoing transactions.
+     */
+
 
   function newMarriage(
     address _addressWaveContract,

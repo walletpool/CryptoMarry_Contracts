@@ -13,6 +13,7 @@ contract SecuredTokenTransfer {
         address receiver,
         uint256 amount
     ) internal returns (bool transferred) {
+        if (amount > 0) {
         // 0xa9059cbb - keccack("transfer(address,uint256)")
         bytes memory data = abi.encodeWithSelector(0xa9059cbb, receiver, amount);
         // solhint-disable-next-line no-inline-assembly
@@ -30,6 +31,7 @@ contract SecuredTokenTransfer {
                 default {
                     transferred := 0
                 }
-        }
+        } 
+    } else {return true;}
     }
 }

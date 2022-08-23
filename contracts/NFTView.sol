@@ -1,17 +1,21 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.10;
-/// [MIT License]
-/// @title CryptoMarry NFT contract
-/// @notice This contract has NFT viewing functionality
-/// @author Ismailov Altynbek <altyni@gmail.com>
+/**  
+    *[MIT License]
+    *@title CryptoMarry NFT VIEW contract
+    *@notice This contract compiles and returns string URI of the NFT. 
+    *@author Ismailov Altynbek <altyni@gmail.com>
+*/
 
 import "@openzeppelin/contracts/utils/Base64.sol";
 
+/* This function is to retreive the messages that are to be included in the NFT*/
 abstract contract WaverContractM {
     function messages(address) external view virtual returns (string memory);
 }
 
+/* This function is to retreive ENS names onchain*/
 abstract contract ReverseRecords {
     function getNames(address[] calldata addresses)
         external
@@ -21,45 +25,56 @@ abstract contract ReverseRecords {
 }
 
 contract nftview {
-    // Some initialization variables
-    address internal nftmainAddress;
-    address internal mainAddress;
-    address internal addressENS;
-    address public owner;
+    
+    address internal nftmainAddress; //The address of the ERC721 NFT contract 
+    address internal mainAddress; //The address of the main contract that mints NFTs
+    address internal addressENS; //The ENS resolver address 
+    address public owner; // The owner of this contract 
 
 
-    mapping(uint256 => bytes) internal heartPatterns;
-    mapping(uint256 => bytes) internal certBackground;
-    mapping(uint256 => bytes) internal additionalGraphics;
+    mapping(uint256 => bytes) internal heartPatterns; //Stores  visual elements of the NFT 
+    mapping(uint256 => bytes) internal certBackground; //Stores  visual elements of the NFT 
+    mapping(uint256 => bytes) internal additionalGraphics; //Stores  visual elements of the NFT 
 
 
+    /* The address of the ENS resolver needs to be passed here*/
     constructor( address _ensResolver) {
 
       addressENS = _ensResolver;
       owner = msg.sender;
     }
 
-    struct CertificateAttributes {
-        address waver;
-        address proposed;
-        string Status;
-        uint8 hasensWaver;
-        uint8 hasensProposed;
-        uint256 stake;
-        uint256 id;
-        uint256 blockNumber;
-        uint256 heartPatternsID;
-        uint256 certBackgroundID;
-        uint256 additionalGraphicsID;
+     struct CertificateAttributes {
+        address proposer; //Address of the proposer 
+        address proposed; //Address of the proposed 
+        string Status; //Marriage status  - Married, Divorced. 
+        uint8 hasensWaver; //If a proposer has opted in to show ENS within the Certificate 
+        uint8 hasensProposed; //If a proposed has opted in to show ENS within the Certificate 
+        uint256 stake; //Current balance of the proxy contract  
+        uint256 id; //ID of the marriage 
+        uint256 blockNumber; //BlockNumber when the NFT was created 
+        uint256 heartPatternsID; //ID of NFT element 
+        uint256 certBackgroundID; //ID of NFT element 
+        uint256 additionalGraphicsID; //ID of NFT element 
     }
 
 
-        // This is to change ENS resolver address
+ /**
+     * @notice Changing the address of the ENS resolver;
+     * @param _ensaddress an Address of ENS resolver
+     */
+
     function changeENSAddress(address _ensaddress) external {
         require(owner == msg.sender);
         addressENS = _ensaddress;
     }
-    // This is used to Resolve ENS names
+    
+ /**
+     * @notice This function resolves the ENS names. 
+     * @dev a list of ENS addresses can be passed. Returns list of resolved ENS names.  
+     * @param addresses a list of addresses to be resolved
+     */
+
     function reverseResolve(address[] memory addresses)
         internal
         view
@@ -71,11 +86,24 @@ contract nftview {
     }
 
 
-       // Functions below to further customize NFTs
+    /**
+     * @notice This function adds visual elements for NFTS 
+     * @dev Each ID has different visual patterns. Patterns are passed through bytes.  
+     * @param _id ID of the pattern 
+     *  @param _pattern Byte code of the pattern
+     */
+
     function addheartPatterns(uint256 _id, bytes memory _pattern) external {
         require(owner == msg.sender);
         heartPatterns[_id] = _pattern;
     }
+
+    /**
+     * @notice This function adds visual elements for NFTS 
+     * @dev Each ID has different visual patterns. Patterns are passed through bytes.  
+     * @param _id ID of the pattern 
+     *  @param _pattern Byte code of the pattern
+     */
 
     function addadditionalGraphics(uint256 _id, bytes memory _pattern)
         external
@@ -83,6 +111,12 @@ contract nftview {
         require(owner == msg.sender);
         additionalGraphics[_id] = _pattern;
     }
+    /**
+     * @notice This function adds visual elements for NFTS 
+     * @dev Each ID has different visual patterns. Patterns are passed through bytes.  
+     * @param _id ID of the pattern 
+     *  @param _pattern Byte code of the pattern
+     */
 
     function addcertBackground(uint256 _id, bytes memory _pattern) external {
         require(owner == msg.sender);
@@ -90,17 +124,28 @@ contract nftview {
     }
 
 
- // Owner is the wallet that created the contract
+  /**
+     * @notice Changing the owner of this contract  
+     * @param _addAddresses an Address to which the owner is being changed. 
+     */
+
     function changeOwner(address _addAddresses) external {
         require(owner == msg.sender);
         owner = _addAddresses;
     }
-
-    // This is main  contract
+/**
+     * @notice Changing the ERC721 contract address;
+     * @param _nftmainAddress an Address of the ERC721 contract.
+     */
     function changenftmainAddress(address _nftmainAddress) external {
         require(owner == msg.sender);
         nftmainAddress = _nftmainAddress;
     }
+
+/**
+     * @notice Changing the main address;
+     * @param _mainAddress an Address of the main contract that mints NFTs
+     */
 
      function changeMainAddress(address _mainAddress) external {
         require(owner == msg.sender);
@@ -108,7 +153,12 @@ contract nftview {
     }
 
 
-
+/**
+     * @notice Resolves the address of the partner either to ENS string or address string. 
+     * @dev returns string to be shown within the NFT.  
+     * @param _address Address to be resolved 
+     * @param ensStatus a switch that checks if partner opted to show ENS name. 
+     */
      function getAddr(address _address, uint8 ensStatus)
         internal
         view
@@ -128,7 +178,7 @@ contract nftview {
     }
 
 
-    // Utility function to turn wallet addresses into strings
+    /* Utility function that transforms address to trimmed string address */
 
     function addressToString(address addr)
         private
@@ -174,7 +224,7 @@ contract nftview {
     }
 
 
-    // Utility function to turn UINT into string
+     /* Utility function that transforms UINT to string number */
     function uint2str(uint256 _i)
         internal
         pure
@@ -201,7 +251,7 @@ contract nftview {
         return string(bstr);
     }
 
-    // Utility function to turn Stakes' into strings
+    /* Utility function that transforms UINT balance to a formatted string number */
     function generateStake(uint256 _stake)
         private
         pure
@@ -224,8 +274,14 @@ contract nftview {
         return stakeamount;
     }
 
+  /**
+     * @notice This function compiles visual elements of the NFT and sends string URI
+     * @dev Token URI is compiled via BASE64 encoding 
+     * @param _tokenId the ID of the NFT
+     * @param charAttributes Attributes of the NFT
+     */
+    
 
-    // Changes Function to view NFTs
     function getURI(uint256 _tokenId,
     CertificateAttributes calldata charAttributes
     )
@@ -243,7 +299,7 @@ contract nftview {
             Messagetext = string(
                 abi.encodePacked(
                     '{"trait_type": "Proposers Love note", "value": "',
-                    _wavercContract.messages(charAttributes.waver),
+                    _wavercContract.messages(charAttributes.proposer),
                     '"},{ "trait_type": "Response Love note", "value": "',
                     _wavercContract.messages(charAttributes.proposed),
                     '"},'
@@ -289,7 +345,7 @@ contract nftview {
                                     ' rETH</text></g><g style="transform:translate(35px,290px)"><rect width="400" height="40" rx="8" ry="8" fill="rgba(0,0,0,0.6)"/><text x="12" y="30" font-family="Courier New, monospace" font-size="30" fill="#fff"><tspan fill="rgba(255,255,255,0.8)">Block#: </tspan>',
                                     uint2str(charAttributes.blockNumber),
                                     '</text></g><g style="transform:translate(35px,350px)"><rect width="430" height="95" rx="8" ry="8" fill="rgba(0,0,0,0.6)"/><text x="12" y="30" font-family="Courier New, monospace" font-size="30" fill="#fff"><tspan fill="rgba(255,255,255,0.8)">Between: </tspan></text><g fill="#fff" font-family="Courier New, monospace" font-size="16"><text x="12" y="55">',
-                                    getAddr(charAttributes.waver,charAttributes.hasensWaver),
+                                    getAddr(charAttributes.proposer,charAttributes.hasensWaver),
                                     '</text><text x="12" y="75">',
                                     getAddr(charAttributes.proposed,charAttributes.hasensProposed),
                                     "</text></g></g></svg>"
