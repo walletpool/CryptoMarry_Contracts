@@ -11,6 +11,7 @@ async function deploy(name, ...params) {
 
 async function main() {
   console.log("Construction started.....");
+  const accounts = await ethers.getSigners();
   
   const nftViewContract = await deploy(
     "nftview",
@@ -64,7 +65,8 @@ async function main() {
     forwarder.address,
     nftContract.address,
     WaverFactory.address,
-    "0xE592427A0AEce92De3Edee1F18E0157C05861564"
+    "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+    accounts[0].address
   );
   console.log(
     "Wave Portal Contract deployed:",
@@ -132,12 +134,11 @@ async function main() {
 
   
 
-  const accounts = await ethers.getSigners();
   console.log("*************************************")
       console.log("Balance of ETH :",await hre.ethers.provider.getBalance(accounts[0].address));
   let txn;
   //    Proposing
-  txn = await WavePortal7.wave(
+  txn = await WavePortal7.propose(
     accounts[1].address,
     hre.ethers.utils.parseEther("10"),
     "I love you so much!!!",
@@ -148,7 +149,7 @@ async function main() {
 
   console.log("Proposal has been sent! Gas Cost:---->",txn.gasLimit);
 
-  txn = await WavePortal7.connect(accounts[1]).approvals(
+  txn = await WavePortal7.connect(accounts[1]).response(
     "I love you too",
     1,
     0
@@ -169,7 +170,7 @@ async function main() {
   );
 
   
-  txn = await WavePortal7.NftMinted(instance.address);
+  txn = await WavePortal7.nftMinted(instance.address);
   console.log("NFT Status:", txn);
 
   txn = await WavePortal7.MintCertificate(101, 0, 0, {
