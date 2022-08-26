@@ -46,11 +46,11 @@ npx hardhat compile
 
 ## Testing 
 
-You can JS test the contract by running, you will need to have local node running:
+Testing has approximately 82.63% coverage. External intagration tests are run separately. 
 
 ```bash
-npx hardhat run scripts/test.js  
-npx hardhat run scripts/integrationtest.js
+npx hardhat test
+
 ```
 
 Scenarios are already have been included for test purposes.
