@@ -6,3 +6,4 @@ node_modules/
 coverage.json
 deploytest.json
 cleaned/
+.DS_Store
