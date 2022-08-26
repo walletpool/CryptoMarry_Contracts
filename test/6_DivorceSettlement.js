@@ -512,6 +512,9 @@ describe("Divorce Settlement Functions", function () {
     const id = await nftSplit.tokenTracker(nftContract.address, 1);
 
     txn = await nftSplit
+      .uri(1);
+
+    txn = await nftSplit
       .connect(accounts[0])
       .safeTransferFrom(accounts[0].address, accounts[1].address, id, 1, 0x0);
 
