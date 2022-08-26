@@ -12,47 +12,40 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
 /*A struct that has NFT certificate attributes*/
-  struct CertificateAttributes {
-        address proposer; //Address of the proposer 
-        address proposed; //Address of the proposed 
-        string Status; //Marriage status  - Married, Divorced. 
-        uint8 hasensWaver; //If a proposer has opted in to show ENS within the Certificate 
-        uint8 hasensProposed; //If a proposed has opted in to show ENS within the Certificate 
-        uint256 stake; //Current balance of the proxy contract  
-        uint256 id; //ID of the marriage 
-        uint256 blockNumber; //BlockNumber when the NFT was created 
-        uint256 heartPatternsID; //ID of NFT element 
-        uint256 certBackgroundID; //ID of NFT element 
-        uint256 additionalGraphicsID; //ID of NFT element 
-    }
-  
+struct CertificateAttributes {
+    address proposer; //Address of the proposer
+    address proposed; //Address of the proposed
+    string Status; //Marriage status  - Married, Divorced.
+    uint8 hasensWaver; //If a proposer has opted in to show ENS within the Certificate
+    uint8 hasensProposed; //If a proposed has opted in to show ENS within the Certificate
+    uint256 stake; //Current balance of the proxy contract
+    uint256 id; //ID of the marriage
+    uint256 blockNumber; //BlockNumber when the NFT was created
+    uint256 heartPatternsID; //ID of NFT element
+    uint256 certBackgroundID; //ID of NFT element
+    uint256 additionalGraphicsID; //ID of NFT element
+}
+
 /*A separate contract for getting NFT URI*/
 
 abstract contract NftviewC {
-  
-    function getURI(uint256,
-    CertificateAttributes memory
-    )
+    function getURI(uint256, CertificateAttributes memory)
         public
-        virtual
         view
+        virtual
         returns (string memory);
 }
 
 contract nftmint2 is ERC721 {
-   
-
     using Counters for Counters.Counter; //counting NFT IDs
-    address public owner; //owner of the contract 
-    address internal mainAddress; //Address of the main contract 
-    address internal nftViewAddress; //Address of the contract for viewing NFTs 
+    address public owner; //owner of the contract
+    address internal mainAddress; //Address of the main contract
+    address internal nftViewAddress; //Address of the contract for viewing NFTs
 
-  
     Counters.Counter private _tokenIds; //Tracking NFT ids
 
- 
     mapping(uint256 => CertificateAttributes) internal nftHolderAttributes; //Storage of NFT attributes
-    mapping(address => mapping(address => uint256)) public nftHolders; //Storage of NFT holders 
+    mapping(address => mapping(address => uint256)) public nftHolders; //Storage of NFT holders
 
     /*A contract address for viewing URI should be passed to this contract*/
     constructor(address _nftViewAddress) ERC721("CryptoMarry", "LOVE") {
@@ -61,17 +54,16 @@ contract nftmint2 is ERC721 {
         nftViewAddress = _nftViewAddress;
     }
 
- 
-     /**
-     * @notice Changing the owner of this contract  
-     * @param _addAddresses an Address to which the owner is being changed. 
+    /**
+     * @notice Changing the owner of this contract
+     * @param _addAddresses an Address to which the owner is being changed.
      */
     function changeOwner(address _addAddresses) external {
         require(owner == msg.sender);
         owner = _addAddresses;
     }
 
-/**
+    /**
      * @notice Changing the main address;
      * @param _mainAddress an Address of the main contract that mints NFTs
      */
@@ -80,21 +72,19 @@ contract nftmint2 is ERC721 {
         mainAddress = _mainAddress;
     }
 
-/**
-     * @notice NFT certificates are minted through this function.  
-     * @dev Two nfts are minted for eah partner. 
+    /**
+     * @notice NFT certificates are minted through this function.
+     * @dev Two nfts are minted for eah partner.
      * @param _proposer Address of the proposer
      * @param _hasensWaver If a proposer has opted in to show ENS within the Certificate
-     * @param _proposed Address of the proposed 
-     * @param _hasensProposed If a proposed has opted in to show ENS within the Certificate. 
-     * @param _stake Current balance of the proxy contract 
-     * @param _heartPatternsID ID of NFT element 
+     * @param _proposed Address of the proposed
+     * @param _hasensProposed If a proposed has opted in to show ENS within the Certificate.
+     * @param _stake Current balance of the proxy contract
+     * @param _heartPatternsID ID of NFT element
      * @param _certBackgroundID ID of NFT element
-     * @param _additionalGraphicsID ID of NFT element 
+     * @param _additionalGraphicsID ID of NFT element
      */
 
-
-    
     function mintCertificate(
         address _proposer,
         uint8 _hasensWaver,
@@ -126,7 +116,6 @@ contract nftmint2 is ERC721 {
             additionalGraphicsID: _additionalGraphicsID
         });
 
-    
         nftHolders[_proposer][_proposed] = newItemId;
 
         _tokenIds.increment();
@@ -138,7 +127,7 @@ contract nftmint2 is ERC721 {
             proposer: _proposer,
             proposed: _proposed,
             Status: "Married",
-            hasensWaver:  _hasensWaver,
+            hasensWaver: _hasensWaver,
             hasensProposed: _hasensProposed,
             stake: _stake,
             id: _id,
@@ -151,17 +140,14 @@ contract nftmint2 is ERC721 {
         _tokenIds.increment();
     }
 
-
-/**
-     * @notice If partners divorce, this function will change the status of the NFT.  
-     * @dev Both NFTs change status. Main contract can call this function.  
+    /**
+     * @notice If partners divorce, this function will change the status of the NFT.
+     * @dev Both NFTs change status. Main contract can call this function.
      * @param _proposer Address of the proposer
-     * @param _proposed Address of the proposed 
-     * @param _status Status of the marriage 
+     * @param _proposed Address of the proposed
+     * @param _status Status of the marriage
      */
 
-
-   
     function changeStatus(
         address _proposer,
         address _proposed,
@@ -173,19 +159,20 @@ contract nftmint2 is ERC721 {
             nftTokenIdOfPlayer
         ];
         if (_status == false) {
-        certificate.Status = "Divorced";
-        CertificateAttributes storage certificate2 = nftHolderAttributes[
-            nftTokenIdOfPlayer + 1
-        ];
-        certificate2.Status = "Divorced"; }
+            certificate.Status = "Divorced";
+            CertificateAttributes storage certificate2 = nftHolderAttributes[
+                nftTokenIdOfPlayer + 1
+            ];
+            certificate2.Status = "Divorced";
+        }
     }
 
-/**
+    /**
      * @notice This function returns string token URI
-     * @dev URI string is generated by a separate contract with given attributes. 
-     * @param _tokenId The ID of the NFT. 
+     * @dev URI string is generated by a separate contract with given attributes.
+     * @param _tokenId The ID of the NFT.
      */
-    
+
     function tokenURI(uint256 _tokenId)
         public
         view
@@ -196,9 +183,8 @@ contract nftmint2 is ERC721 {
             _tokenId
         ];
         NftviewC _nftview = NftviewC(nftViewAddress);
-       
-       string memory output = _nftview.getURI(_tokenId, charAttributes);
-       return output ;
-      
+
+        string memory output = _nftview.getURI(_tokenId, charAttributes);
+        return output;
     }
 }
