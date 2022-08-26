@@ -53,8 +53,6 @@ npx hardhat test
 
 ```
 
-Scenarios are already have been included for test purposes.
-
 ## Deployment 
 
 You can deploy the contracts through: 
