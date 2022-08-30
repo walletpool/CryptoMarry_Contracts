@@ -46,13 +46,18 @@ npx hardhat compile
 
 ## Testing 
 
-Testing has approximately 82.63% coverage. External intagration tests are run separately. 
+Testing has approximately 82.63% coverage.  
 
 ```bash
 npx hardhat test
 
 ```
+Some scenario based external intagration tests are run separately by forking ETH mainnet. 
 
+```bash
+npx hardhat run --network localhost scripts/7_external_integration_test.js
+
+```
 ## Deployment 
 
 You can deploy the contracts through: 
