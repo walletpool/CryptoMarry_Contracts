@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import "@openzeppelin/contracts/metatx/MinimalForwarder.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "./SecuredTokenTransfer.sol";
 
 /**
 [MIT License]
@@ -52,6 +51,12 @@ interface NFTContract {
         address _proposed,
         bool _status
     ) external;
+
+    function nftHolders(
+        address _waver,
+        address _proposed
+    ) external returns(uint);
+
 }
 
 /*Interface for a NFT split contracts*/
@@ -68,10 +73,12 @@ interface waverImplementation1 {
     function declined() external;
 }
 
-contract WavePortal7 is ERC20, ERC2771Context, SecuredTokenTransfer, Ownable {
-    address public addressNFT; // Address of NFT certificate factory
+
+contract WavePortal7 is ERC20, ERC2771Context, Ownable {
+   
+    address internal addressNFT; // Address of NFT certificate factory
     address public addressNFTSplit; // Address of NFT splitting contract
-    address public waverFactoryAddress; // Address of Proxy contract factory
+    address internal waverFactoryAddress; // Address of Proxy contract factory
     address internal forwarderAddress; // Address of Minimal Forwarder
     address internal swapRouterAddress; // Address of SWAP router UNISWAP
     address internal withdrawaddress; //Address to where comissions are withdrawed/
@@ -116,10 +123,8 @@ contract WavePortal7 is ERC20, ERC2771Context, SecuredTokenTransfer, Ownable {
     mapping(address => string) public messages; //stores messages of CM users
     mapping(address => uint8) internal authrizedAddresses; //Tracks whether a proxy contract addresses is authorized to interact with this contract.
     mapping(address => address[]) internal familyMembers; // List of family members addresses
-    mapping(uint256 => mapping(uint256 => mapping(uint256 => uint256)))
-        public nftLeft; //tracks a cap for a particular type of NFT certificate
-    mapping(address => uint8) public nftMinted; //maps addresses to whether nft was issued.
     mapping(address => uint256) public claimtimer; //maps addresses to when the last time LOVE tokens were claimed.
+    mapping (address => string) public nameAddress; //For giving Names for addresses. 
 
     /* An event to track status changes of the contract*/
     event NewWave(
@@ -130,7 +135,6 @@ contract WavePortal7 is ERC20, ERC2771Context, SecuredTokenTransfer, Ownable {
     );
 
     /* A contructor that sets initial conditions of the Contract*/
-
     constructor(
         MinimalForwarder forwarder,
         address _nftaddress,
@@ -144,9 +148,6 @@ contract WavePortal7 is ERC20, ERC2771Context, SecuredTokenTransfer, Ownable {
         minPricePolicy = 1e18;
         forwarderAddress = address(forwarder);
         waverFactoryAddress = _waveFactory;
-        nftLeft[0][0][0] = 1e6;
-        nftLeft[101][0][0] = 1e3;
-        nftLeft[101][1001][0] = 1e2;
         swapRouterAddress = _swaprouter;
         poolFee = 3000;
         cmFee = 100;
@@ -200,6 +201,7 @@ contract WavePortal7 is ERC20, ERC2771Context, SecuredTokenTransfer, Ownable {
 
         proposers[msg.sender] = id;
         proposedto[_proposed] = id;
+    
 
         hasensName[msg.sender] = _hasensWaver;
         messages[msg.sender] = _message;
@@ -284,7 +286,7 @@ contract WavePortal7 is ERC20, ERC2771Context, SecuredTokenTransfer, Ownable {
     function cancel(uint256 _id) external onlyContract {
         Wave storage waver = proposalAttributes[_id];
         waver.ProposalStatus = Status.Cancelled;
-        emit NewWave(_id, waver.proposer, block.timestamp, Status.Cancelled);
+        //emit NewWave(_id, waver.proposer, block.timestamp, Status.Cancelled);
         proposers[waver.proposer] = 0;
     }
 
@@ -351,12 +353,10 @@ contract WavePortal7 is ERC20, ERC2771Context, SecuredTokenTransfer, Ownable {
         (address msgSender_, uint256 _id) = checkAuth();
         Wave storage waver = proposalAttributes[_id];
         require(waver.ProposalStatus == Status.Processed);
-        nftMinted[waver.marriageContract] = 1;
         uint256 issued = msg.value * exchangeRate;
 
         saleCap -= issued;
-        nftLeft[logoID][BackgroundID][MainID] -= 1;
-
+       
         NFTContract NFTmint = NFTContract(addressNFT);
 
         if (BackgroundID >= 1000) {
@@ -447,6 +447,22 @@ contract WavePortal7 is ERC20, ERC2771Context, SecuredTokenTransfer, Ownable {
         }
     }
 
+      /**
+     * @notice A function to add string name for an Address 
+     * @dev Names are used for better UI/UX. 
+     * @param _name String name
+     */
+
+    function addName(string memory  _name) external {
+        nameAddress[msg.sender] = _name;
+    }
+
+    function forgetMe() external {
+        proposers[msg.sender] = 0;
+        proposedto[msg.sender] = 0;
+        member[msg.sender][true] = 0;
+    }
+
     /**
      * @notice A view function to get the list of family members per a Proxy Contract.
      * @dev the list is capped by a proxy contract to avoid unlimited lists.
@@ -472,9 +488,9 @@ contract WavePortal7 is ERC20, ERC2771Context, SecuredTokenTransfer, Ownable {
         Wave storage waver = proposalAttributes[_id];
         require(waver.ProposalStatus == Status.Processed);
         waver.ProposalStatus = Status.Divorced;
+        NFTContract NFTmint = NFTContract(addressNFT);
 
-        if (nftMinted[waver.marriageContract] == 1) {
-            NFTContract NFTmint = NFTContract(addressNFT);
+        if (NFTmint.nftHolders(waver.proposer, waver.proposed)>0) {
             NFTmint.changeStatus(waver.proposer, waver.proposed, false);
         }
     }
@@ -522,8 +538,9 @@ contract WavePortal7 is ERC20, ERC2771Context, SecuredTokenTransfer, Ownable {
      * @notice  public view function to check whether msg.sender has marriage struct Wave with proxy contract..
      * @dev if msg.sender is a family member that was invited, temporary id is sent. If id>0 not found, empty struct is sent.
      */
+  
 
-    function checkMarriageStatus() public view returns (Wave memory) {
+    function checkMarriageStatus() external view returns (Wave memory) {
         // Get the tokenId of the user's character NFT
         (address msgSender_, uint256 _id) = checkAuth();
         // If the user has a tokenId in the map, return their character.
@@ -587,21 +604,6 @@ contract WavePortal7 is ERC20, ERC2771Context, SecuredTokenTransfer, Ownable {
         saleCap = _saleCap;
     }
 
-    /**
-     * @notice A Sales Cap for NFT types. A combination of IDs create a unique NFT type
-     * @param logoID the ID of logo to be minted.
-     * @param backgroundID the ID of Background to be minted.
-     * @param mainID the ID of other details to be minted.
-     * @param cap uint cap for a set of IDs.
-     */
-    function addNftCap(
-        uint256 logoID,
-        uint256 backgroundID,
-        uint256 mainID,
-        uint256 cap
-    ) external onlyOwner {
-        nftLeft[logoID][backgroundID][mainID] = cap;
-    }
 
     /**
      * @notice A fee that is paid by users for incoming and outgoing transactions.
@@ -708,7 +710,7 @@ contract WavePortal7 is ERC20, ERC2771Context, SecuredTokenTransfer, Ownable {
     function withdrawERC20(address _tokenID) external onlyOwner {
         uint256 amount;
         amount = IERC20(_tokenID).balanceOf(address(this));
-        require(transferToken(_tokenID, withdrawaddress, amount));
+        IERC20(_tokenID).transfer(withdrawaddress, amount);
     }
 
     receive() external payable {

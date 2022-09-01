@@ -46,12 +46,18 @@ contract nftmint2 is ERC721 {
 
     mapping(uint256 => CertificateAttributes) internal nftHolderAttributes; //Storage of NFT attributes
     mapping(address => mapping(address => uint256)) public nftHolders; //Storage of NFT holders
+    mapping(uint256 => mapping(uint256 => mapping(uint256 => uint256)))
+        public nftLeft; //tracks a cap for a particular type of NFT certificate
+
 
     /*A contract address for viewing URI should be passed to this contract*/
     constructor(address _nftViewAddress) ERC721("CryptoMarry", "LOVE") {
         _tokenIds.increment();
         owner = msg.sender;
         nftViewAddress = _nftViewAddress;
+        nftLeft[0][0][0] = 1e6;
+        nftLeft[101][0][0] = 1e3;
+        nftLeft[101][1001][0] = 1e2;
     }
 
     /**
@@ -59,8 +65,25 @@ contract nftmint2 is ERC721 {
      * @param _addAddresses an Address to which the owner is being changed.
      */
     function changeOwner(address _addAddresses) external {
-        require(owner == msg.sender);
+    
         owner = _addAddresses;
+    }
+
+     /**
+     * @notice A Sales Cap for NFT types. A combination of IDs create a unique NFT type
+     * @param logoID the ID of logo to be minted.
+     * @param backgroundID the ID of Background to be minted.
+     * @param mainID the ID of other details to be minted.
+     * @param cap uint cap for a set of IDs.
+     */
+    function addNftCap(
+        uint256 logoID,
+        uint256 backgroundID,
+        uint256 mainID,
+        uint256 cap
+    ) external  {
+        require(owner == msg.sender);
+        nftLeft[logoID][backgroundID][mainID] = cap;
     }
 
     /**
@@ -99,6 +122,7 @@ contract nftmint2 is ERC721 {
         require(mainAddress == msg.sender);
 
         uint256 newItemId = _tokenIds.current();
+         nftLeft[_heartPatternsID][_certBackgroundID][_additionalGraphicsID] -= 1;
 
         _safeMint(_proposer, newItemId);
 

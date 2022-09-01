@@ -199,7 +199,7 @@ describe("Testing after marriage interactions", function () {
   });
 
   it("User mints NFT certificate -> receives LOVE token", async function () {
-    const { WavePortal7, instance, accounts } = await loadFixture(
+    const { WavePortal7, nftContract, accounts } = await loadFixture(
       deployTokenFixture
     );
     let txn;
@@ -214,8 +214,8 @@ describe("Testing after marriage interactions", function () {
       hre.ethers.utils.parseEther("995")
     );
 
-    expect(await WavePortal7.nftLeft(0, 0, 0)).to.equal(999999);
-    expect(await WavePortal7.nftMinted(instance.address)).to.equal(1);
+    expect(await nftContract.nftLeft(0, 0, 0)).to.equal(999999);
+    
   });
 
   it("User mints NFT certificate -> partners should own separate NFTs ", async function () {
