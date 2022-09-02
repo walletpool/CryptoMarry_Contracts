@@ -453,11 +453,18 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      * @param _name String name
      */
 
-    function addName(string memory  _name) external {
+    function addName(string memory _name) external {
+        require(isMember(msg.sender) > 0);
         nameAddress[msg.sender] = _name;
     }
 
+     /**
+     * @notice A function that resets indexes of users 
+     * @dev A user will not be able to access proxy contracts if triggered from the CM FrontEnd
+     */
+
     function forgetMe() external {
+        require(isMember(msg.sender) > 0);
         proposers[msg.sender] = 0;
         proposedto[msg.sender] = 0;
         member[msg.sender][true] = 0;

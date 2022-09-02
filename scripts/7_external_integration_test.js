@@ -2,7 +2,6 @@
 /* eslint-disable no-undef */
 const { ethers } = require("hardhat");
 const { writeFileSync } = require("fs");
-const { expect } = require("chai");
  
 async function deploy(name, ...params) {
   const Contract = await ethers.getContractFactory(name);
