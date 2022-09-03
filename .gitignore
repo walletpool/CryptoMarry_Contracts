@@ -7,3 +7,4 @@ coverage.json
 deploytest.json
 cleaned/
 .DS_Store
+package-lock.json

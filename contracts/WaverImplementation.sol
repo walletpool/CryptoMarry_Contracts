@@ -84,7 +84,7 @@ contract WaverImplementation is
 {
     /* Variables*/
     uint256 internal voteid; //Tracking voting proposals by VOTEID
-    uint256 internal familyMembers; //Number of family Members within this contract. Initially 2
+    uint256 public familyMembers; //Number of family Members within this contract. Initially 2
     uint256 public marryDate; //Date when the proposal has been accepted.
     uint256[] internal findVoteId; //List of vote IDs
 

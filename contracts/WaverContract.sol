@@ -71,6 +71,8 @@ interface waverImplementation1 {
     function agreed() external;
 
     function declined() external;
+
+    function familyMembers() external returns (uint);
 }
 
 
@@ -299,11 +301,14 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         (address msgSender_, uint256 _id) = checkAuth();
         Wave storage waver = proposalAttributes[_id];
         require(waver.ProposalStatus == Status.Processed);
-
+        
         require(claimtimer[msgSender_] + policyDays < block.timestamp);
+          waverImplementation1 waverImplementation = waverImplementation1(
+            waver.marriageContract
+        );
 
         uint256 amount = (waver.marriageContract.balance * exchangeRate) /
-            (10 * (familyMembers[waver.marriageContract].length + 2));
+            (10 * waverImplementation.familyMembers());
 
         claimtimer[msgSender_] = block.timestamp;
         _mint(msgSender_, amount);
