@@ -7,7 +7,13 @@ async function deploy(name, ...params) {
 
 module.exports = {deployTest: async function deployTest(){
   const accounts = await ethers.getSigners();
- 
+
+//Deploying Cuts etc... 
+
+  const DiamondCutFacet = await deploy('DiamondCutFacet');
+  const diamondInit = await deploy('DiamondInit');
+
+
   const nftViewContract = await deploy(
     "nftview",
     "0x196eC7109e127A353B709a20da25052617295F6f"
@@ -17,7 +23,7 @@ module.exports = {deployTest: async function deployTest(){
 
   const forwarder = await deploy("MinimalForwarder");
 
-  const WaverImplementation = await deploy("WaverImplementation");
+  const WaverImplementation = await deploy("WaverIDiamond");
 
   const WaverFactory = await deploy(
     "WaverFactory",
@@ -29,7 +35,7 @@ module.exports = {deployTest: async function deployTest(){
     forwarder.address,
     nftContract.address,
     WaverFactory.address,
-    "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+    DiamondCutFacet.address,
     accounts[0].address
   );
 
@@ -59,7 +65,6 @@ module.exports = {deployTest: async function deployTest(){
   );
 
   return { WavePortal7, WaverImplementation,nftContract, accounts,nftSplit};
- 
 }
 
 }

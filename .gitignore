@@ -1,10 +1,12 @@
 artifacts/
 cache/
 coverage/
+bin/
 node_modules/
 .env
 coverage.json
 deploytest.json
 cleaned/
+oldtest/
 .DS_Store
 package-lock.json

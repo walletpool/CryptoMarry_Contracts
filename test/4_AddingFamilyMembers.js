@@ -42,23 +42,23 @@ describe("Adding Family Members Testing", function () {
   it("Third parties cannot invite family members to a proxy", async function () {
     const { instance, accounts } = await loadFixture(deployTokenFixture);
     await expect(
-      instance.connect(accounts[2]).addFamilyMember(accounts[2].address, 0)
+      instance.connect(accounts[2]).addFamilyMember(accounts[2].address)
     ).to.reverted;
   });
 
   it("Partners cannot invite as a family members themselves", async function () {
     const { instance, accounts } = await loadFixture(deployTokenFixture);
     await expect(
-      instance.connect(accounts[0]).addFamilyMember(accounts[0].address, 0)
+      instance.connect(accounts[0]).addFamilyMember(accounts[0].address)
     ).to.reverted;
     await expect(
-      instance.connect(accounts[1]).addFamilyMember(accounts[0].address, 0)
+      instance.connect(accounts[1]).addFamilyMember(accounts[0].address)
     ).to.reverted;
     await expect(
-      instance.connect(accounts[0]).addFamilyMember(accounts[1].address, 0)
+      instance.connect(accounts[0]).addFamilyMember(accounts[1].address)
     ).to.reverted;
     await expect(
-      instance.connect(accounts[1]).addFamilyMember(accounts[1].address, 0)
+      instance.connect(accounts[1]).addFamilyMember(accounts[1].address)
     ).to.reverted;
   });
 
@@ -75,10 +75,10 @@ describe("Adding Family Members Testing", function () {
     );
 
     await expect(
-      instance.connect(accounts[0]).addFamilyMember(accounts[2].address, 0)
+      instance.connect(accounts[0]).addFamilyMember(accounts[2].address)
     ).to.reverted;
     await expect(
-      instance.connect(accounts[1]).addFamilyMember(accounts[3].address, 0)
+      instance.connect(accounts[1]).addFamilyMember(accounts[3].address)
     ).to.reverted;
   });
 
@@ -90,10 +90,10 @@ describe("Adding Family Members Testing", function () {
     let txn;
     txn = await instance
       .connect(accounts[0])
-      .addFamilyMember(accounts[2].address, 0);
+      .addFamilyMember(accounts[2].address);
     txn = await instance
       .connect(accounts[1])
-      .addFamilyMember(accounts[3].address, 0);
+      .addFamilyMember(accounts[3].address);
 
     txn = await WavePortal7.checkMarriageStatus();
 
@@ -130,20 +130,20 @@ describe("Adding Family Members Testing", function () {
 
     txn = await instance
       .connect(accounts[0])
-      .addFamilyMember(accounts[4].address, 0);
+      .addFamilyMember(accounts[4].address);
     txn = await instance
       .connect(accounts[1])
-      .addFamilyMember(accounts[5].address, 0);
+      .addFamilyMember(accounts[5].address);
     txn = await WavePortal7.connect(accounts[2]).checkMarriageStatus();
 
     const instance2 = await WaverImplementation.attach(txn.marriageContract);
 
     txn = await instance2
       .connect(accounts[2])
-      .addFamilyMember(accounts[6].address, 0);
+      .addFamilyMember(accounts[6].address);
     txn = await instance2
       .connect(accounts[3])
-      .addFamilyMember(accounts[7].address, 0);
+      .addFamilyMember(accounts[7].address);
 
     txn = await WavePortal7.connect(accounts[4]).joinFamily(1);
     txn = await WavePortal7.connect(accounts[5]).joinFamily(1);
@@ -192,10 +192,10 @@ describe("Adding Family Members Testing", function () {
 
     txn = await instance
       .connect(accounts[0])
-      .addFamilyMember(accounts[4].address, 0);
+      .addFamilyMember(accounts[4].address);
     txn = await instance
       .connect(accounts[1])
-      .addFamilyMember(accounts[5].address, 0);
+      .addFamilyMember(accounts[5].address);
 
     txn = await WavePortal7.connect(accounts[2]).checkMarriageStatus();
 
@@ -203,10 +203,10 @@ describe("Adding Family Members Testing", function () {
 
     txn = await instance2
       .connect(accounts[2])
-      .addFamilyMember(accounts[6].address, 0);
+      .addFamilyMember(accounts[6].address);
     txn = await instance2
       .connect(accounts[3])
-      .addFamilyMember(accounts[7].address, 0);
+      .addFamilyMember(accounts[7].address);
 
     txn = await WavePortal7.checkMarriageStatus();
     await expect(await WavePortal7.member(accounts[4].address, false)).to.equal(
@@ -290,26 +290,26 @@ describe("Adding Family Members Testing", function () {
 
     txn = await instance2
       .connect(accounts[2])
-      .addFamilyMember(accounts[6].address, 0);
+      .addFamilyMember(accounts[6].address);
     txn = await instance2
       .connect(accounts[3])
-      .addFamilyMember(accounts[7].address, 0);
+      .addFamilyMember(accounts[7].address);
 
     await expect(
-      instance.connect(accounts[1]).addFamilyMember(accounts[6].address, 0)
+      instance.connect(accounts[1]).addFamilyMember(accounts[6].address)
     ).to.reverted;
     await expect(
-      instance.connect(accounts[0]).addFamilyMember(accounts[7].address, 0)
+      instance.connect(accounts[0]).addFamilyMember(accounts[7].address)
     ).to.reverted;
 
     txn = await WavePortal7.connect(accounts[6]).joinFamily(2);
     txn = await WavePortal7.connect(accounts[7]).joinFamily(2);
 
     await expect(
-      instance.connect(accounts[1]).addFamilyMember(accounts[6].address, 0)
+      instance.connect(accounts[1]).addFamilyMember(accounts[6].address)
     ).to.reverted;
     await expect(
-      instance.connect(accounts[0]).addFamilyMember(accounts[7].address, 0)
+      instance.connect(accounts[0]).addFamilyMember(accounts[7].address)
     ).to.reverted;
   });
 
@@ -332,20 +332,20 @@ describe("Adding Family Members Testing", function () {
 
     txn = await instance2
       .connect(accounts[2])
-      .addFamilyMember(accounts[6].address, 0);
+      .addFamilyMember(accounts[6].address);
     txn = await instance2
       .connect(accounts[3])
-      .addFamilyMember(accounts[7].address, 0);
+      .addFamilyMember(accounts[7].address);
 
     txn = await WavePortal7.connect(accounts[6]).joinFamily(1);
     txn = await WavePortal7.connect(accounts[7]).joinFamily(1);
 
     txn = await instance
       .connect(accounts[0])
-      .addFamilyMember(accounts[6].address, 0);
+      .addFamilyMember(accounts[6].address);
     txn = await instance
       .connect(accounts[1])
-      .addFamilyMember(accounts[7].address, 0);
+      .addFamilyMember(accounts[7].address);
     txn = await WavePortal7.checkMarriageStatus();
     await expect(await WavePortal7.member(accounts[6].address, false)).to.equal(
       txn.id.toNumber()
@@ -361,10 +361,10 @@ describe("Adding Family Members Testing", function () {
 
     txn = await instance
       .connect(accounts[0])
-      .addFamilyMember(accounts[4].address, 0);
+      .addFamilyMember(accounts[4].address);
     txn = await instance
       .connect(accounts[1])
-      .addFamilyMember(accounts[5].address, 0);
+      .addFamilyMember(accounts[5].address);
 
     await expect(WavePortal7.connect(accounts[4]).claimToken()).to.reverted;
     await expect(WavePortal7.connect(accounts[5]).claimToken()).to.reverted;
@@ -377,10 +377,10 @@ describe("Adding Family Members Testing", function () {
 
     txn = await instance
       .connect(accounts[0])
-      .addFamilyMember(accounts[4].address, 0);
+      .addFamilyMember(accounts[4].address);
     txn = await instance
       .connect(accounts[1])
-      .addFamilyMember(accounts[5].address, 0);
+      .addFamilyMember(accounts[5].address);
 
     txn = await WavePortal7.connect(accounts[4]).joinFamily(2);
     txn = await WavePortal7.connect(accounts[5]).joinFamily(2);
@@ -403,10 +403,10 @@ describe("Adding Family Members Testing", function () {
 
     txn = await instance
       .connect(accounts[0])
-      .addFamilyMember(accounts[4].address, 0);
+      .addFamilyMember(accounts[4].address);
     txn = await instance
       .connect(accounts[1])
-      .addFamilyMember(accounts[5].address, 0);
+      .addFamilyMember(accounts[5].address);
 
     txn = await WavePortal7.connect(accounts[4]).joinFamily(2);
     txn = await WavePortal7.connect(accounts[5]).joinFamily(2);
@@ -415,10 +415,10 @@ describe("Adding Family Members Testing", function () {
 
     const instance2 = await WaverImplementation.attach(txn.marriageContract);
     await expect(
-      instance2.connect(accounts[4]).addFamilyMember(accounts[6].address, 0)
+      instance2.connect(accounts[4]).addFamilyMember(accounts[6].address)
     ).to.reverted;
     await expect(
-      instance2.connect(accounts[5]).addFamilyMember(accounts[7].address, 0)
+      instance2.connect(accounts[5]).addFamilyMember(accounts[7].address)
     ).to.reverted;
   });
 
@@ -429,10 +429,10 @@ describe("Adding Family Members Testing", function () {
 
     txn = await instance
       .connect(accounts[0])
-      .addFamilyMember(accounts[4].address, 0);
+      .addFamilyMember(accounts[4].address);
     txn = await instance
       .connect(accounts[1])
-      .addFamilyMember(accounts[5].address, 0);
+      .addFamilyMember(accounts[5].address);
     txn = await WavePortal7.checkMarriageStatus();
     await expect(await WavePortal7.member(accounts[4].address, false)).to.equal(
       txn.id.toNumber()
@@ -447,7 +447,7 @@ describe("Adding Family Members Testing", function () {
 
     txn = await instance
       .connect(accounts[0])
-      .deleteFamilyMember(accounts[4].address, 0);
+      .deleteFamilyMember(accounts[4].address);
     await expect(await WavePortal7.member(accounts[4].address, false)).to.equal(
       0
     );
@@ -459,7 +459,7 @@ describe("Adding Family Members Testing", function () {
 
     txn = await instance
       .connect(accounts[1])
-      .deleteFamilyMember(accounts[5].address, 0);
+      .deleteFamilyMember(accounts[5].address);
     await expect(await WavePortal7.member(accounts[5].address, false)).to.equal(
       0
     );
@@ -475,10 +475,10 @@ describe("Adding Family Members Testing", function () {
 
     txn = await instance
       .connect(accounts[0])
-      .addFamilyMember(accounts[4].address, 0);
+      .addFamilyMember(accounts[4].address);
     txn = await instance
       .connect(accounts[1])
-      .addFamilyMember(accounts[5].address, 0);
+      .addFamilyMember(accounts[5].address);
     txn = await WavePortal7.checkMarriageStatus();
     await expect(await WavePortal7.member(accounts[4].address, false)).to.equal(
       txn.id.toNumber()
@@ -493,7 +493,7 @@ describe("Adding Family Members Testing", function () {
 
     txn = await instance
       .connect(accounts[0])
-      .deleteFamilyMember(accounts[4].address, 0);
+      .deleteFamilyMember(accounts[4].address);
     await expect(await WavePortal7.member(accounts[4].address, false)).to.equal(
       0
     );
@@ -504,7 +504,7 @@ describe("Adding Family Members Testing", function () {
       .reverted;
 
     await expect(
-      instance.connect(accounts[1]).deleteFamilyMember(accounts[4].address, 0)
+      instance.connect(accounts[1]).deleteFamilyMember(accounts[4].address)
     ).to.reverted;
   });
 
@@ -512,7 +512,7 @@ describe("Adding Family Members Testing", function () {
     const { instance, accounts } = await loadFixture(deployTokenFixture);
 
     await expect(
-      instance.connect(accounts[1]).deleteFamilyMember(accounts[4].address, 0)
+      instance.connect(accounts[1]).deleteFamilyMember(accounts[4].address)
     ).to.reverted;
   });
 
@@ -523,16 +523,16 @@ describe("Adding Family Members Testing", function () {
 
     txn = await instance
       .connect(accounts[0])
-      .addFamilyMember(accounts[4].address, 0);
+      .addFamilyMember(accounts[4].address);
     txn = await instance
       .connect(accounts[1])
-      .addFamilyMember(accounts[5].address, 0);
+      .addFamilyMember(accounts[5].address);
 
     txn = await WavePortal7.connect(accounts[4]).joinFamily(2);
     txn = await WavePortal7.connect(accounts[5]).joinFamily(2);
 
     await expect(
-      instance.connect(accounts[4]).deleteFamilyMember(accounts[5].address, 0)
+      instance.connect(accounts[4]).deleteFamilyMember(accounts[5].address)
     ).to.reverted;
   });
 });

@@ -35,6 +35,7 @@
     "solidity-coverage": "^0.7.21"
   },
   "dependencies": {
+    "@gnus.ai/contracts-upgradeable-diamond": "^4.5.0",
     "@openzeppelin/contracts": "^4.5.0",
     "@openzeppelin/contracts-upgradeable": "^4.5.1",
     "@uniswap/v3-periphery": "^1.4.1",

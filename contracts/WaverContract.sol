@@ -21,8 +21,7 @@ below.
 interface WaverFactoryC {
     function newMarriage(
         address _addressWaveContract,
-        address _Forwarder,
-        address _swapRouterAddress,
+        address _diamondCutFacet,
         uint256 id,
         address _waver,
         address _proposed,
@@ -72,7 +71,7 @@ interface waverImplementation1 {
 
     function declined() external;
 
-    function familyMembers() external returns (uint);
+    function getFamilyMembersNumber() external returns (uint);
 }
 
 
@@ -82,7 +81,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     address public addressNFTSplit; // Address of NFT splitting contract
     address internal waverFactoryAddress; // Address of Proxy contract factory
     address internal forwarderAddress; // Address of Minimal Forwarder
-    address internal swapRouterAddress; // Address of SWAP router UNISWAP
+    address internal diamondCutFacetAddress; // Address of SWAP router UNISWAP
     address internal withdrawaddress; //Address to where comissions are withdrawed/
 
     uint256 internal id; //IDs of a marriage
@@ -141,7 +140,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         MinimalForwarder forwarder,
         address _nftaddress,
         address _waveFactory,
-        address _swaprouter,
+        address _diamondCutFacet,
         address _withdrawaddress
     ) payable ERC20("CryptoMarry", "LOVE") ERC2771Context(address(forwarder)) {
         policyDays = 10 minutes;
@@ -150,8 +149,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         minPricePolicy = 1e18;
         forwarderAddress = address(forwarder);
         waverFactoryAddress = _waveFactory;
-        swapRouterAddress = _swaprouter;
-        poolFee = 3000;
+        diamondCutFacetAddress = _diamondCutFacet;
         cmFee = 100;
         exchangeRate = 1000;
         withdrawaddress = _withdrawaddress;
@@ -215,8 +213,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         /*Creating proxy contract here */
         _newMarriageAddress = factory.newMarriage(
             address(this),
-            forwarderAddress,
-            swapRouterAddress,
+            diamondCutFacetAddress,
             id,
             msg.sender,
             _proposed,
@@ -308,7 +305,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         );
 
         uint256 amount = (waver.marriageContract.balance * exchangeRate) /
-            (10 * waverImplementation.familyMembers());
+            (10 * waverImplementation.getFamilyMembersNumber());
 
         claimtimer[msgSender_] = block.timestamp;
         _mint(msgSender_, amount);
@@ -680,18 +677,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     {
         forwarderAddress = _forwarderAddress;
     }
-
-    /**
-     * @notice A reference contract address of swap router address of the Uniswap.
-     * @param _routerAddress an Address.
-     */
-
-    function changeswaprouterAddress(address _routerAddress)
-        external
-        onlyOwner
-    {
-        swapRouterAddress = _routerAddress;
-    }
+  
 
     /**
      * @notice A reference address for withdrawing commissions.

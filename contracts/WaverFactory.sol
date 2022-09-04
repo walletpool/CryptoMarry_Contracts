@@ -2,7 +2,7 @@
 pragma solidity 0.8.13;
 
 import "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
-import "./WaverImplementation.sol";
+import "./WaverImplementationDiamond.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./WaverBeacon.sol";
 
@@ -53,8 +53,8 @@ contract WaverFactory is Ownable {
      * @dev Only the main contract address can create proxy contracts. Beacon proxy is created with 
      the current implementation. 
      * @param _addressWaveContract Address of the main contract. 
-     * @param _Forwarder Address of the Minimal forwarder. 
-     * @param _swapRouterAddress Address of the Uniswap Router.
+     * @param _diamondCutFacet Address of the Minimal forwarder. 
+   
      * @param id Marriage ID assigned by the main contract.
      * @param _waver Address of the prpoposer.
      * @param _proposed Address of the proposed.
@@ -63,8 +63,7 @@ contract WaverFactory is Ownable {
 
     function newMarriage(
         address _addressWaveContract,
-        address _Forwarder,
-        address _swapRouterAddress,
+        address _diamondCutFacet,
         uint256 id,
         address _waver,
         address _proposed,
@@ -72,10 +71,9 @@ contract WaverFactory is Ownable {
     ) public returns (address) {
         require(WaverContractAddress == msg.sender, "ACCESS DENIED");
         bytes memory dataOfnewMarriage = abi.encodeWithSelector(
-            WaverImplementation(payable(address(0))).initialize.selector,
+            WaverIDiamond(payable(address(0))).initialize.selector,
             _addressWaveContract,
-            _Forwarder,
-            _swapRouterAddress,
+            _diamondCutFacet,
             id,
             _waver,
             _proposed,
