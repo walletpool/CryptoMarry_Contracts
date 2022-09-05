@@ -2,6 +2,7 @@ artifacts/
 cache/
 coverage/
 node_modules/
+bin/
 .env
 coverage.json
 deploytest.json

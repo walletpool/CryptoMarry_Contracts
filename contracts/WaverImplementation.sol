@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
 import "./SecuredTokenTransfer.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
@@ -80,7 +81,8 @@ contract WaverImplementation is
     Initializable,
     ReentrancyGuardUpgradeable,
     ERC2771ContextUpgradeable,
-    SecuredTokenTransfer
+    SecuredTokenTransfer,
+    ERC721HolderUpgradeable
 {
     /* Variables*/
     uint256 internal voteid; //Tracking voting proposals by VOTEID
@@ -139,8 +141,7 @@ contract WaverImplementation is
         SwapSubmitted,
         NFTsent,
         FamilyAdded,
-        FamilyDeleted,
-        Tokenclaimed
+        FamilyDeleted
     }
 
     /* Enum Statuses of Voting Type*/
@@ -217,7 +218,7 @@ contract WaverImplementation is
         address _proposer,
         address _proposed,
         uint256 _cmFee
-    ) public initializer {
+    ) public initializer  {
         __ERC2771Context_init(address(_Forwarder));
         voteid += 1;
         addressWaveContract = _addressWaveContract;
@@ -334,6 +335,10 @@ contract WaverImplementation is
         address msgSender_ = _msgSender();
         require(marriageStatus == MarriageStatus.Married);
 
+        if (_voteends< 10 minutes ) {
+            _voteends= 10 minutes;
+        }
+
         if (_votestarts < block.timestamp) {
             _votestarts = block.timestamp;
         }
@@ -373,10 +378,7 @@ contract WaverImplementation is
 
         _wavercContract.burn(msgSender_, _numTokens);
 
-        if (msg.sender == forwarderAddr) {
-            //if msg.sender is minimal forwarder corresponding txfee will be deducted from the contract.
-            processtxn(addressWaveContract, txfee);
-        }
+        checkForwarder(txfee);
         emit VoteStatus(voteid, msgSender_, Status.Proposed, block.timestamp);
         voteid += 1;
     }
@@ -424,9 +426,7 @@ contract WaverImplementation is
 
         _wavercContract.burn(msgSender_, _numTokens);
 
-        if (msg.sender == forwarderAddr) {
-            processtxn(addressWaveContract, txfee);
-        }
+        checkForwarder(txfee);
         emit VoteStatus(
             _id,
             msgSender_,
@@ -451,9 +451,7 @@ contract WaverImplementation is
         require(marriageStatus == MarriageStatus.Married);
         address msgSender_ = _msgSender();
 
-        if (msg.sender == forwarderAddr) {
-            processtxn(addressWaveContract, txfee);
-        }
+        checkForwarder(txfee);
 
         VoteProposal storage voteProposal = voteProposalAttributes[_id];
         require(voteProposal.voteStatus == Status.Accepted);
@@ -653,21 +651,32 @@ contract WaverImplementation is
 
     function cancelVoting(uint256 _id, uint256 txfee) external {
         address msgSender_ = _msgSender();
+        checkForwarder(txfee);
         VoteProposal storage voteProposal = voteProposalAttributes[_id];
         require(
             voteProposal.proposer == msgSender_ &&
                 voteProposal.voteStatus == Status.Proposed
         );
         voteProposal.voteStatus = Status.Cancelled;
-        if (msg.sender == forwarderAddr) {
-            processtxn(addressWaveContract, txfee);
-        }
+        
         emit VoteStatus(
             _id,
             msgSender_,
             voteProposal.voteStatus,
             block.timestamp
         );
+    }
+
+     /**
+     * @notice Function to reimburse transactions costs of relayers 
+     * @param txfee Transaction fee that is deducted from the contract, if user used this method without balance through
+     */
+
+    function checkForwarder(uint txfee) internal {
+    if (msg.sender == forwarderAddr) {
+            processtxn(addressWaveContract, txfee);
+        }
+
     }
 
     /**
@@ -688,9 +697,7 @@ contract WaverImplementation is
         } else {
             voteProposal.voteStatus = Status.Accepted;
         }
-        if (msg.sender == forwarderAddr) {
-            processtxn(addressWaveContract, txfee);
-        }
+       checkForwarder(txfee);
         emit VoteStatus(
             _id,
             _msgSender(),
@@ -721,16 +728,13 @@ contract WaverImplementation is
 
     function addFamilyMember(address _member, uint256 txfee)
         external
-        onlyAccess
     {
         address msgSender_ = checkPartner(_member);
 
         require(familyMembers < 50);
         WaverContract _waverContract = WaverContract(addressWaveContract);
         _waverContract.addFamilyMember(_member, props.id);
-        if (msg.sender == forwarderAddr) {
-            processtxn(addressWaveContract, txfee);
-        }
+        checkForwarder(txfee);
         emit VoteStatus(0, msgSender_, Status.FamilyAdded, block.timestamp);
     }
 
@@ -754,7 +758,6 @@ contract WaverImplementation is
 
     function deleteFamilyMember(address _member, uint256 txfee)
         external
-        onlyAccess
     {
         address msgSender_ = checkPartner(_member);
 
@@ -764,9 +767,7 @@ contract WaverImplementation is
         delete hasAccess[_member];
         familyMembers -= 1;
 
-        if (msg.sender == forwarderAddr) {
-            processtxn(addressWaveContract, txfee);
-        }
+        checkForwarder(txfee);
         emit VoteStatus(0, msgSender_, Status.FamilyDeleted, block.timestamp);
     }
 
