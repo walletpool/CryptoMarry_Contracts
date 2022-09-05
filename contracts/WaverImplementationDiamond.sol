@@ -767,9 +767,9 @@ contract WaverIDiamond is
      * @dev It is required that the status is not divorced so that funds are not locked.
      */
     receive() external payable {
-        MarriageStatusLib.enforceNotDivorced();
         require(msg.value > 0);
         if (gasleft() > 2300) {
+            MarriageStatusLib.enforceNotDivorced();
             MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
                 .marriageStatusStorage();
             MarriageStatusLib.processtxn(

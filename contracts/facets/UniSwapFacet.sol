@@ -8,10 +8,16 @@ import { LibDiamond } from "../libraries/LibDiamond.sol";
 
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
+//import "hardhat/console.sol";
 
 /*Interface for the ISWAP Router (Uniswap)  Contract*/
 interface IUniswapRouter is ISwapRouter {
     function refundETH() external payable;
+}
+
+interface WETH9Contract {
+    function balanceOf(address) external returns (uint);
+    function withdraw(uint amount) external;
 }
 
 contract UniSwapFacet {
@@ -136,5 +142,12 @@ contract UniSwapFacet {
 
     }
 
+      function withdrawWeth(uint amount,WETH9Contract wethAddress) external{
+        
+        MarriageStatusLib.enforceUserHasAccess();
+        WETH9Contract Weth = WETH9Contract(wethAddress);
+        Weth.withdraw(amount); 
+    
+      } 
 
 }

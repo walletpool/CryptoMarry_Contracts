@@ -266,8 +266,14 @@ txn = await instance.createProposal(
   console.log("Balance USDT", await USDT.balanceOf(instance.address));
   console.log("Balance of ETH :",await hre.ethers.provider.getBalance(instance.address));
   console.log("Balance of wETH :",await wETH.balanceOf(instance.address));
+
+  const withdrawWETH = await ethers.getContractAt('UniSwapFacet', instance.address);
+  const balance = await wETH.balanceOf(instance.address)
+  console.log(instance.address);
+  await withdrawWETH.withdrawWeth(balance,"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
+  console.log("Balance of ETH :",await hre.ethers.provider.getBalance(instance.address));
   
-      
+  console.log("Balance of wETH :",await wETH.balanceOf(instance.address));
 
 // Checking
 }
