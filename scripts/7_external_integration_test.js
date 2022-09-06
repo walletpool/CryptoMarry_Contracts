@@ -42,7 +42,8 @@ async function main() {
     forwarder.deployTransaction.gasLimit
   );
 
-  const WaverImplementation = await deploy("WaverImplementation");
+  const WaverImplementation = await deploy("WaverImplementation",
+  forwarder.address);
   console.log(
     "Waver Implementation Contract deployed:",
     WaverImplementation.address,

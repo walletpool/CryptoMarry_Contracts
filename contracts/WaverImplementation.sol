@@ -3,7 +3,7 @@
 pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "./ERC2771ContextUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/metatx/ERC2771ContextUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/metatx/MinimalForwarderUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -198,6 +198,9 @@ contract WaverImplementation is
         uint256 timestamp
     );
 
+
+
+ constructor(MinimalForwarderUpgradeable forwarder) initializer ERC2771ContextUpgradeable(address(forwarder)) {}
     /**
      * @notice Initialization function of the proxy contract
      * @dev Initialization params are passed from the main contract.
@@ -219,7 +222,7 @@ contract WaverImplementation is
         address _proposed,
         uint256 _cmFee
     ) public initializer  {
-        __ERC2771Context_init(address(_Forwarder));
+       // __ERC2771Context_init(address(_Forwarder));
         voteid += 1;
         addressWaveContract = _addressWaveContract;
         marriageStatus = MarriageStatus.Proposed;
