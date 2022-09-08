@@ -86,7 +86,8 @@ async function main() {
     0
   );
 
-  console.log("Proposal has been accepted");
+  console.log("Proposal has been accepted  ---- >", txn.gasLimit);
+
 
 
   txn = await WavePortal7.checkMarriageStatus();
@@ -151,6 +152,8 @@ async function main() {
     "Staking ETH", 103,0,0, 
   hre.ethers.utils.parseEther("1"),"0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5",
   "0x0000000000000000000000000000000000000000", hre.ethers.utils.parseEther("10"));
+
+  console.log("Voting costs ----> ", txn.gasLimit)
   
   txn = await instance.getVotingStatuses(1);
   console.log("Voting Status", txn);

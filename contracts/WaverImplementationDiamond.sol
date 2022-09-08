@@ -9,6 +9,7 @@ pragma solidity ^0.8.0;
 /******************************************************************************/
 
 import "@gnus.ai/contracts-upgradeable-diamond/proxy/utils/Initializable.sol";
+import "@gnus.ai/contracts-upgradeable-diamond/token/ERC721/utils/ERC721HolderUpgradeable.sol";
 //import "@gnus.ai/contracts-upgradeable-diamond/security/ReentrancyGuardUpgradeable.sol";
 
 //import "@gnus.ai/contracts-upgradeable-diamond/metatx/ERC2771ContextUpgradeable.sol";
@@ -17,6 +18,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import "./SecuredTokenTransfer.sol";
+
 //import "hardhat/console.sol";
 
 import {LibDiamond} from "./libraries/LibDiamond.sol";
@@ -58,7 +60,8 @@ interface nftSplitInstance {
 
 contract WaverIDiamond is
     Initializable,
-    SecuredTokenTransfer
+    SecuredTokenTransfer,
+    ERC721HolderUpgradeable
 {
     /**
      * @notice Initialization function of the proxy contract
