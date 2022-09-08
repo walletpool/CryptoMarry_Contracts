@@ -733,6 +733,7 @@ contract WaverImplementation is
         external
     {
         address msgSender_ = checkPartner(_member);
+        require(marriageStatus == MarriageStatus.Married);
 
         require(familyMembers < 50);
         WaverContract _waverContract = WaverContract(addressWaveContract);
