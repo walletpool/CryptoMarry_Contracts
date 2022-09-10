@@ -57,7 +57,7 @@ describe("Testing voting interactions", function () {
       deployTokenFixture
     );
     let txn;
-    txn = instance
+    txn = await instance
       .connect(accounts[0])
       .createProposal(
         "test1",
@@ -70,7 +70,7 @@ describe("Testing voting interactions", function () {
         0,
         1
       );
-    txn = instance
+    txn = await instance
       .connect(accounts[1])
       .createProposal(
         "test2",

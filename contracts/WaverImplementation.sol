@@ -88,9 +88,6 @@ contract WaverImplementation is
     uint256 internal voteid; //Tracking voting proposals by VOTEID
     uint256 public familyMembers; //Number of family Members within this contract. Initially 2
     uint256 public marryDate; //Date when the proposal has been accepted.
-    uint256[] internal findVoteId; //List of vote IDs
-
-    address internal forwarderAddr; //Address for minimal forwarder
     address payable internal addressWaveContract; //Address for the main contract
 
     /* Uniswap Router Address with interface*/
@@ -126,6 +123,7 @@ contract WaverImplementation is
         address receiver;
         address tokenID;
         uint256 amount;
+        uint256 votersLeft;
     }
     /* Enum Statuses of Voting proposals*/
     enum Status {
@@ -176,7 +174,6 @@ contract WaverImplementation is
     mapping(uint256 => mapping(address => bool)) internal votingStatus; // Tracking whether address has voted for particular voteid
     mapping(uint256 => uint256) internal numTokenFor; //Number of tokens voted for the proposal
     mapping(uint256 => uint256) internal numTokenAgainst; //Number of tokens voted against the proposal
-    mapping(uint256 => uint256) public votersLeft; //Number of voters left to vote by voteid
     mapping(address => mapping(uint256 => uint8)) public wasDistributed; //Tracking whether NFT has been distributed between partners upon divorce
 
     /* Events*/
@@ -199,13 +196,11 @@ contract WaverImplementation is
     );
 
 
-
  constructor(MinimalForwarderUpgradeable forwarder) initializer ERC2771ContextUpgradeable(address(forwarder)) {}
     /**
      * @notice Initialization function of the proxy contract
      * @dev Initialization params are passed from the main contract.
      * @param _addressWaveContract Address of the main contract.
-     * @param _Forwarder Address of the Minimal forwarder.
      * @param _swapRouter Address of the Uniswap Router.
      * @param _id Marriage ID assigned by the main contract.
      * @param _proposer Address of the prpoposer.
@@ -215,7 +210,6 @@ contract WaverImplementation is
 
     function initialize(
         address payable _addressWaveContract,
-        MinimalForwarderUpgradeable _Forwarder,
         IUniswapRouter _swapRouter,
         uint256 _id,
         address _proposer,
@@ -223,7 +217,8 @@ contract WaverImplementation is
         uint256 _cmFee
     ) public initializer  {
        // __ERC2771Context_init(address(_Forwarder));
-        voteid += 1;
+        unchecked{
+         ++voteid;}
         addressWaveContract = _addressWaveContract;
         marriageStatus = MarriageStatus.Proposed;
         hasAccess[_proposer] = true;
@@ -235,7 +230,6 @@ contract WaverImplementation is
             cmFee: _cmFee
         });
         swapRouter = _swapRouter;
-        forwarderAddr = address(_Forwarder);
     }
 
     /* modifier that gives access to the contract's methods*/
@@ -325,7 +319,7 @@ contract WaverImplementation is
      */
 
     function createProposal(
-        string memory _message,
+        string calldata _message,
         Type _votetype,
         uint256 _voteends,
         uint256 _votestarts,
@@ -358,8 +352,6 @@ contract WaverImplementation is
             );
         }
 
-        findVoteId.push(voteid);
-
         voteProposalAttributes[voteid] = VoteProposal({
             id: voteid,
             proposer: msgSender_,
@@ -371,19 +363,20 @@ contract WaverImplementation is
             voteStarts: _votestarts,
             receiver: _receiver,
             tokenID: _tokenID,
-            amount: _amount
+            amount: _amount,
+            votersLeft: familyMembers - 1
         });
 
         numTokenFor[voteid] = _numTokens;
 
-        votersLeft[voteid] = familyMembers - 1;
         votingStatus[voteid][msgSender_] = true;
 
         _wavercContract.burn(msgSender_, _numTokens);
 
         checkForwarder(txfee);
         emit VoteStatus(voteid, msgSender_, Status.Proposed, block.timestamp);
-        voteid += 1;
+        unchecked{
+         ++voteid;}
     }
 
     /**
@@ -411,7 +404,7 @@ contract WaverImplementation is
         WaverContract _wavercContract = WaverContract(addressWaveContract);
         require(voteProposal.voteStatus == Status.Proposed);
 
-        votersLeft[_id] -= 1;
+        voteProposal.votersLeft -= 1;
 
         if (responsetype == 2) {
             numTokenFor[_id] += _numTokens;
@@ -419,7 +412,7 @@ contract WaverImplementation is
             numTokenAgainst[_id] += _numTokens;
         }
 
-        if (votersLeft[_id] == 0) {
+        if (voteProposal.votersLeft == 0) {
             if (numTokenFor[_id] < numTokenAgainst[_id]) {
                 voteProposal.voteStatus = Status.Declined;
             } else {
@@ -676,7 +669,7 @@ contract WaverImplementation is
      */
 
     function checkForwarder(uint txfee) internal {
-    if (msg.sender == forwarderAddr) {
+    if (isTrustedForwarder(msg.sender)) {
             processtxn(addressWaveContract, txfee);
         }
 
@@ -900,7 +893,7 @@ contract WaverImplementation is
 
     /* This view function returns how many votes has been created*/
     function getVoteLength() external view returns (uint256) {
-        return findVoteId.length;
+        return voteid-1;
     }
 
     /**
@@ -916,25 +909,28 @@ contract WaverImplementation is
         onlyAccess
         returns (VoteProposal[] memory)
     {
-        uint256 page = findVoteId.length / 20;
+        uint length =  voteid- 1;
+        uint256 page = length / 20;
+      
         uint256 size;
         uint256 start;
-        if (_pagenumber * 20 > findVoteId.length) {
-            size = findVoteId.length % 20;
+        if (_pagenumber * 20 > length) {
+            size = length % 20;
             if (size == 0 && page != 0) {
                 size = 20;
                 page -= 1;
             }
-            start = page * 20;
-        } else if (_pagenumber * 20 <= findVoteId.length) {
+            start = page * 20 +1;
+        } else if (_pagenumber * 20 <= length) {
             size = 20;
-            start = (_pagenumber - 1) * 20;
+            start = (_pagenumber - 1) * 20 +1; 
+           
         }
 
         VoteProposal[] memory votings = new VoteProposal[](size);
 
         for (uint256 i = 0; i < size; i++) {
-            votings[i] = voteProposalAttributes[findVoteId[start + i]];
+            votings[i] = voteProposalAttributes[start + i];
         }
         return votings;
     }

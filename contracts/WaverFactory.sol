@@ -53,7 +53,6 @@ contract WaverFactory is Ownable {
      * @dev Only the main contract address can create proxy contracts. Beacon proxy is created with 
      the current implementation. 
      * @param _addressWaveContract Address of the main contract. 
-     * @param _Forwarder Address of the Minimal forwarder. 
      * @param _swapRouterAddress Address of the Uniswap Router.
      * @param id Marriage ID assigned by the main contract.
      * @param _waver Address of the prpoposer.
@@ -63,7 +62,6 @@ contract WaverFactory is Ownable {
 
     function newMarriage(
         address _addressWaveContract,
-        address _Forwarder,
         address _swapRouterAddress,
         uint256 id,
         address _waver,
@@ -74,7 +72,6 @@ contract WaverFactory is Ownable {
         bytes memory dataOfnewMarriage = abi.encodeWithSelector(
             WaverImplementation(payable(address(0))).initialize.selector,
             _addressWaveContract,
-            _Forwarder,
             _swapRouterAddress,
             id,
             _waver,

@@ -199,6 +199,7 @@ async function main() {
   console.log("Voting Status 3", txn);
 
   txn = await instance.connect(accounts[1]).executeVoting(1,0,0);
+  console.log("INVESTMENT costs ----> ", txn.gasLimit)
 
   const cETH =  await WavePortal7.attach("0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5");
 
@@ -219,6 +220,7 @@ async function main() {
   console.log("Voting Status 3", txn);
 
   txn = await instance.connect(accounts[1]).executeVoting(2,0,1890);
+  console.log("SWAP costs ----> ", txn.gasLimit)
 
   const USDT =  await WavePortal7.attach("0xdac17f958d2ee523a2206206994597c13d831ec7");
 

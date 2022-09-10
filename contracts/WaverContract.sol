@@ -21,7 +21,6 @@ below.
 interface WaverFactoryC {
     function newMarriage(
         address _addressWaveContract,
-        address _Forwarder,
         address _swapRouterAddress,
         uint256 id,
         address _waver,
@@ -215,7 +214,6 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         /*Creating proxy contract here */
         _newMarriageAddress = factory.newMarriage(
             address(this),
-            forwarderAddress,
             swapRouterAddress,
             id,
             msg.sender,
