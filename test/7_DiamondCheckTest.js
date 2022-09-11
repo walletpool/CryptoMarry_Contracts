@@ -141,6 +141,47 @@ describe("Testing Diamond Facets", function () {
       await diamondLoupeFacet.facetAddress('0x162bcf14')
     )
   })
+
+  it('Connected modules (facets) have true statuses and not connected modules have false statuses ', async () => {
+    const {instance,accounts,UniswapFacet,CompoundFacet} = await loadFixture(deployTokenFixture);
+
+    await expect (await instance.checkAppConnected(addresses[1])).to.equal(true);
+    await expect (await instance.checkAppConnected(addresses[2])).to.equal(true);
+    await expect (await instance.checkAppConnected(addresses[3])).to.equal(true);
+    await expect (await instance.checkAppConnected(accounts[4].address)).to.equal(false);
+    await expect (await instance.checkAppConnected(accounts[5].address)).to.equal(false);
+  })
  
+
+  it('Disconnected (removed) modules (facets) turn their status to false', async () => {
+    const {instance,accounts,UniswapFacet,CompoundFacet} = await loadFixture(deployTokenFixture);
+    await expect (await instance.checkAppConnected(addresses[2])).to.equal(true);
+    const selectors = getSelectors(CompoundFacet);
+    tx = await diamondCutFacet.diamondCut(
+      [{
+        facetAddress: ethers.constants.AddressZero,
+        action: FacetCutAction.Remove,
+        functionSelectors: selectors
+      }],
+      ethers.constants.AddressZero, '0x', { gasLimit: 800000 })
+    receipt = await tx.wait()
+    if (!receipt.status) {
+      throw Error(`Diamond upgrade failed: ${tx.hash}`)
+    }
+    await expect (await instance.checkAppConnected(CompoundFacet.address)).to.equal(false);
+  })
+
+  it('Third parties cannot Disconnect (remove) modules (facets)', async () => {
+    const {instance,accounts,UniswapFacet,CompoundFacet} = await loadFixture(deployTokenFixture);
+    await expect (await instance.checkAppConnected(addresses[2])).to.equal(true);
+    const selectors = getSelectors(CompoundFacet);
+    await expect (diamondCutFacet.connect(accounts[4]).diamondCut(
+      [{
+        facetAddress: ethers.constants.AddressZero,
+        action: FacetCutAction.Remove,
+        functionSelectors: selectors
+      }],
+      ethers.constants.AddressZero, '0x', { gasLimit: 800000 })).to.reverted;
+    })
 
 });

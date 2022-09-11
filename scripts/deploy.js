@@ -67,6 +67,8 @@ async function main() {
     "deploytest.json",
     JSON.stringify(
       { 
+        DiamondCutFacet: DiamondCutFacet.address,
+        diamondInit: diamondInit.address,
         nftViewContract: nftViewContract.address,
         nftContract: nftContract.address,
         MinimalForwarder: forwarder.address,
