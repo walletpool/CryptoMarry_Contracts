@@ -134,11 +134,11 @@ describe("Testing Diamond Facets", function () {
     )
     assert.equal(
       addresses[3],
-      await diamondLoupeFacet.facetAddress('0xa63275e7')
+      await diamondLoupeFacet.facetAddress('0xd0310d45')
     )
     assert.equal(
       addresses[3],
-      await diamondLoupeFacet.facetAddress('0x162bcf14')
+      await diamondLoupeFacet.facetAddress('0x02a0ba3f')
     )
   })
 

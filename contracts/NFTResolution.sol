@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BSL
 pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/token/common/ERC2981.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 /**
- [MIT License]
+ [BSL License]
  @title NFT Splitter
  @notice This contract transforms ERC721 NFTs into ERC1155 NFTs with 2 identical tokens. 
  @author Ismailov Altynbek <altyni@gmail.com>

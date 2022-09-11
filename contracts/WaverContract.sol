@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+/// SPDX-License-Identifier: BSL
 
 pragma solidity ^0.8.13;
 
@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
 /**
-[MIT License]
+[BSL License]
 @title CryptoMarry contract
 @notice This is the main contract that sets rules for proxy contract creation, minting ERC20 LOVE tokens,
 minting NFT certificates, and other policies for the proxy contract. Description of the methods are provided 

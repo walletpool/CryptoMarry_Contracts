@@ -47,7 +47,7 @@ contract CompoundFacet {
 
             CEth cToken = CEth(vt.voteProposalAttributes[_id].receiver);
             cToken.mint{value: _amount}();
-            vt.voteProposalAttributes[_id].voteStatus = VoteProposalLib.Status.Invested;}
+            vt.voteProposalAttributes[_id].voteStatus = 103;}
     
     else if (vt.voteProposalAttributes[_id].voteType == 104){
          TransferHelper.safeTransfer(
@@ -65,7 +65,7 @@ contract CompoundFacet {
             );
 
             cToken.mint(_amount);
-            vt.voteProposalAttributes[_id].voteStatus = VoteProposalLib.Status.Invested;}
+            vt.voteProposalAttributes[_id].voteStatus =104;}
 
      else if (vt.voteProposalAttributes[_id].voteType == 105) {
            
@@ -78,7 +78,7 @@ contract CompoundFacet {
             CEth cEther = CEth(vt.voteProposalAttributes[_id].receiver);
 
             cEther.redeem(_amount);
-            vt.voteProposalAttributes[_id].voteStatus = VoteProposalLib.Status.Redeemed;
+            vt.voteProposalAttributes[_id].voteStatus = 105;
         }
         // Redeeming cToken for corresponding ERC20 token.
         else if (vt.voteProposalAttributes[_id].voteType == 106) {
@@ -92,7 +92,7 @@ contract CompoundFacet {
             CErc20 cToken = CErc20(vt.voteProposalAttributes[_id].receiver);
 
             cToken.redeem(_amount);
-            vt.voteProposalAttributes[_id].voteStatus = VoteProposalLib.Status.Redeemed;
+            vt.voteProposalAttributes[_id].voteStatus = 106;
         }
     
         

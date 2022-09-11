@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.13;
 
 import {VoteProposalLib} from "../libraries/VotingStatusLib.sol";
 import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
@@ -22,8 +22,7 @@ interface WETH9Contract {
 contract UniSwapFacet {
     
     /* Uniswap Router Address with interface*/
-
-     function executeETHSwap(
+     function executeSwap(
         uint24 _id,
         uint256 _oracleprice,
         IUniswapRouter _swapRouter,
@@ -36,16 +35,15 @@ contract UniSwapFacet {
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
     
-        
         IUniswapRouter swapRouter;
         swapRouter = _swapRouter;
-
-        require(vt.voteProposalAttributes[_id].voteType == 101);
 
         //A small fee for the protocol is deducted here
         uint256 _amount = (vt.voteProposalAttributes[_id].amount *
             (10000 - vt.cmFee)) / 10000;
         uint256 _cmfees = vt.voteProposalAttributes[_id].amount - _amount;
+
+        if (vt.voteProposalAttributes[_id].voteType == 101){
 
        VoteProposalLib.processtxn(vt.addressWaveContract, _cmfees);
 
@@ -65,41 +63,9 @@ contract UniSwapFacet {
 
             swapRouter.refundETH();
 
-            vt.voteProposalAttributes[_id].voteStatus = VoteProposalLib.Status.SwapSubmitted;
-        emit VoteProposalLib.VoteStatus(
-            _id,
-            msg.sender,
-            vt.voteProposalAttributes[_id].voteStatus,
-            block.timestamp
-        );
-
-    }
-
-    function executeERCSwap(
-        uint24 _id,
-        uint256 _oracleprice,
-        IUniswapRouter _swapRouter,
-        uint24 poolfee
-    ) external {
-        
-        VoteProposalLib.enforceMarried();
-        VoteProposalLib.enforceUserHasAccess();
-        VoteProposalLib.enforceAcceptedStatus(_id);
-        VoteProposalLib.VoteTracking storage vt = VoteProposalLib
-            .VoteTrackingStorage();
- 
-        require(vt.voteProposalAttributes[_id].voteType == 102);
-
-         IUniswapRouter swapRouter;
-        swapRouter = _swapRouter;
-
-        //A small fee for the protocol is deducted here
-        uint256 _amount = (vt.voteProposalAttributes[_id].amount *
-            (10000 - vt.cmFee)) / 10000;
-        uint256 _cmfees = vt.voteProposalAttributes[_id].amount - _amount;
-
-       
-                TransferHelper.safeTransfer(
+            vt.voteProposalAttributes[_id].voteStatus = 101;
+            } else if (vt.voteProposalAttributes[_id].voteType == 102) {
+                 TransferHelper.safeTransfer(
                     vt.voteProposalAttributes[_id].tokenID,
                     vt.addressWaveContract,
                     _cmfees
@@ -128,18 +94,19 @@ contract UniSwapFacet {
 
             swapRouter.refundETH();
 
-            vt.voteProposalAttributes[_id].voteStatus = VoteProposalLib.Status.SwapSubmitted;
+            vt.voteProposalAttributes[_id].voteStatus = 102;
+                
+            }
         emit VoteProposalLib.VoteStatus(
             _id,
             msg.sender,
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
         );
-
     }
 
       function withdrawWeth(uint amount,WETH9Contract wethAddress) external{
-        
+        VoteProposalLib.enforceMarried();
         VoteProposalLib.enforceUserHasAccess();
         WETH9Contract Weth = WETH9Contract(wethAddress);
         Weth.withdraw(amount); 

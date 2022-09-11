@@ -1,8 +1,8 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BSL
 
 pragma solidity ^0.8.10;
 /**
- *[MIT License]
+ *[BSL License]
  *@title CryptoMarry NFT VIEW contract
  *@notice This contract compiles and returns string URI of the NFT.
  *@author Ismailov Altynbek <altyni@gmail.com>

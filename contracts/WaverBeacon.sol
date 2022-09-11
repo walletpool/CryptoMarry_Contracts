@@ -1,7 +1,7 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BSL
 
 pragma solidity ^0.8.10;
-/// [MIT License]
+/// [BSL License]
 /// @title Beacon contract
 /// @notice This contract assigns implementation of proxy contracts.
 /// @author Ismailov Altynbek <altyni@gmail.com>

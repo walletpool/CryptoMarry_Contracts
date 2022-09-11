@@ -1,26 +1,18 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: BSL
+pragma solidity ^0.8.13;
 
+/**
+*   [BSL License]
+*   @title Library of the Proxy Contract
+*   @notice Proxy contracts use variables from this libriary. 
+*   @dev The proxy uses Diamond Pattern for modularity. Relevant code was borrowed from  
+    Nick Mudge.    
+*   @author Ismailov Altynbek <altyni@gmail.com>
+*/
 
 library VoteProposalLib {
-     bytes32 constant VT_STORAGE_POSITION = keccak256("waverimplementation.VoteTracking.Lib");
+     bytes32 constant VT_STORAGE_POSITION = keccak256("waverimplementation.VoteTracking.Lib"); //Storing position of the variables
 
-    /* Enum Statuses of Voting proposals*/
-    enum Status {
-        notProposed,
-        Proposed,
-        Accepted,
-        Declined,
-        Cancelled,
-        Paid,
-        Divorced,
-        Invested,
-        Redeemed,
-        SwapSubmitted,
-        NFTsent,
-        FamilyAdded,
-        FamilyDeleted
-    }
 
     struct VoteProposal {
                 uint24 id;
@@ -28,7 +20,7 @@ library VoteProposalLib {
                 uint8   voteType;
                 uint256 tokenVoteQuantity;
                 string voteProposalText;
-                Status voteStatus;
+                uint8 voteStatus;
                 uint256 voteends;
                 address receiver;
                 address tokenID;
@@ -39,7 +31,7 @@ library VoteProposalLib {
    event VoteStatus(
         uint24 indexed id,
         address sender,
-        Status voteStatus,
+        uint8 voteStatus,
         uint256 timestamp
     );
     
@@ -76,13 +68,13 @@ library VoteProposalLib {
     } 
  function enforceProposedStatus(uint24 _voteid)  internal view {
           require(
-          VoteTrackingStorage().voteProposalAttributes[_voteid].voteStatus == Status.Proposed
+          VoteTrackingStorage().voteProposalAttributes[_voteid].voteStatus == 1
         );
     } 
 
   function enforceAcceptedStatus(uint24 _voteid)  internal view {
           require(
-          VoteTrackingStorage().voteProposalAttributes[_voteid].voteStatus == Status.Accepted
+          VoteTrackingStorage().voteProposalAttributes[_voteid].voteStatus == 2
         );
     } 
 

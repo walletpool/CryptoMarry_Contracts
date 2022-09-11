@@ -1,8 +1,8 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BSL
 
 pragma solidity ^0.8.10;
 /**
-/// [MIT License]
+/// [BSL License]
 /// @title CryptoMarry NFT Certificate Factory
 /// @notice This ERC721 contract mints NFT certificates.  
 /// @author Ismailov Altynbek <altyni@gmail.com>

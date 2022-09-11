@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BSL
 pragma solidity 0.8.13;
 
 import "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
@@ -6,7 +6,7 @@ import "./WaverImplementationDiamond.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./WaverBeacon.sol";
 
-/// [MIT License]
+/// [BSL License]
 /// @title Proxy contract factory.
 /// @notice A proxy contracts are created through the main contract.
 /// @author Ismailov Altynbek <altyni@gmail.com>

@@ -188,7 +188,7 @@ async function main() {
   console.log("Voting Status 4", txn);
 
   const swapETH = await ethers.getContractAt('UniSwapFacet', instance.address);
-  txn = await swapETH.executeETHSwap(2,1550,"0xE592427A0AEce92De3Edee1F18E0157C05861564",3000);
+  txn = await swapETH.executeSwap(2,1550,"0xE592427A0AEce92De3Edee1F18E0157C05861564",3000);
 
   console.log("SWAP costs ----> ", txn.gasLimit)
 
@@ -267,7 +267,7 @@ txn = await instance.createProposal(
 
   txn = await instance.connect(accounts[1]).voteResponse(6,hre.ethers.utils.parseEther("1"),2);
   const swapERC = await ethers.getContractAt('UniSwapFacet', instance.address);
-  await swapERC.executeERCSwap(6,hre.ethers.utils.parseEther("9.7"),"0xE592427A0AEce92De3Edee1F18E0157C05861564",3000);
+  await swapERC.executeSwap(6,hre.ethers.utils.parseEther("9.7"),"0xE592427A0AEce92De3Edee1F18E0157C05861564",3000);
 
 
   console.log("Balance USDT", await USDT.balanceOf(instance.address));
