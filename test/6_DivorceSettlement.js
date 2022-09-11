@@ -63,7 +63,7 @@ describe("Divorce Settlement Functions", function () {
       .createProposal(
         "Divorce",
         4,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
@@ -100,7 +100,7 @@ describe("Divorce Settlement Functions", function () {
       .createProposal(
         "Divorce",
         4,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
@@ -124,7 +124,7 @@ describe("Divorce Settlement Functions", function () {
         .createProposal(
           "test1",
           1,
-          1,
+
           1,
           hre.ethers.utils.parseEther("100"),
           "0x0000000000000000000000000000000000000000",
@@ -138,7 +138,7 @@ describe("Divorce Settlement Functions", function () {
         .createProposal(
           "test1",
           1,
-          1,
+  
           1,
           hre.ethers.utils.parseEther("100"),
           "0x0000000000000000000000000000000000000000",
@@ -153,7 +153,7 @@ describe("Divorce Settlement Functions", function () {
         .createProposal(
           "test1",
           1,
-          1,
+
           1,
           hre.ethers.utils.parseEther("100"),
           "0x0000000000000000000000000000000000000000",
@@ -167,7 +167,7 @@ describe("Divorce Settlement Functions", function () {
         .createProposal(
           "test1",
           1,
-          1,
+ 
           1,
           hre.ethers.utils.parseEther("100"),
           "0x0000000000000000000000000000000000000000",
@@ -185,7 +185,7 @@ describe("Divorce Settlement Functions", function () {
       .createProposal(
         "Divorce",
         4,
-        1,
+ 
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
@@ -222,7 +222,7 @@ describe("Divorce Settlement Functions", function () {
       .createProposal(
         "Send ETH",
         3,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         accounts[3].address,
@@ -245,7 +245,7 @@ describe("Divorce Settlement Functions", function () {
       .createProposal(
         "Divorce",
         4,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
@@ -311,7 +311,7 @@ describe("Divorce Settlement Functions", function () {
       .createProposal(
         "Divorce",
         4,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
@@ -380,7 +380,7 @@ describe("Divorce Settlement Functions", function () {
       .createProposal(
         "Divorce",
         4,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
@@ -425,7 +425,7 @@ describe("Divorce Settlement Functions", function () {
       .createProposal(
         "Divorce",
         4,
-        1,
+    
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
@@ -478,7 +478,7 @@ describe("Divorce Settlement Functions", function () {
       .createProposal(
         "Divorce",
         4,
-        1,
+    
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",

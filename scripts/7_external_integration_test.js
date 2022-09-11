@@ -25,7 +25,7 @@ async function main() {
 
  const forwarder = await deploy("MinimalForwarder");
 
- const WaverImplementation = await deploy("WaverIDiamond");
+ const WaverImplementation = await deploy("WaverIDiamond",forwarder.address);
 
  const WaverFactory = await deploy(
    "WaverFactory",
@@ -149,9 +149,10 @@ async function main() {
   console.log('Completed diamond cut')
   
   txn = await instance.createProposal(
-    "Staking ETH", 103,0,0, 
+    "Staking ETH", 103,0, 
   hre.ethers.utils.parseEther("1"),"0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5",
   "0x0000000000000000000000000000000000000000", hre.ethers.utils.parseEther("10"));
+
 
   console.log("Voting costs ----> ", txn.gasLimit)
   
@@ -164,7 +165,8 @@ async function main() {
   console.log("Voting Status 3", txn);
 
   const stakeETH = await ethers.getContractAt('CompoundFacet', instance.address);
-  await stakeETH.executeInvest(1);
+  txn = await stakeETH.executeInvest(1);
+  console.log("INVESTMENT costs ----> ", txn.gasLimit)
 
 
   const cETH =  await WavePortal7.attach("0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5");
@@ -173,7 +175,7 @@ async function main() {
 
 
   txn = await instance.createProposal(
-    "Swapping ETH", 101,0,0, 
+    "Swapping ETH", 101,0, 
   hre.ethers.utils.parseEther("1"),"0xdac17f958d2ee523a2206206994597c13d831ec7",
   "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", hre.ethers.utils.parseEther("10"));
   
@@ -186,7 +188,9 @@ async function main() {
   console.log("Voting Status 4", txn);
 
   const swapETH = await ethers.getContractAt('UniSwapFacet', instance.address);
-  await swapETH.executeETHSwap(2,1550,"0xE592427A0AEce92De3Edee1F18E0157C05861564",3000);
+  txn = await swapETH.executeETHSwap(2,1550,"0xE592427A0AEce92De3Edee1F18E0157C05861564",3000);
+
+  console.log("SWAP costs ----> ", txn.gasLimit)
 
   const USDT =  await WavePortal7.attach("0xdac17f958d2ee523a2206206994597c13d831ec7");
 
@@ -194,7 +198,7 @@ async function main() {
 
 
   txn = await instance.createProposal(
-    "Staking USDT", 104,0,0, 
+    "Staking USDT", 104,0, 
   hre.ethers.utils.parseEther("1"),"0xf650c3d88d12db855b8bf7d11be6c55a4e07dcc9",
  "0xdac17f958d2ee523a2206206994597c13d831ec7", 1000000000);
 
@@ -214,7 +218,7 @@ async function main() {
 
 
   txn = await instance.createProposal(
-    "Redeeming cUSDT on compound", 106,0,0, 
+    "Redeeming cUSDT on compound", 106,0, 
   hre.ethers.utils.parseEther("1"),"0xf650c3d88d12db855b8bf7d11be6c55a4e07dcc9",
   "0xf650c3d88d12db855b8bf7d11be6c55a4e07dcc9",cUSDT.balanceOf(instance.address));
 
@@ -233,7 +237,7 @@ console.log("Balance USDT", await USDT.balanceOf(instance.address));
 
 
 txn = await instance.createProposal(
-    "Redeeming cETH on compound", 105,0,0, 
+    "Redeeming cETH on compound", 105,0, 
   hre.ethers.utils.parseEther("1"),"0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5",
   "0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5",cETH.balanceOf(instance.address));
 
@@ -250,7 +254,7 @@ console.log("Balance of ETH :",await hre.ethers.provider.getBalance(instance.add
 
 
 txn = await instance.createProposal(
-    "Swapping ERC", 102,0,0, 
+    "Swapping ERC", 102,0, 
   hre.ethers.utils.parseEther("1"),"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
   "0xdac17f958d2ee523a2206206994597c13d831ec7",
   USDT.balanceOf(instance.address));

@@ -67,6 +67,7 @@ contract WaverFactory is Ownable {
         uint256 id,
         address _waver,
         address _proposed,
+        uint256 _policyDays,
         uint256 _cmFee
     ) public returns (address) {
         require(WaverContractAddress == msg.sender, "ACCESS DENIED");
@@ -77,6 +78,7 @@ contract WaverFactory is Ownable {
             id,
             _waver,
             _proposed,
+            _policyDays,
             _cmFee
         );
 

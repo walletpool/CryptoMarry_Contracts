@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {MarriageStatusLib} from "../libraries/MarriageStatusLib.sol";
 import {VoteProposalLib} from "../libraries/VotingStatusLib.sol";
 import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
 import { LibDiamond } from "../libraries/LibDiamond.sol";
@@ -25,19 +24,18 @@ contract UniSwapFacet {
     /* Uniswap Router Address with interface*/
 
      function executeETHSwap(
-        uint256 _id,
+        uint24 _id,
         uint256 _oracleprice,
         IUniswapRouter _swapRouter,
         uint24 poolfee
     ) external {
 
-        MarriageStatusLib.enforceMarried();
-        MarriageStatusLib.enforceUserHasAccess();
+        VoteProposalLib.enforceMarried();
+        VoteProposalLib.enforceUserHasAccess();
         VoteProposalLib.enforceAcceptedStatus(_id);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
+    
         
         IUniswapRouter swapRouter;
         swapRouter = _swapRouter;
@@ -46,10 +44,10 @@ contract UniSwapFacet {
 
         //A small fee for the protocol is deducted here
         uint256 _amount = (vt.voteProposalAttributes[_id].amount *
-            (10000 - ms.cmFee)) / 10000;
+            (10000 - vt.cmFee)) / 10000;
         uint256 _cmfees = vt.voteProposalAttributes[_id].amount - _amount;
 
-       MarriageStatusLib.processtxn(ms.addressWaveContract, _cmfees);
+       VoteProposalLib.processtxn(vt.addressWaveContract, _cmfees);
 
             ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
                 .ExactInputSingleParams({
@@ -57,7 +55,7 @@ contract UniSwapFacet {
                     tokenOut: vt.voteProposalAttributes[_id].receiver,
                     fee: poolfee,
                     recipient: address(this),
-                    deadline: vt.voteProposalAttributes[_id].voteStarts + 30 days,
+                    deadline: block.timestamp+ 30 minutes,
                     amountIn: _amount,
                     amountOutMinimum: _oracleprice,
                     sqrtPriceLimitX96: 0
@@ -78,20 +76,18 @@ contract UniSwapFacet {
     }
 
     function executeERCSwap(
-        uint256 _id,
+        uint24 _id,
         uint256 _oracleprice,
         IUniswapRouter _swapRouter,
         uint24 poolfee
     ) external {
         
-        MarriageStatusLib.enforceMarried();
-        MarriageStatusLib.enforceUserHasAccess();
+        VoteProposalLib.enforceMarried();
+        VoteProposalLib.enforceUserHasAccess();
         VoteProposalLib.enforceAcceptedStatus(_id);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
-
+ 
         require(vt.voteProposalAttributes[_id].voteType == 102);
 
          IUniswapRouter swapRouter;
@@ -99,13 +95,13 @@ contract UniSwapFacet {
 
         //A small fee for the protocol is deducted here
         uint256 _amount = (vt.voteProposalAttributes[_id].amount *
-            (10000 - ms.cmFee)) / 10000;
+            (10000 - vt.cmFee)) / 10000;
         uint256 _cmfees = vt.voteProposalAttributes[_id].amount - _amount;
 
        
                 TransferHelper.safeTransfer(
                     vt.voteProposalAttributes[_id].tokenID,
-                    ms.addressWaveContract,
+                    vt.addressWaveContract,
                     _cmfees
                 );
             
@@ -122,7 +118,7 @@ contract UniSwapFacet {
                     tokenOut: vt.voteProposalAttributes[_id].receiver,
                     fee: poolfee,
                     recipient: address(this),
-                    deadline: vt.voteProposalAttributes[_id].voteStarts + 30 days,
+                    deadline: block.timestamp+ 30 minutes,
                     amountIn: _amount,
                     amountOutMinimum: _oracleprice,
                     sqrtPriceLimitX96: 0
@@ -144,7 +140,7 @@ contract UniSwapFacet {
 
       function withdrawWeth(uint amount,WETH9Contract wethAddress) external{
         
-        MarriageStatusLib.enforceUserHasAccess();
+        VoteProposalLib.enforceUserHasAccess();
         WETH9Contract Weth = WETH9Contract(wethAddress);
         Weth.withdraw(amount); 
     

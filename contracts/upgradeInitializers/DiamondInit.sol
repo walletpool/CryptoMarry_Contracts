@@ -9,6 +9,7 @@ pragma solidity ^0.8.0;
 /******************************************************************************/
 
 import { LibDiamond } from "../libraries/LibDiamond.sol";
+import {VoteProposalLib} from "../libraries/VotingStatusLib.sol";
 import { IDiamondLoupe } from "../interfaces/IDiamondLoupe.sol";
 import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
 import { IERC173 } from "../interfaces/IERC173.sol";
@@ -24,6 +25,7 @@ contract DiamondInit {
     // data to set your own state variables
     function init() external {
         // adding ERC165 data
+        VoteProposalLib.enforceOnlyPartners();
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         ds.supportedInterfaces[type(IERC165).interfaceId] = true;
         ds.supportedInterfaces[type(IDiamondCut).interfaceId] = true;

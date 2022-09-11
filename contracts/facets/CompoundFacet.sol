@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {MarriageStatusLib} from "../libraries/MarriageStatusLib.sol";
 import {VoteProposalLib} from "../libraries/VotingStatusLib.sol";
 import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
 import { LibDiamond } from "../libraries/LibDiamond.sol";
@@ -26,26 +25,25 @@ contract CompoundFacet {
     /* Uniswap Router Address with interface*/
 
      function executeInvest(
-        uint256 _id
+        uint24 _id
     ) external {
 
-        MarriageStatusLib.enforceMarried();
-        MarriageStatusLib.enforceUserHasAccess();
+        VoteProposalLib.enforceMarried();
+        VoteProposalLib.enforceUserHasAccess();
         VoteProposalLib.enforceAcceptedStatus(_id);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
+      
         
 
         //A small fee for the protocol is deducted here
         uint256 _amount = (vt.voteProposalAttributes[_id].amount *
-            (10000 - ms.cmFee)) / 10000;
+            (10000 - vt.cmFee)) / 10000;
         uint256 _cmfees = vt.voteProposalAttributes[_id].amount - _amount;
 
         if (vt.voteProposalAttributes[_id].voteType == 103) {
 
-       MarriageStatusLib.processtxn(ms.addressWaveContract, _cmfees);
+       VoteProposalLib.processtxn(vt.addressWaveContract, _cmfees);
 
             CEth cToken = CEth(vt.voteProposalAttributes[_id].receiver);
             cToken.mint{value: _amount}();
@@ -54,7 +52,7 @@ contract CompoundFacet {
     else if (vt.voteProposalAttributes[_id].voteType == 104){
          TransferHelper.safeTransfer(
                     vt.voteProposalAttributes[_id].tokenID,
-                    ms.addressWaveContract,
+                    vt.addressWaveContract,
                     _cmfees
                 );
 
@@ -73,7 +71,7 @@ contract CompoundFacet {
            
            TransferHelper.safeTransfer(
                     vt.voteProposalAttributes[_id].tokenID,
-                    ms.addressWaveContract,
+                    vt.addressWaveContract,
                     _cmfees
                 );
 
@@ -87,7 +85,7 @@ contract CompoundFacet {
              
            TransferHelper.safeTransfer(
                     vt.voteProposalAttributes[_id].tokenID,
-                    ms.addressWaveContract,
+                    vt.addressWaveContract,
                     _cmfees
                 );
 

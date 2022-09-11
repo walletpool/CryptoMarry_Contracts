@@ -1,47 +1,40 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: BSL
+pragma solidity ^0.8.13;
 
-/******************************************************************************\
-* Author: Nick Mudge <nick@perfectabstractions.com> (https://twitter.com/mudgen)
-* EIP-2535 Diamonds: https://eips.ethereum.org/EIPS/eip-2535
-*
-* Implementation of a diamond.
-/******************************************************************************/
+/**
+*   [BSL License]
+*   @title CM Proxy contract implementation.
+*   @notice Individual contract is created after proposal has been sent to the partner. 
+    ETH stake will be deposited to this newly created contract.
+*   @dev The proxy uses Diamond Pattern for modularity. Relevant code was borrowed from  
+    Nick Mudge <nick@perfectabstractions.com>. Reimbursement of sponsored TXFee through
+    MinimalForwarder, amounts to full estimated TX Costs at the beginning of relevant 
+    functions.   
+ @author Ismailov Altynbek <altyni@gmail.com>
+*/
 
 import "@gnus.ai/contracts-upgradeable-diamond/proxy/utils/Initializable.sol";
 import "@gnus.ai/contracts-upgradeable-diamond/token/ERC721/utils/ERC721HolderUpgradeable.sol";
-//import "@gnus.ai/contracts-upgradeable-diamond/security/ReentrancyGuardUpgradeable.sol";
-
-//import "@gnus.ai/contracts-upgradeable-diamond/metatx/ERC2771ContextUpgradeable.sol";
-//import "@gnus.ai/contracts-upgradeable-diamond/metatx/MinimalForwarderUpgradeable.sol";
+import "@gnus.ai/contracts-upgradeable-diamond/security/ReentrancyGuardUpgradeable.sol";
+import "@gnus.ai/contracts-upgradeable-diamond/metatx/ERC2771ContextUpgradeable.sol";
+import "@gnus.ai/contracts-upgradeable-diamond/metatx/MinimalForwarderUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import "./SecuredTokenTransfer.sol";
 
-//import "hardhat/console.sol";
-
 import {LibDiamond} from "./libraries/LibDiamond.sol";
 import {IDiamondCut} from "./interfaces/IDiamondCut.sol";
-import {MarriageStatusLib} from "./libraries/MarriageStatusLib.sol";
 import {VoteProposalLib} from "./libraries/VotingStatusLib.sol";
 
-interface WaverContract {
+/*Interface for the Main Contract*/
+interface WaverContract  {
     function burn(address _to, uint256 _amount) external;
-
-    function policyDays() external returns (uint256);
-
     function addFamilyMember(address, uint256) external;
-
     function cancel(uint256) external;
-
     function deleteFamilyMember(address) external;
-
     function divorceUpdate(uint256 _id) external;
-
     function addressNFTSplit() external returns (address);
-
-    function poolFee() external returns (uint24);
 }
 
 /*Interface for the NFT Split Contract*/
@@ -61,51 +54,62 @@ interface nftSplitInstance {
 contract WaverIDiamond is
     Initializable,
     SecuredTokenTransfer,
-    ERC721HolderUpgradeable
+    ERC721HolderUpgradeable,
+    ReentrancyGuardUpgradeable,
+    ERC2771ContextUpgradeable
 {
+    
+    /*Constructor to connect Forwarder Address*/
+    constructor(MinimalForwarderUpgradeable forwarder) initializer ERC2771ContextUpgradeable(address(forwarder)) {}
+    
     /**
      * @notice Initialization function of the proxy contract
      * @dev Initialization params are passed from the main contract.
      * @param _addressWaveContract Address of the main contract.
+     * @param _diamondCutFacet Address of the Diamond Facet Cut
      * @param _id Marriage ID assigned by the main contract.
      * @param _proposer Address of the prpoposer.
      * @param _proposer Address of the proposed.
+     * @param _policyDays Cooldown before divorcing 
      * @param _cmFee CM fee, as a small percentage of incoming and outgoing transactions.
      */
 
     function initialize(
         address payable _addressWaveContract,
-         address _diamondCutFacet,
+        address _diamondCutFacet,
         uint256 _id,
         address _proposer,
         address _proposed,
+        uint256 _policyDays,
         uint256 _cmFee
     ) public initializer {
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
 
-        vt.voteid += 1;
-
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
-
-        ms.addressWaveContract = _addressWaveContract;
-        ms.marriageStatus = MarriageStatusLib.MarriageStatus.Proposed;
-        ms.hasAccess[_proposer] = true;
-        ms.id = _id;
-        ms.proposer = _proposer;
-        ms.proposed = _proposed;
-        ms.cmFee = _cmFee;
+        unchecked{
+         ++vt.voteid;}
+        vt.addressWaveContract = _addressWaveContract;
+        vt.marriageStatus = VoteProposalLib.MarriageStatus.Proposed;
+        vt.hasAccess[_proposer] = true;
+        vt.id = _id;
+        vt.proposer = _proposer;
+        vt.proposed = _proposed;
+        vt.cmFee = _cmFee;
+        vt.policyDays =_policyDays ;
 
         // Add the diamondCut external function from the diamondCutFacet
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
+        
         bytes4[] memory functionSelectors = new bytes4[](1);
+       
         functionSelectors[0] = IDiamondCut.diamondCut.selector;
+        
         cut[0] = IDiamondCut.FacetCut({
             facetAddress: _diamondCutFacet,
             action: IDiamondCut.FacetCutAction.Add,
             functionSelectors: functionSelectors
         });
+
         LibDiamond.diamondCut(cut, address(0), "");
     }
 
@@ -117,21 +121,21 @@ contract WaverIDiamond is
      */
 
     function cancel() external {
-        MarriageStatusLib.enforceNotYetMarried();
-        MarriageStatusLib.enforceUserHasAccess();
+        VoteProposalLib.enforceNotYetMarried();
+        VoteProposalLib.enforceUserHasAccess();
 
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
-        ms.marriageStatus = MarriageStatusLib.MarriageStatus.Cancelled;
-        WaverContract _wavercContract = WaverContract(ms.addressWaveContract);
-        _wavercContract.cancel(ms.id);
+       VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
+        vt.marriageStatus = VoteProposalLib.MarriageStatus.Cancelled;
+        WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
+        _wavercContract.cancel(vt.id);
 
-        MarriageStatusLib.processtxn(
-            ms.addressWaveContract,
-            (address(this).balance * ms.cmFee) / 10000
+        VoteProposalLib.processtxn(
+            vt.addressWaveContract,
+            (address(this).balance * vt.cmFee) / 10000
         );
-        MarriageStatusLib.processtxn(
-            payable(ms.proposer),
+        VoteProposalLib.processtxn(
+            payable(vt.proposer),
             address(this).balance
         );
     }
@@ -142,13 +146,13 @@ contract WaverIDiamond is
      */
 
     function agreed() external {
-        MarriageStatusLib.enforceContractHasAccess();
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
-        ms.marriageStatus = MarriageStatusLib.MarriageStatus.Married;
-        ms.marryDate = block.timestamp;
-        ms.hasAccess[ms.proposed] = true;
-        ms.familyMembers = 2;
+        VoteProposalLib.enforceContractHasAccess();
+        VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
+        vt.marriageStatus = VoteProposalLib.MarriageStatus.Married;
+        vt.marryDate = block.timestamp;
+        vt.hasAccess[vt.proposed] = true;
+        vt.familyMembers = 2;
     }
 
     /**
@@ -157,10 +161,10 @@ contract WaverIDiamond is
      */
 
     function declined() external {
-        MarriageStatusLib.enforceContractHasAccess();
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
-        ms.marriageStatus = MarriageStatusLib.MarriageStatus.Declined;
+        VoteProposalLib.enforceContractHasAccess();
+      VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
+        vt.marriageStatus = VoteProposalLib.MarriageStatus.Declined;
     }
 
     /**
@@ -169,14 +173,14 @@ contract WaverIDiamond is
      */
 
     function addstake() external payable {
-        MarriageStatusLib.enforceNotDivorced();
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
-        MarriageStatusLib.processtxn(
-            ms.addressWaveContract,
-            ((msg.value) * ms.cmFee) / 10000
+        VoteProposalLib.enforceNotDivorced();
+       VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
+        VoteProposalLib.processtxn(
+            vt.addressWaveContract,
+            ((msg.value) * vt.cmFee) / 10000
         );
-        emit MarriageStatusLib.AddStake(
+        emit VoteProposalLib.AddStake(
             msg.sender,
             address(this),
             block.timestamp,
@@ -191,48 +195,38 @@ contract WaverIDiamond is
      * @param _message String text on details of the proposal. 
      * @param _votetype Type of the proposal as it was listed in enum above. 
      * @param _voteends Timestamp on when the voting ends
-     * @param _votestarts Timestamp on when the voting starts
      * @param _numTokens Number of LOVE tokens that is used to back this proposal. 
      * @param _receiver Address of the receiver who will be receiving indicated amounts. 
      * @param _tokenID Address of the ERC20, ERC721 or other tokens. 
      * @param _amount The amount of token that is being sent. Alternatively can be used as NFT ID. 
-     Minimal Forwarder.
      */
 
     function createProposal(
-        string memory _message,
+        string calldata _message,
         uint8 _votetype,
         uint256 _voteends,
-        uint256 _votestarts,
         uint256 _numTokens,
         address payable _receiver,
         address _tokenID,
         uint256 _amount
     ) external {
-        MarriageStatusLib.enforceUserHasAccess();
-        MarriageStatusLib.enforceMarried();
-
+        uint _GasLeft = gasleft();
+        VoteProposalLib.enforceUserHasAccess();
+        VoteProposalLib.enforceMarried();
+        
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
-
-        if (_votestarts < block.timestamp) {
-            _votestarts = block.timestamp;
-        }
-
-        WaverContract _wavercContract = WaverContract(ms.addressWaveContract);
-
+      
+        WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
+        
+ 
         if (_votetype == 4) {
             //Cooldown has to pass before divorce is proposed.
-            uint256 policyDays = _wavercContract.policyDays();
-            require(ms.marryDate + policyDays < block.timestamp);
+            require(vt.marryDate + vt.policyDays < block.timestamp);
             //Only partners can propose divorce
-            MarriageStatusLib.enforceOnlyPartners();
-        }
-
-        vt.findVoteId.push(vt.voteid);
-
+            VoteProposalLib.enforceOnlyPartners();
+        }     
+          
         vt.voteProposalAttributes[vt.voteid] = VoteProposalLib.VoteProposal({
             id: vt.voteid,
             proposer: msg.sender,
@@ -241,28 +235,30 @@ contract WaverIDiamond is
             voteProposalText: _message,
             voteStatus: VoteProposalLib.Status.Proposed,
             voteends: _voteends,
-            voteStarts: _votestarts,
             receiver: _receiver,
             tokenID: _tokenID,
-            amount: _amount
+            amount: _amount,
+            votersLeft: vt.familyMembers - 1
         });
+
 
         vt.numTokenFor[vt.voteid] = _numTokens;
 
-        vt.votersLeft[vt.voteid] = ms.familyMembers - 1;
         vt.votingStatus[vt.voteid][msg.sender] = true;
-
+      
         _wavercContract.burn(msg.sender, _numTokens);
+    
         emit VoteProposalLib.VoteStatus(
             vt.voteid,
             msg.sender,
             VoteProposalLib.Status.Proposed,
             block.timestamp
         );
-
-        vt.voteid += 1;
+        
+         unchecked{
+         ++vt.voteid;}
+         checkForwarder(_GasLeft,vt);
     }
-
     /**
      * @notice Through this method, proposals are voted for/against.  
      * @dev A user cannot vote twice. User cannot vote on voting which has been already passed/declined. Token staked is burnt.
@@ -273,22 +269,22 @@ contract WaverIDiamond is
      */
 
     function voteResponse(
-        uint256 _id,
+        uint24 _id,
         uint256 _numTokens,
         uint8 responsetype
     ) external {
-        MarriageStatusLib.enforceUserHasAccess();
+        uint _GasLeft = gasleft();
+        VoteProposalLib.enforceUserHasAccess();
         VoteProposalLib.enforceNotVoted(_id);
         VoteProposalLib.enforceProposedStatus(_id);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
-
-        WaverContract _wavercContract = WaverContract(ms.addressWaveContract);
+   
+        
+        WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
 
         vt.votingStatus[_id][msg.sender] = true;
-        vt.votersLeft[_id] -= 1;
+        vt.voteProposalAttributes[_id].votersLeft -= 1;
 
         if (responsetype == 2) {
             vt.numTokenFor[_id] += _numTokens;
@@ -296,7 +292,7 @@ contract WaverIDiamond is
             vt.numTokenAgainst[_id] += _numTokens;
         }
 
-        if (vt.votersLeft[_id] == 0) {
+        if (vt.voteProposalAttributes[_id].votersLeft  == 0) {
             if (vt.numTokenFor[_id] < vt.numTokenAgainst[_id]) {
                 vt.voteProposalAttributes[_id].voteStatus = VoteProposalLib
                     .Status
@@ -315,6 +311,7 @@ contract WaverIDiamond is
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
         );
+         checkForwarder(_GasLeft,vt);
     }
 
     /**
@@ -323,7 +320,8 @@ contract WaverIDiamond is
      * @param _id Vote ID, that is being voted for/against.
      */
 
-    function cancelVoting(uint256 _id) external {
+    function cancelVoting(uint24 _id) external {
+        uint _GasLeft = gasleft();
         VoteProposalLib.enforceProposedStatus(_id);
         VoteProposalLib.enforceOnlyProposer(_id);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
@@ -331,12 +329,14 @@ contract WaverIDiamond is
         vt.voteProposalAttributes[_id].voteStatus = VoteProposalLib
             .Status
             .Cancelled;
+    
         emit VoteProposalLib.VoteStatus(
             _id,
             msg.sender,
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
         );
+        checkForwarder(_GasLeft,vt);
     }
 
     /**
@@ -346,17 +346,16 @@ contract WaverIDiamond is
      
      */
 
-    function endVotingByTime(uint256 _id) external {
-       
-        MarriageStatusLib.enforceUserHasAccess();
-        
+    function endVotingByTime(uint24 _id) external {
+       uint _GasLeft = gasleft();
+        VoteProposalLib.enforceUserHasAccess();
         VoteProposalLib.enforceProposedStatus(_id);
-
         VoteProposalLib.enforceDeadlinePassed(_id);
+        
   
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-
+       
             if (vt.numTokenFor[_id] < vt.numTokenAgainst[_id]) {
                 vt.voteProposalAttributes[_id].voteStatus = VoteProposalLib
                     .Status
@@ -373,6 +372,7 @@ contract WaverIDiamond is
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
         );
+        checkForwarder(_GasLeft,vt);
     }
 
     /**
@@ -381,26 +381,23 @@ contract WaverIDiamond is
      * @param _id Vote ID, that is being voted for/against.
      */
 
-    function executeVoting(uint256 _id) external {
-        MarriageStatusLib.enforceMarried();
-        MarriageStatusLib.enforceUserHasAccess();
+    function executeVoting(uint24 _id) external nonReentrant {
+        VoteProposalLib.enforceMarried();
+        VoteProposalLib.enforceUserHasAccess();
         VoteProposalLib.enforceAcceptedStatus(_id);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
-
-        WaverContract _wavercContract = WaverContract(ms.addressWaveContract);
-
+      
+        WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
         //A small fee for the protocol is deducted here
         uint256 _amount = (vt.voteProposalAttributes[_id].amount *
-            (10000 - ms.cmFee)) / 10000;
+            (10000 - vt.cmFee)) / 10000;
         uint256 _cmfees = vt.voteProposalAttributes[_id].amount - _amount;
-
+        
         // Sending ETH from the contract
         if (vt.voteProposalAttributes[_id].voteType == 3) {
-            MarriageStatusLib.processtxn(ms.addressWaveContract, _cmfees);
-            MarriageStatusLib.processtxn(
+            VoteProposalLib.processtxn(vt.addressWaveContract, _cmfees);
+            VoteProposalLib.processtxn(
                 payable(vt.voteProposalAttributes[_id].receiver),
                 _amount
             );
@@ -413,7 +410,7 @@ contract WaverIDiamond is
             require(
                 transferToken(
                     vt.voteProposalAttributes[_id].tokenID,
-                    ms.addressWaveContract,
+                    vt.addressWaveContract,
                     _cmfees
                 )
             );
@@ -431,18 +428,18 @@ contract WaverIDiamond is
         }
         //This is if two sides decide to divorce, funds are split between partners
         else if (vt.voteProposalAttributes[_id].voteType == 4) {
-            ms.marriageStatus = MarriageStatusLib.MarriageStatus.Divorced;
+            vt.marriageStatus = VoteProposalLib.MarriageStatus.Divorced;
 
-            MarriageStatusLib.processtxn(
-                ms.addressWaveContract,
-                (address(this).balance * ms.cmFee) / 10000
+            VoteProposalLib.processtxn(
+                vt.addressWaveContract,
+                (address(this).balance * vt.cmFee) / 10000
             );
 
             uint256 splitamount = address(this).balance / 2;
-            MarriageStatusLib.processtxn(payable(ms.proposer), splitamount);
-            MarriageStatusLib.processtxn(payable(ms.proposed), splitamount);
+            VoteProposalLib.processtxn(payable(vt.proposer), splitamount);
+            VoteProposalLib.processtxn(payable(vt.proposed), splitamount);
 
-            _wavercContract.divorceUpdate(ms.id);
+            _wavercContract.divorceUpdate(vt.id);
 
             vt.voteProposalAttributes[_id].voteStatus = VoteProposalLib
                 .Status
@@ -470,19 +467,31 @@ contract WaverIDiamond is
     }
 
     /**
+     * @notice Function to reimburse transactions costs of relayers 
+     * @param _GasLeft Gas left at the beginning of the transaction*/
+
+    function checkForwarder(uint _GasLeft, VoteProposalLib.VoteTracking storage vt ) internal {
+    if (isTrustedForwarder(msg.sender)) {
+        VoteProposalLib.processtxn(vt.addressWaveContract, _GasLeft * tx.gasprice);
+        }
+    }
+
+    /**
      * @notice Through this method a family member can be invited. Once added, the user needs to accept invitation.
      * @dev Only partners can add new family member. Partners cannot add their current addresses.
      * @param _member The address who are being invited to the proxy.
      */
 
     function addFamilyMember(address _member) external {
-        MarriageStatusLib.enforceOnlyPartners();
-        MarriageStatusLib.enforceNotPartnerAddr(_member);
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
-        require(ms.familyMembers < 50);
-        WaverContract _waverContract = WaverContract(ms.addressWaveContract);
-        _waverContract.addFamilyMember(_member, ms.id);
+         uint _GasLeft = gasleft();
+        VoteProposalLib.enforceOnlyPartners();
+        VoteProposalLib.enforceNotPartnerAddr(_member);
+       VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
+        require(vt.familyMembers < 50);
+  
+        WaverContract _waverContract = WaverContract(vt.addressWaveContract);
+        _waverContract.addFamilyMember(_member, vt.id);
 
         emit VoteProposalLib.VoteStatus(
             0,
@@ -490,6 +499,7 @@ contract WaverIDiamond is
             VoteProposalLib.Status.FamilyAdded,
             block.timestamp
         );
+        checkForwarder(_GasLeft,vt);
     }
 
     /**
@@ -499,11 +509,11 @@ contract WaverIDiamond is
      */
 
     function _addFamilyMember(address _member) external {
-        MarriageStatusLib.enforceContractHasAccess();
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
-        ms.hasAccess[_member] = true;
-        ms.familyMembers += 1;
+        VoteProposalLib.enforceContractHasAccess();
+       VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
+        vt.hasAccess[_member] = true;
+        vt.familyMembers += 1;
     }
 
     /**
@@ -513,22 +523,24 @@ contract WaverIDiamond is
      */
 
     function deleteFamilyMember(address _member) external {
-        MarriageStatusLib.enforceOnlyPartners();
-        MarriageStatusLib.enforceNotPartnerAddr(_member);
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
-
-        WaverContract _waverContract = WaverContract(ms.addressWaveContract);
+        uint _GasLeft = gasleft();
+        VoteProposalLib.enforceOnlyPartners();
+        VoteProposalLib.enforceNotPartnerAddr(_member);
+      VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
+  
+        WaverContract _waverContract = WaverContract(vt.addressWaveContract);
 
         _waverContract.deleteFamilyMember(_member);
-        delete ms.hasAccess[_member];
-        ms.familyMembers -= 1;
+        delete vt.hasAccess[_member];
+        vt.familyMembers -= 1;
         emit VoteProposalLib.VoteStatus(
             0,
             msg.sender,
             VoteProposalLib.Status.FamilyDeleted,
             block.timestamp
         );
+         checkForwarder(_GasLeft,vt);
     }
 
     /* Divorce settlement. Once Divorce is processed there are 
@@ -540,24 +552,24 @@ contract WaverIDiamond is
      * @param _tokenID the address of the ERC20 token that is being split.
      */
 
-    function withdrawERC20(address _tokenID) external {
-        MarriageStatusLib.enforceOnlyPartners();
-        MarriageStatusLib.enforceDivorced();
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
+    function withdrawERC20(address _tokenID) external nonReentrant{
+        VoteProposalLib.enforceOnlyPartners();
+        VoteProposalLib.enforceDivorced();
+       VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
         uint256 amount = IERC20Upgradeable(_tokenID).balanceOf(address(this));
 
         require(
             transferToken(
                 _tokenID,
-                ms.addressWaveContract,
-                (amount * ms.cmFee) / 10000
+                vt.addressWaveContract,
+                (amount * vt.cmFee) / 10000
             )
         );
         amount = IERC20Upgradeable(_tokenID).balanceOf(address(this));
 
-        require(transferToken(_tokenID, ms.proposer, (amount / 2)));
-        require(transferToken(_tokenID, ms.proposed, (amount / 2)));
+        require(transferToken(_tokenID, vt.proposer, (amount / 2)));
+        require(transferToken(_tokenID, vt.proposed, (amount / 2)));
     }
 
     /**
@@ -579,26 +591,26 @@ contract WaverIDiamond is
         string memory nft_json1,
         string memory nft_json2
     ) external {
-        MarriageStatusLib.enforceOnlyPartners();
-        MarriageStatusLib.enforceDivorced();
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
+        VoteProposalLib.enforceOnlyPartners();
+        VoteProposalLib.enforceDivorced();
+       VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
 
-        require(ms.wasDistributed[_tokenAddr][_tokenID] == 0); //ERC721 Token should not be split before
+        require(vt.wasDistributed[_tokenAddr][_tokenID] == 0); //ERC721 Token should not be split before
         require(checkOwnership(_tokenAddr, _tokenID) == true); // Check whether the indicated token is owned by the proxy contract.
 
-        WaverContract _wavercContract = WaverContract(ms.addressWaveContract);
+        WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
         address nftSplitAddr = _wavercContract.addressNFTSplit(); //gets NFT splitter address from the pain contract
 
         nftSplitInstance nftSplit = nftSplitInstance(nftSplitAddr);
-        ms.wasDistributed[_tokenAddr][_tokenID] == 1; //Check and Effect
+        vt.wasDistributed[_tokenAddr][_tokenID] == 1; //Check and Effect
         nftSplit.splitNFT(
             _tokenAddr,
             _tokenID,
             nft_json1,
             nft_json2,
-            ms.proposer,
-            ms.proposed,
+            vt.proposer,
+            vt.proposed,
             address(this)
         ); //A copy of the NFT is created by NFT Splitter.
     }
@@ -632,9 +644,9 @@ contract WaverIDiamond is
         address _receipent,
         uint256 _tokenID
     ) external {
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
-        WaverContract _wavercContract = WaverContract(ms.addressWaveContract);
+        VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
+        WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
         require(_wavercContract.addressNFTSplit() == msg.sender);
         IERC721(_tokenAddr).safeTransferFrom(
             address(this),
@@ -643,7 +655,6 @@ contract WaverIDiamond is
         );
     }
 
-    /* GETTERS*/
 
     /* Checking and Querying the voting data*/
 
@@ -651,7 +662,7 @@ contract WaverIDiamond is
     function getVoteLength() external view returns (uint256) {
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        return vt.findVoteId.length;
+        return vt.voteid - 1;
     }
 
     /**
@@ -661,65 +672,66 @@ contract WaverIDiamond is
      * @param _pagenumber A page number queried.   
      */
 
-    function getVotingStatuses(uint256 _pagenumber)
+    function getVotingStatuses(uint24 _pagenumber)
         external
         view
         returns (VoteProposalLib.VoteProposal[] memory)
     {
-        MarriageStatusLib.enforceUserHasAccess();
+        VoteProposalLib.enforceUserHasAccess();
 
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        uint256 page = vt.findVoteId.length / 20;
-        uint256 size;
-        uint256 start;
-        if (_pagenumber * 20 > vt.findVoteId.length) {
-            size = vt.findVoteId.length % 20;
+        uint24 length = vt.voteid - 1; 
+        uint24 page = length / 20;
+        uint24 size;
+        uint24 start;
+        if (_pagenumber * 20 > length) {
+            size = length % 20;
             if (size == 0 && page != 0) {
                 size = 20;
                 page -= 1;
             }
-            start = page * 20;
-        } else if (_pagenumber * 20 <= vt.findVoteId.length) {
+            start = page * 20 + 1;
+        } else if (_pagenumber * 20 <= length) {
             size = 20;
-            start = (_pagenumber - 1) * 20;
+            start = (_pagenumber - 1) * 20 + 1;
         }
 
         VoteProposalLib.VoteProposal[]
             memory votings = new VoteProposalLib.VoteProposal[](size);
 
-        for (uint256 i = 0; i < size; i++) {
-            votings[i] = vt.voteProposalAttributes[vt.findVoteId[start + i]];
+        for (uint24 i = 0; i < size; i++) {
+            votings[i] = vt.voteProposalAttributes[start + i];
         }
         return votings;
     }
 
     function getFamilyMembersNumber() external view returns (uint256) {
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
-        return ms.familyMembers;
+        VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
+        return vt.familyMembers;
+    }
+
+    function getPolicyDays() external view returns (uint256) {
+        VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
+        return vt.policyDays;
     }
 
     function getMarryDate() external view returns (uint256) {
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
-        return ms.marryDate;
+       VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
+        return vt.marryDate;
     }
 
     function getMarriageStatus()
         external
         view
-        returns (MarriageStatusLib.MarriageStatus)
+        returns (VoteProposalLib.MarriageStatus)
     {
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
-        return ms.marriageStatus;
-    }
-
-    function getVotersLeft(uint256 _voteid) external view returns (uint256) {
-        VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+       VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        return vt.votersLeft[_voteid];
+        return vt.marriageStatus;
     }
 
     function getNFTDistributed(address tokenAddr, uint256 TokenID)
@@ -727,10 +739,15 @@ contract WaverIDiamond is
         view
         returns (uint8)
     {
-        MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-            .marriageStatusStorage();
-        return ms.wasDistributed[tokenAddr][TokenID];
+        VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
+        return vt.wasDistributed[tokenAddr][TokenID];
     }
+
+     function checkAppConnected(address appAddress) external view returns (bool){
+         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+         return ds.connectedApps[appAddress];
+     }
 
     // Find facet for function that is called and execute the
     // function if a facet is found and return any value.
@@ -745,7 +762,7 @@ contract WaverIDiamond is
         address facet = ds
             .facetAddressAndSelectorPosition[msg.sig]
             .facetAddress;
-        require(facet != address(0), "Diamond: Function does not exist");
+        require(facet != address(0));
         // Execute external function from facet using delegatecall and return any value.
         assembly {
             // copy function selector and any arguments
@@ -772,14 +789,14 @@ contract WaverIDiamond is
     receive() external payable {
         require(msg.value > 0);
         if (gasleft() > 2300) {
-            MarriageStatusLib.enforceNotDivorced();
-            MarriageStatusLib.MarriageProps storage ms = MarriageStatusLib
-                .marriageStatusStorage();
-            MarriageStatusLib.processtxn(
-                ms.addressWaveContract,
-                (msg.value * ms.cmFee) / 10000
+            VoteProposalLib.enforceNotDivorced();
+            VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
+            VoteProposalLib.processtxn(
+                vt.addressWaveContract,
+                (msg.value * vt.cmFee) / 10000
             );
-            emit MarriageStatusLib.AddStake(
+            emit VoteProposalLib.AddStake(
                 msg.sender,
                 address(this),
                 block.timestamp,

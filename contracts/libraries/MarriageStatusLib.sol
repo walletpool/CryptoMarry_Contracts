@@ -10,12 +10,12 @@ library MarriageStatusLib {
         uint256 id;
         address proposer;
         address proposed;
-        uint256 cmFee;
-        uint256 familyMembers;
-        uint256 marryDate;
         address payable addressWaveContract;
         MarriageStatus  marriageStatus;
         mapping(address => bool) hasAccess; //Addresses that are alowed to use Proxy contract
+        uint256 cmFee;
+        uint256 marryDate;
+        uint256 familyMembers;
         mapping(address => mapping(uint256 => uint8)) wasDistributed; //Tracking whether NFT has been distributed between partners upon divorce
 
     }
@@ -105,16 +105,6 @@ library MarriageStatusLib {
             emit AddStake(address(this), _to, block.timestamp, _amount);
         }
     }
-
-    function enforceHasContractCode(address _contract, string memory _errorMessage) internal view {
-        uint256 contractSize;
-        assembly {
-            contractSize := extcodesize(_contract)
-        }
-        require(contractSize > 0, _errorMessage);
-    }
-
-
 
 
 

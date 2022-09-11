@@ -62,10 +62,6 @@ describe("Testing Diamond Facets", function () {
     })
   }
 
-  // upgrade diamond with facets
-  console.log('')
-  console.log('Diamond Cut:', cut)
-
   const diamondCut = await ethers.getContractAt('IDiamondCut', instance.address);
   let tx;
   let receipt;
@@ -77,7 +73,7 @@ describe("Testing Diamond Facets", function () {
   if (!receipt.status) {
     throw Error(`Diamond upgrade failed: ${tx.hash}`)
   }
-  console.log('Completed diamond cut')
+
 
   txn = await WavePortal7.connect(accounts[2]).checkMarriageStatus();
   const instance2 = await WaverImplementation.attach(txn.marriageContract);
@@ -134,15 +130,15 @@ describe("Testing Diamond Facets", function () {
     )
     assert.equal(
       addresses[2],
-      await diamondLoupeFacet.facetAddress('0xd15f1ee8')
+      await diamondLoupeFacet.facetAddress('0x62fe52ed')
     )
     assert.equal(
       addresses[3],
-      await diamondLoupeFacet.facetAddress('0x631d8cee')
+      await diamondLoupeFacet.facetAddress('0xa63275e7')
     )
     assert.equal(
       addresses[3],
-      await diamondLoupeFacet.facetAddress('0x54c39f7a')
+      await diamondLoupeFacet.facetAddress('0x162bcf14')
     )
   })
  

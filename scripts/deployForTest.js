@@ -23,7 +23,7 @@ module.exports = {deployTest: async function deployTest(){
 
   const forwarder = await deploy("MinimalForwarder");
 
-  const WaverImplementation = await deploy("WaverIDiamond");
+  const WaverImplementation = await deploy("WaverIDiamond",forwarder.address);
 
   const WaverFactory = await deploy(
     "WaverFactory",

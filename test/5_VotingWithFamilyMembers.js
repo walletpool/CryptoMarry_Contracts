@@ -61,7 +61,7 @@ describe("Voting with family members", function () {
       .createProposal(
         "test1",
         1,
-        1,
+   
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
@@ -73,7 +73,7 @@ describe("Voting with family members", function () {
       .createProposal(
         "test2",
         1,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
@@ -100,7 +100,7 @@ describe("Voting with family members", function () {
       .createProposal(
         "test1",
         1,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
@@ -121,8 +121,7 @@ describe("Voting with family members", function () {
       .createProposal(
         "test1",
         1,
-        1000,
-        1,
+        parseInt(Date.now()/1000) + 1000,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
@@ -142,7 +141,7 @@ describe("Voting with family members", function () {
       .createProposal(
         "test1",
         1,
-        1,
+  
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
@@ -169,7 +168,7 @@ describe("Voting with family members", function () {
       .createProposal(
         "test1",
         1,
-        1,
+      
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
@@ -210,7 +209,7 @@ describe("Voting with family members", function () {
       .createProposal(
         "test1",
         1,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
@@ -248,7 +247,7 @@ describe("Voting with family members", function () {
       .createProposal(
         "test1",
         1,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
@@ -288,7 +287,7 @@ describe("Voting with family members", function () {
         .createProposal(
           "Divorce",
           4,
-          1,
+
           1,
           hre.ethers.utils.parseEther("100"),
           "0x0000000000000000000000000000000000000000",
@@ -308,7 +307,6 @@ describe("Voting with family members", function () {
       .createProposal(
         "Send ETH",
         3,
-        1,
         1,
         hre.ethers.utils.parseEther("100"),
         accounts[3].address,
