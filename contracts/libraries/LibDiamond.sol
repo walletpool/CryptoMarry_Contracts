@@ -32,8 +32,6 @@ library LibDiamond {
         }
     }
 
-    event DiamondCut(IDiamondCut.FacetCut[] _diamondCut, address _init, bytes _calldata);
-
      // Internal function version of diamondCut
     function diamondCut(
         IDiamondCut.FacetCut[] memory _diamondCut,
@@ -53,7 +51,6 @@ library LibDiamond {
                 revert();
             }
         }
-        emit DiamondCut(_diamondCut, _init, _calldata);
         initializeDiamondCut(_init, _calldata);
     }
 

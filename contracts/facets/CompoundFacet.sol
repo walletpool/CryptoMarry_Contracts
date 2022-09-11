@@ -29,7 +29,7 @@ contract CompoundFacet {
     ) external {
 
         VoteProposalLib.enforceMarried();
-        VoteProposalLib.enforceUserHasAccess();
+        VoteProposalLib.enforceUserHasAccess(msg.sender);
         VoteProposalLib.enforceAcceptedStatus(_id);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();

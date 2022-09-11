@@ -13,7 +13,6 @@ pragma solidity ^0.8.13;
 library VoteProposalLib {
      bytes32 constant VT_STORAGE_POSITION = keccak256("waverimplementation.VoteTracking.Lib"); //Storing position of the variables
 
-
     struct VoteProposal {
                 uint24 id;
                 address proposer;
@@ -61,9 +60,9 @@ library VoteProposalLib {
         }
     }
 
-  function enforceNotVoted(uint24 _voteid)  internal view {
+  function enforceNotVoted(uint24 _voteid, address msgSender_)  internal view {
           require(
-            VoteTrackingStorage().votingStatus[_voteid][msg.sender] != true
+            VoteTrackingStorage().votingStatus[_voteid][msgSender_] != true
         );
     } 
  function enforceProposedStatus(uint24 _voteid)  internal view {
@@ -78,9 +77,9 @@ library VoteProposalLib {
         );
     } 
 
-function enforceOnlyProposer(uint24 _voteid)  internal view {
+function enforceOnlyProposer(uint24 _voteid, address msgSender_)  internal view {
           require(
-          VoteTrackingStorage().voteProposalAttributes[_voteid].proposer == msg.sender
+          VoteTrackingStorage().voteProposalAttributes[_voteid].proposer == msgSender_
         );
     } 
 function enforceDeadlinePassed(uint24 _voteid)  internal view {
@@ -88,7 +87,6 @@ function enforceDeadlinePassed(uint24 _voteid)  internal view {
           VoteTrackingStorage().voteProposalAttributes[_voteid].voteends < block.timestamp 
         );
     } 
-
 
       /* Enum Statuses of the Marriage*/
     enum MarriageStatus {
@@ -108,14 +106,13 @@ function enforceDeadlinePassed(uint24 _voteid)  internal view {
     );
 
 
-
-    function enforceUserHasAccess() internal view {
-        require (VoteTrackingStorage().hasAccess[msg.sender] == true);
+    function enforceUserHasAccess(address msgSender_) internal view {
+        require (VoteTrackingStorage().hasAccess[msgSender_] == true);
     } 
 
-    function enforceOnlyPartners() internal view {
+    function enforceOnlyPartners(address msgSender_) internal view {
         require(
-                VoteTrackingStorage().proposed == msg.sender || VoteTrackingStorage().proposer == msg.sender
+                VoteTrackingStorage().proposed == msgSender_ || VoteTrackingStorage().proposer == msgSender_
             );
     }
 
@@ -155,7 +152,6 @@ function enforceDeadlinePassed(uint24 _voteid)  internal view {
         require (msg.sender == VoteTrackingStorage().addressWaveContract);
     } 
 
-    
         /**
      * @notice Internal function to process payments.
      * @dev call method is used to keep process gas limit higher than 2300. Amount of 0 will be skipped,

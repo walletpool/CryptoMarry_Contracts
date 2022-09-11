@@ -26,7 +26,7 @@ contract DiamondCutFacet is IDiamondCut {
         address _init,
         bytes calldata _calldata
     ) external override {
-        VoteProposalLib.enforceOnlyPartners();
+        VoteProposalLib.enforceOnlyPartners(msg.sender);
         LibDiamond.diamondCut(_diamondCut, _init, _calldata);
     }
 }

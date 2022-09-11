@@ -130,7 +130,7 @@ contract WaverIDiamond is
 
     function cancel() external {
         VoteProposalLib.enforceNotYetMarried();
-        VoteProposalLib.enforceUserHasAccess();
+        VoteProposalLib.enforceUserHasAccess(_msgSender());
 
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -216,7 +216,8 @@ contract WaverIDiamond is
         uint256 _amount
     ) external {
         uint256 _GasLeft = gasleft();
-        VoteProposalLib.enforceUserHasAccess();
+        address msgSender_ = _msgSender();
+        VoteProposalLib.enforceUserHasAccess(msgSender_);
         VoteProposalLib.enforceMarried();
 
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
@@ -228,12 +229,12 @@ contract WaverIDiamond is
             //Cooldown has to pass before divorce is proposed.
             require(vt.marryDate + vt.policyDays < block.timestamp);
             //Only partners can propose divorce
-            VoteProposalLib.enforceOnlyPartners();
+            VoteProposalLib.enforceOnlyPartners(msgSender_);
         }
 
         vt.voteProposalAttributes[vt.voteid] = VoteProposalLib.VoteProposal({
             id: vt.voteid,
-            proposer: msg.sender,
+            proposer: msgSender_,
             voteType: _votetype,
             tokenVoteQuantity: _numTokens,
             voteProposalText: _message,
@@ -247,13 +248,13 @@ contract WaverIDiamond is
 
         vt.numTokenFor[vt.voteid] = _numTokens;
 
-        vt.votingStatus[vt.voteid][msg.sender] = true;
+        vt.votingStatus[vt.voteid][msgSender_] = true;
 
-        _wavercContract.burn(msg.sender, _numTokens);
+        _wavercContract.burn(msgSender_, _numTokens);
 
         emit VoteProposalLib.VoteStatus(
             vt.voteid,
-            msg.sender,
+            msgSender_,
             1,
             block.timestamp
         );
@@ -279,15 +280,16 @@ contract WaverIDiamond is
         uint8 responsetype
     ) external {
         uint256 _GasLeft = gasleft();
-        VoteProposalLib.enforceUserHasAccess();
-        VoteProposalLib.enforceNotVoted(_id);
+        address msgSender_ = _msgSender();
+        VoteProposalLib.enforceUserHasAccess(msgSender_);
+        VoteProposalLib.enforceNotVoted(_id,msgSender_);
         VoteProposalLib.enforceProposedStatus(_id);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
 
         WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
 
-        vt.votingStatus[_id][msg.sender] = true;
+        vt.votingStatus[_id][msgSender_] = true;
         vt.voteProposalAttributes[_id].votersLeft -= 1;
 
         if (responsetype == 2) {
@@ -304,10 +306,10 @@ contract WaverIDiamond is
             }
         }
 
-        _wavercContract.burn(msg.sender, _numTokens);
+        _wavercContract.burn(msgSender_, _numTokens);
         emit VoteProposalLib.VoteStatus(
             _id,
-            msg.sender,
+            msgSender_,
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
         );
@@ -321,16 +323,17 @@ contract WaverIDiamond is
      */
 
     function cancelVoting(uint24 _id) external {
+        address msgSender_ = _msgSender();
         uint256 _GasLeft = gasleft();
         VoteProposalLib.enforceProposedStatus(_id);
-        VoteProposalLib.enforceOnlyProposer(_id);
+        VoteProposalLib.enforceOnlyProposer(_id, msgSender_);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
         vt.voteProposalAttributes[_id].voteStatus = 4;
 
         emit VoteProposalLib.VoteStatus(
             _id,
-            msg.sender,
+            msgSender_,
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
         );
@@ -344,8 +347,9 @@ contract WaverIDiamond is
      */
 
     function endVotingByTime(uint24 _id) external {
+        address msgSender_ = _msgSender();
         uint256 _GasLeft = gasleft();
-        VoteProposalLib.enforceUserHasAccess();
+        VoteProposalLib.enforceUserHasAccess(msgSender_ );
         VoteProposalLib.enforceProposedStatus(_id);
         VoteProposalLib.enforceDeadlinePassed(_id);
 
@@ -360,7 +364,7 @@ contract WaverIDiamond is
 
         emit VoteProposalLib.VoteStatus(
             _id,
-            msg.sender,
+            msgSender_ ,
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
         );
@@ -375,7 +379,7 @@ contract WaverIDiamond is
 
     function executeVoting(uint24 _id) external nonReentrant {
         VoteProposalLib.enforceMarried();
-        VoteProposalLib.enforceUserHasAccess();
+        VoteProposalLib.enforceUserHasAccess(msg.sender);
         VoteProposalLib.enforceAcceptedStatus(_id);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -412,6 +416,13 @@ contract WaverIDiamond is
                 )
             );
 
+            vt.voteProposalAttributes[_id].voteStatus = 5;
+        }
+         else if (vt.voteProposalAttributes[_id].voteType == 3) {
+            VoteProposalLib.processtxn(vt.addressWaveContract, _cmfees);
+            VoteProposalLib.processtxn(payable(vt.voteProposalAttributes[_id].receiver), _amount);
+
+        
             vt.voteProposalAttributes[_id].voteStatus = 5;
         }
         //This is if two sides decide to divorce, funds are split between partners
@@ -473,8 +484,9 @@ contract WaverIDiamond is
      */
 
     function addFamilyMember(address _member) external {
+        address msgSender_ = _msgSender();
         uint256 _GasLeft = gasleft();
-        VoteProposalLib.enforceOnlyPartners();
+        VoteProposalLib.enforceOnlyPartners(msgSender_);
         VoteProposalLib.enforceNotPartnerAddr(_member);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -485,7 +497,7 @@ contract WaverIDiamond is
 
         emit VoteProposalLib.VoteStatus(
             0,
-            msg.sender,
+            msgSender_,
             11,
             block.timestamp
         );
@@ -514,7 +526,8 @@ contract WaverIDiamond is
 
     function deleteFamilyMember(address _member) external {
         uint256 _GasLeft = gasleft();
-        VoteProposalLib.enforceOnlyPartners();
+        address msgSender_ = _msgSender();
+        VoteProposalLib.enforceOnlyPartners(msgSender_);
         VoteProposalLib.enforceNotPartnerAddr(_member);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -526,7 +539,7 @@ contract WaverIDiamond is
         vt.familyMembers -= 1;
         emit VoteProposalLib.VoteStatus(
             0,
-            msg.sender,
+            msgSender_,
             12,
             block.timestamp
         );
@@ -543,7 +556,7 @@ contract WaverIDiamond is
      */
 
     function withdrawERC20(address _tokenID) external nonReentrant {
-        VoteProposalLib.enforceOnlyPartners();
+        VoteProposalLib.enforceOnlyPartners(msg.sender);
         VoteProposalLib.enforceDivorced();
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -581,7 +594,7 @@ contract WaverIDiamond is
         string memory nft_json1,
         string memory nft_json2
     ) external {
-        VoteProposalLib.enforceOnlyPartners();
+        VoteProposalLib.enforceOnlyPartners(msg.sender);
         VoteProposalLib.enforceDivorced();
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -666,7 +679,7 @@ contract WaverIDiamond is
         view
         returns (VoteProposalLib.VoteProposal[] memory)
     {
-        VoteProposalLib.enforceUserHasAccess();
+        VoteProposalLib.enforceUserHasAccess(msg.sender);
 
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();

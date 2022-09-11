@@ -13,5 +13,9 @@ module.exports = {
       accounts: [process.env.DEPLOY_ACCOUNT],
       
     },
+    goerli: {
+      url: process.env.GOERLI_ALCHEMY_URL,
+      accounts: [process.env.DEPLOY_ACCOUNT],
+    },
   },
 };

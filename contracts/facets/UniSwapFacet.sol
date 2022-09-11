@@ -30,7 +30,7 @@ contract UniSwapFacet {
     ) external {
 
         VoteProposalLib.enforceMarried();
-        VoteProposalLib.enforceUserHasAccess();
+        VoteProposalLib.enforceUserHasAccess(msg.sender);
         VoteProposalLib.enforceAcceptedStatus(_id);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -107,7 +107,7 @@ contract UniSwapFacet {
 
       function withdrawWeth(uint amount,WETH9Contract wethAddress) external{
         VoteProposalLib.enforceMarried();
-        VoteProposalLib.enforceUserHasAccess();
+        VoteProposalLib.enforceUserHasAccess(msg.sender);
         WETH9Contract Weth = WETH9Contract(wethAddress);
         Weth.withdraw(amount); 
     

@@ -25,7 +25,7 @@ contract DiamondInit {
     // data to set your own state variables
     function init() external {
         // adding ERC165 data
-        VoteProposalLib.enforceOnlyPartners();
+        VoteProposalLib.enforceOnlyPartners(msg.sender);
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         ds.supportedInterfaces[type(IERC165).interfaceId] = true;
         ds.supportedInterfaces[type(IDiamondCut).interfaceId] = true;
