@@ -25,6 +25,7 @@ interface WaverFactoryC {
         uint256 id,
         address _waver,
         address _proposed,
+        uint256 policyDays,
         uint256 cmFee
     ) external returns (address);
 
@@ -217,6 +218,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
             id,
             msg.sender,
             _proposed,
+            policyDays,
             cmFee
         );
 
