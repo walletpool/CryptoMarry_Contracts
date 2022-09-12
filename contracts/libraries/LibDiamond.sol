@@ -17,6 +17,7 @@ library LibDiamond {
         address facetAddress;
         uint16 selectorPosition;
     }
+    //event DiamondCut(IDiamondCut.FacetCut[] _diamondCut, address _init, bytes _calldata);
     struct DiamondStorage {
         // function selector => facet address and selector position in selectors array
         mapping(bytes4 => FacetAddressAndSelectorPosition) facetAddressAndSelectorPosition;
@@ -45,12 +46,13 @@ library LibDiamond {
                 addFunctions(_diamondCut[facetIndex].facetAddress, _diamondCut[facetIndex].functionSelectors);
                 ds.connectedApps[_diamondCut[facetIndex].facetAddress] = true;
             } else if (action == IDiamondCut.FacetCutAction.Remove) {
+                ds.connectedApps[ds.facetAddressAndSelectorPosition[_diamondCut[facetIndex].functionSelectors[0]].facetAddress] = false;
                 removeFunctions(_diamondCut[facetIndex].facetAddress, _diamondCut[facetIndex].functionSelectors);
-                ds.connectedApps[_diamondCut[facetIndex].facetAddress] = false;
             } else {
                 revert();
             }
         }
+        //emit DiamondCut(_diamondCut, _init, _calldata);
         initializeDiamondCut(_init, _calldata);
     }
 

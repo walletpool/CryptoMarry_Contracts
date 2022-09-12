@@ -65,6 +65,7 @@ contract UniSwapFacet {
 
             vt.voteProposalAttributes[_id].voteStatus = 101;
             } else if (vt.voteProposalAttributes[_id].voteType == 102) {
+                
                  TransferHelper.safeTransfer(
                     vt.voteProposalAttributes[_id].tokenID,
                     vt.addressWaveContract,
@@ -91,8 +92,6 @@ contract UniSwapFacet {
                 });
 
             swapRouter.exactInputSingle(params);
-
-            swapRouter.refundETH();
 
             vt.voteProposalAttributes[_id].voteStatus = 102;
                 

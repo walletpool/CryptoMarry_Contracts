@@ -157,6 +157,7 @@ describe("Testing Diamond Facets", function () {
     const {instance,accounts,UniswapFacet,CompoundFacet} = await loadFixture(deployTokenFixture);
     await expect (await instance.checkAppConnected(addresses[2])).to.equal(true);
     const selectors = getSelectors(CompoundFacet);
+    console.log("SELECTORS", selectors)
     tx = await diamondCutFacet.diamondCut(
       [{
         facetAddress: ethers.constants.AddressZero,
@@ -168,7 +169,8 @@ describe("Testing Diamond Facets", function () {
     if (!receipt.status) {
       throw Error(`Diamond upgrade failed: ${tx.hash}`)
     }
-    await expect (await instance.checkAppConnected(CompoundFacet.address)).to.equal(false);
+
+    await expect (await instance.checkAppConnected(addresses[2])).to.equal(false);
   })
 
   it('Third parties cannot Disconnect (remove) modules (facets)', async () => {
