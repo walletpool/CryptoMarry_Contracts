@@ -535,8 +535,9 @@ contract WaverIDiamond is
         WaverContract _waverContract = WaverContract(vt.addressWaveContract);
 
         _waverContract.deleteFamilyMember(_member);
+        if (vt.hasAccess[_member] == true) {
         delete vt.hasAccess[_member];
-        vt.familyMembers -= 1;
+        vt.familyMembers -= 1;}
         emit VoteProposalLib.VoteStatus(
             0,
             msgSender_,
