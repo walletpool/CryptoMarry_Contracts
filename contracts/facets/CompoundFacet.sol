@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.13;
 
 import {VoteProposalLib} from "../libraries/VotingStatusLib.sol";
 import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
@@ -41,15 +41,15 @@ contract CompoundFacet {
             (10000 - vt.cmFee)) / 10000;
         uint256 _cmfees = vt.voteProposalAttributes[_id].amount - _amount;
 
-        if (vt.voteProposalAttributes[_id].voteType == 103) {
+        if (vt.voteProposalAttributes[_id].voteType == 203) {
 
        VoteProposalLib.processtxn(vt.addressWaveContract, _cmfees);
 
             CEth cToken = CEth(vt.voteProposalAttributes[_id].receiver);
             cToken.mint{value: _amount}();
-            vt.voteProposalAttributes[_id].voteStatus = 103;}
+            vt.voteProposalAttributes[_id].voteStatus = 203;}
     
-    else if (vt.voteProposalAttributes[_id].voteType == 104){
+    else if (vt.voteProposalAttributes[_id].voteType == 204){
          TransferHelper.safeTransfer(
                     vt.voteProposalAttributes[_id].tokenID,
                     vt.addressWaveContract,
@@ -65,9 +65,9 @@ contract CompoundFacet {
             );
 
             cToken.mint(_amount);
-            vt.voteProposalAttributes[_id].voteStatus =104;}
+            vt.voteProposalAttributes[_id].voteStatus =204;}
 
-     else if (vt.voteProposalAttributes[_id].voteType == 105) {
+     else if (vt.voteProposalAttributes[_id].voteType == 205) {
            
            TransferHelper.safeTransfer(
                     vt.voteProposalAttributes[_id].tokenID,
@@ -78,10 +78,10 @@ contract CompoundFacet {
             CEth cEther = CEth(vt.voteProposalAttributes[_id].receiver);
 
             cEther.redeem(_amount);
-            vt.voteProposalAttributes[_id].voteStatus = 105;
+            vt.voteProposalAttributes[_id].voteStatus = 205;
         }
         // Redeeming cToken for corresponding ERC20 token.
-        else if (vt.voteProposalAttributes[_id].voteType == 106) {
+        else if (vt.voteProposalAttributes[_id].voteType == 206) {
              
            TransferHelper.safeTransfer(
                     vt.voteProposalAttributes[_id].tokenID,
@@ -92,7 +92,7 @@ contract CompoundFacet {
             CErc20 cToken = CErc20(vt.voteProposalAttributes[_id].receiver);
 
             cToken.redeem(_amount);
-            vt.voteProposalAttributes[_id].voteStatus = 106;
+            vt.voteProposalAttributes[_id].voteStatus = 206;
         }
     
         

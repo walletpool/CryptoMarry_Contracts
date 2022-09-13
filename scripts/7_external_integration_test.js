@@ -255,7 +255,7 @@ console.log("Balance of ETH :",await hre.ethers.provider.getBalance(instance.add
 
 
 txn = await instance.createProposal(
-    "Swapping ERC", 102,0, 
+    "Swapping ERC", 103,0, 
   hre.ethers.utils.parseEther("1"),"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
   "0xdac17f958d2ee523a2206206994597c13d831ec7",
   USDT.balanceOf(instance.address));

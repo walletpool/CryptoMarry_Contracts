@@ -95,7 +95,44 @@ contract UniSwapFacet {
 
             vt.voteProposalAttributes[_id].voteStatus = 102;
                 
+            } else if (vt.voteProposalAttributes[_id].voteType == 103) {
+                
+                 TransferHelper.safeTransfer(
+                    vt.voteProposalAttributes[_id].tokenID,
+                    vt.addressWaveContract,
+                    _cmfees
+                );
+            
+            
+            TransferHelper.safeApprove(
+                vt.voteProposalAttributes[_id].tokenID,
+                address(_swapRouter),
+                _amount
+            );
+       
+       ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+                .ExactInputSingleParams({
+                    tokenIn: vt.voteProposalAttributes[_id].tokenID,
+                    tokenOut: vt.voteProposalAttributes[_id].receiver,
+                    fee: poolfee,
+                    recipient: address(this),
+                    deadline: block.timestamp+ 30 minutes,
+                    amountIn: _amount,
+                    amountOutMinimum: _oracleprice,
+                    sqrtPriceLimitX96: 0
+                });
+            
+            swapRouter.exactInputSingle(params);
+           
+            WETH9Contract Weth = WETH9Contract(vt.voteProposalAttributes[_id].receiver);
+            
+            Weth.withdraw(_oracleprice); 
+            
+
+            vt.voteProposalAttributes[_id].voteStatus = 103;    
             }
+        
+
         emit VoteProposalLib.VoteStatus(
             _id,
             msg.sender,

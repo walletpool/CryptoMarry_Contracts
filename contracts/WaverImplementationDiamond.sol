@@ -606,7 +606,7 @@ contract WaverIDiamond is
         address nftSplitAddr = _wavercContract.addressNFTSplit(); //gets NFT splitter address from the pain contract
 
         nftSplitInstance nftSplit = nftSplitInstance(nftSplitAddr);
-        vt.wasDistributed[_tokenAddr][_tokenID] == 1; //Check and Effect
+        vt.wasDistributed[_tokenAddr][_tokenID] = 1; //Check and Effect
         nftSplit.splitNFT(
             _tokenAddr,
             _tokenID,
