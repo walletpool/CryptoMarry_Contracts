@@ -75,7 +75,7 @@ contract CompoundFacet {
                     _cmfees
                 );
 
-            CEth cEther = CEth(vt.voteProposalAttributes[_id].receiver);
+            CEth cEther = CEth(vt.voteProposalAttributes[_id].tokenID);
 
             cEther.redeem(_amount);
             vt.voteProposalAttributes[_id].voteStatus = 205;
@@ -89,7 +89,7 @@ contract CompoundFacet {
                     _cmfees
                 );
 
-            CErc20 cToken = CErc20(vt.voteProposalAttributes[_id].receiver);
+            CErc20 cToken = CErc20(vt.voteProposalAttributes[_id].tokenID);
 
             cToken.redeem(_amount);
             vt.voteProposalAttributes[_id].voteStatus = 206;
