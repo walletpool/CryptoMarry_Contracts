@@ -17,8 +17,8 @@ interface IUniswapRouter is ISwapRouter {
 interface WETH9Contract {
     function balanceOf(address) external returns (uint);
     function withdraw(uint amount) external;
+    function deposit() external payable;
 }
-
 contract UniSwapFacet {
     
     /* Uniswap Router Address with interface*/
@@ -141,12 +141,19 @@ contract UniSwapFacet {
         );
     }
 
-      function withdrawWeth(uint amount,WETH9Contract wethAddress) external{
+    function withdrawWeth(uint amount,WETH9Contract wethAddress) external{
         VoteProposalLib.enforceMarried();
         VoteProposalLib.enforceUserHasAccess(msg.sender);
         WETH9Contract Weth = WETH9Contract(wethAddress);
         Weth.withdraw(amount); 
-    
       } 
+
+    function depositETH(uint amount,WETH9Contract wethAddress) external payable{
+        VoteProposalLib.enforceMarried();
+        VoteProposalLib.enforceUserHasAccess(msg.sender);
+        WETH9Contract Weth = WETH9Contract(wethAddress);
+        Weth.deposit{value: amount}(); 
+      } 
+
 
 }

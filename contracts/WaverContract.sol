@@ -39,7 +39,7 @@ interface NFTContract {
         uint8 _hasensWaver,
         address _proposed,
         uint8 _hasensProposed,
-        uint256 _stake,
+        address _marriageContract,
         uint256 _id,
         uint256 _heartPatternsID,
         uint256 _certBackgroundID,
@@ -47,14 +47,12 @@ interface NFTContract {
     ) external;
 
     function changeStatus(
-        address _waver,
-        address _proposed,
+        address _marriageContract,
         bool _status
     ) external;
 
-    function nftHolders(
-        address _waver,
-        address _proposed
+    function nftHolder(
+        address _marriageContract
     ) external returns(uint);
 
 }
@@ -374,7 +372,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
             hasensName[waver.proposer],
             waver.proposed,
             hasensName[waver.proposed],
-            waver.marriageContract.balance,
+            waver.marriageContract,
             waver.id,
             logoID,
             BackgroundID,
@@ -501,8 +499,8 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         waver.ProposalStatus = Status.Divorced;
         NFTContract NFTmint = NFTContract(addressNFT);
 
-        if (NFTmint.nftHolders(waver.proposer, waver.proposed)>0) {
-            NFTmint.changeStatus(waver.proposer, waver.proposed, false);
+        if (NFTmint.nftHolder(waver.marriageContract)>0) {
+            NFTmint.changeStatus(waver.marriageContract, false);
         }
     }
 
