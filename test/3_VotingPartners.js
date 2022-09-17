@@ -526,9 +526,7 @@ describe("Testing voting interactions", function () {
     txn = await WavePortal7.connect(accounts[0]).MintCertificate(0, 0, 0, {
       value: hre.ethers.utils.parseEther("1"),
     });
-    txn = await nftContract
-      .connect(accounts[0])
-      .transferFrom(accounts[0].address, instance.address, 1);
+   
     await expect(await nftContract.ownerOf(1)).to.be.equal(instance.address);
 
     txn = await instance

@@ -14,14 +14,13 @@ pragma solidity ^0.8.13;
 */
 
 import "@gnus.ai/contracts-upgradeable-diamond/proxy/utils/Initializable.sol";
-import "@gnus.ai/contracts-upgradeable-diamond/token/ERC721/utils/ERC721HolderUpgradeable.sol";
-import "@gnus.ai/contracts-upgradeable-diamond/security/ReentrancyGuardUpgradeable.sol";
+//import "@gnus.ai/contracts-upgradeable-diamond/security/ReentrancyGuardUpgradeable.sol";
 import "@gnus.ai/contracts-upgradeable-diamond/metatx/ERC2771ContextUpgradeable.sol";
 import "@gnus.ai/contracts-upgradeable-diamond/metatx/MinimalForwarderUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import "./SecuredTokenTransfer.sol";
+import "./DefaultCallbackHandler.sol";
 
 import {LibDiamond} from "./libraries/LibDiamond.sol";
 import {IDiamondCut} from "./interfaces/IDiamondCut.sol";
@@ -59,8 +58,7 @@ interface nftSplitInstance {
 contract WaverIDiamond is
     Initializable,
     SecuredTokenTransfer,
-    ERC721HolderUpgradeable,
-    ReentrancyGuardUpgradeable,
+    DefaultCallbackHandler,
     ERC2771ContextUpgradeable
 {
     /*Constructor to connect Forwarder Address*/
@@ -224,12 +222,17 @@ contract WaverIDiamond is
             .VoteTrackingStorage();
 
         WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
+          
 
         if (_votetype == 4) {
             //Cooldown has to pass before divorce is proposed.
             require(vt.marryDate + vt.policyDays < block.timestamp);
             //Only partners can propose divorce
             VoteProposalLib.enforceOnlyPartners(msgSender_);
+            vt.numTokenFor[vt.voteid] = 1e30;
+            _voteends = block.timestamp + 10 days;
+        } else {
+            vt.numTokenFor[vt.voteid] = _numTokens;
         }
 
         vt.voteProposalAttributes[vt.voteid] = VoteProposalLib.VoteProposal({
@@ -246,10 +249,7 @@ contract WaverIDiamond is
             votersLeft: vt.familyMembers - 1
         });
 
-        vt.numTokenFor[vt.voteid] = _numTokens;
-
         vt.votingStatus[vt.voteid][msgSender_] = true;
-
         _wavercContract.burn(msgSender_, _numTokens);
 
         emit VoteProposalLib.VoteStatus(
@@ -377,7 +377,7 @@ contract WaverIDiamond is
      * @param _id Vote ID, that is being voted for/against.
      */
 
-    function executeVoting(uint24 _id) external nonReentrant {
+    function executeVoting(uint24 _id) external {
         VoteProposalLib.enforceMarried();
         VoteProposalLib.enforceUserHasAccess(msg.sender);
         VoteProposalLib.enforceAcceptedStatus(_id);
@@ -392,15 +392,17 @@ contract WaverIDiamond is
 
         // Sending ETH from the contract
         if (vt.voteProposalAttributes[_id].voteType == 3) {
+            vt.voteProposalAttributes[_id].voteStatus = 5;
             VoteProposalLib.processtxn(vt.addressWaveContract, _cmfees);
             VoteProposalLib.processtxn(
                 payable(vt.voteProposalAttributes[_id].receiver),
                 _amount
             );
-            vt.voteProposalAttributes[_id].voteStatus = 5;
+            
         }
         //Sending ERC20 tokens owned by the contract
         else if (vt.voteProposalAttributes[_id].voteType == 2) {
+            vt.voteProposalAttributes[_id].voteStatus = 5;
             require(
                 transferToken(
                     vt.voteProposalAttributes[_id].tokenID,
@@ -416,18 +418,18 @@ contract WaverIDiamond is
                 )
             );
 
-            vt.voteProposalAttributes[_id].voteStatus = 5;
+            
         }
          else if (vt.voteProposalAttributes[_id].voteType == 3) {
             VoteProposalLib.processtxn(vt.addressWaveContract, _cmfees);
             VoteProposalLib.processtxn(payable(vt.voteProposalAttributes[_id].receiver), _amount);
-
         
             vt.voteProposalAttributes[_id].voteStatus = 5;
         }
         //This is if two sides decide to divorce, funds are split between partners
         else if (vt.voteProposalAttributes[_id].voteType == 4) {
             vt.marriageStatus = VoteProposalLib.MarriageStatus.Divorced;
+            vt.voteProposalAttributes[_id].voteStatus = 6;
 
             VoteProposalLib.processtxn(
                 vt.addressWaveContract,
@@ -440,16 +442,17 @@ contract WaverIDiamond is
 
             _wavercContract.divorceUpdate(vt.id);
 
-            vt.voteProposalAttributes[_id].voteStatus = 6;
+            
 
             //Sending ERC721 tokens owned by the contract
         } else if (vt.voteProposalAttributes[_id].voteType == 5) {
+            vt.voteProposalAttributes[_id].voteStatus = 10;
             IERC721(vt.voteProposalAttributes[_id].tokenID).safeTransferFrom(
                 address(this),
                 vt.voteProposalAttributes[_id].receiver,
                 vt.voteProposalAttributes[_id].amount
             );
-            vt.voteProposalAttributes[_id].voteStatus = 10;
+            
         } else {
             revert();
         }
@@ -556,7 +559,7 @@ contract WaverIDiamond is
      * @param _tokenID the address of the ERC20 token that is being split.
      */
 
-    function withdrawERC20(address _tokenID) external nonReentrant {
+    function withdrawERC20(address _tokenID) external {
         VoteProposalLib.enforceOnlyPartners(msg.sender);
         VoteProposalLib.enforceDivorced();
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
@@ -572,8 +575,8 @@ contract WaverIDiamond is
         );
         amount = IERC20Upgradeable(_tokenID).balanceOf(address(this));
 
-        require(transferToken(_tokenID, vt.proposer, (amount / 2)));
-        require(transferToken(_tokenID, vt.proposed, (amount / 2)));
+        transferToken(_tokenID, vt.proposer, (amount / 2));
+        transferToken(_tokenID, vt.proposed, (amount / 2));
     }
 
     /**
@@ -600,14 +603,10 @@ contract WaverIDiamond is
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
 
-        require(vt.wasDistributed[_tokenAddr][_tokenID] == 0); //ERC721 Token should not be split before
-        require(checkOwnership(_tokenAddr, _tokenID) == true); // Check whether the indicated token is owned by the proxy contract.
-
         WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
         address nftSplitAddr = _wavercContract.addressNFTSplit(); //gets NFT splitter address from the pain contract
-
         nftSplitInstance nftSplit = nftSplitInstance(nftSplitAddr);
-        vt.wasDistributed[_tokenAddr][_tokenID] = 1; //Check and Effect
+      
         nftSplit.splitNFT(
             _tokenAddr,
             _tokenID,
@@ -617,22 +616,6 @@ contract WaverIDiamond is
             vt.proposed,
             address(this)
         ); //A copy of the NFT is created by NFT Splitter.
-    }
-
-    /**
-     * @notice Checks the ownership of the ERC721 token.
-     * @param _tokenAddr the address of the ERC721 token that is being split.
-     * @param _tokenID the ID of the ERC721 token that is being split
-     */
-
-    function checkOwnership(address _tokenAddr, uint256 _tokenID)
-        internal
-        view
-        returns (bool)
-    {
-        address _owner;
-        _owner = IERC721(_tokenAddr).ownerOf(_tokenID);
-        return (address(this) == _owner);
     }
 
     /**
@@ -739,17 +722,6 @@ contract WaverIDiamond is
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
         return vt.marriageStatus;
-    }
-
-    /* Getter of NFT status*/
-    function getNFTDistributed(address tokenAddr, uint256 TokenID)
-        external
-        view
-        returns (uint8)
-    {
-        VoteProposalLib.VoteTracking storage vt = VoteProposalLib
-            .VoteTrackingStorage();
-        return vt.wasDistributed[tokenAddr][TokenID];
     }
 
     /* Checker of whether Module (Facet) is connected*/

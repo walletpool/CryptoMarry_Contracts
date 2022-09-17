@@ -123,7 +123,7 @@ describe("Testing after marriage interactions", function () {
     const { WavePortal7, accounts } = await loadFixture(deployTokenFixture);
     await expect(
       WavePortal7.connect(accounts[0]).MintCertificate(0, 0, 0, {
-        value: hre.ethers.utils.parseEther("0.1"),
+        value: hre.ethers.utils.parseEther("0.0001"),
       })
     ).to.reverted;
   });
@@ -132,7 +132,7 @@ describe("Testing after marriage interactions", function () {
     const { WavePortal7, accounts } = await loadFixture(deployTokenFixture);
     await expect(
       WavePortal7.connect(accounts[0]).MintCertificate(101, 0, 0, {
-        value: hre.ethers.utils.parseEther("9"),
+        value: hre.ethers.utils.parseEther("0.09"),
       })
     ).to.reverted;
   });
@@ -141,7 +141,7 @@ describe("Testing after marriage interactions", function () {
     const { WavePortal7, accounts } = await loadFixture(deployTokenFixture);
     await expect(
       WavePortal7.connect(accounts[0]).MintCertificate(101, 1001, 0, {
-        value: hre.ethers.utils.parseEther("99"),
+        value: hre.ethers.utils.parseEther("0.9"),
       })
     ).to.reverted;
   });
@@ -166,24 +166,21 @@ describe("Testing after marriage interactions", function () {
     
   });
 
-  it("User mints NFT certificate -> partners should own separate NFTs ", async function () {
-    const { WavePortal7, nftContract, accounts } = await loadFixture(
+  it("User mints NFT certificate -> contract receives NFT", async function () {
+    const { WavePortal7, nftContract, accounts,instance } = await loadFixture(
       deployTokenFixture
     );
     let txn;
     txn = await WavePortal7.connect(accounts[0]).MintCertificate(0, 0, 0, {
       value: hre.ethers.utils.parseEther("1"),
     });
-    const nftid = await nftContract.nftHolders(
-      accounts[0].address,
-      accounts[1].address
+    const nftid = await nftContract.nftHolder(
+     instance.address
     );
     txn = await nftContract.tokenURI(nftid);
     await expect(await nftContract.ownerOf(nftid)).to.equal(
-      accounts[0].address
+      instance.address
     );
-    await expect(await nftContract.ownerOf(Number(nftid) + 1)).to.equal(
-      accounts[1].address
-    );
+  
   });
 });

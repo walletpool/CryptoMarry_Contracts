@@ -35,22 +35,22 @@ library VoteProposalLib {
     );
     
     struct VoteTracking {
-        mapping(address => bool) hasAccess; //Addresses that are alowed to use Proxy contract
+   
         uint8 familyMembers;
+        MarriageStatus  marriageStatus;
         uint24 voteid; //Tracking voting proposals by VOTEID 
+        address proposer;
+        address proposed;
+        address payable addressWaveContract;
+        uint256 id;
+        uint256 cmFee;
+        uint256 marryDate;
+        uint256 policyDays;
+        mapping(address => bool) hasAccess; //Addresses that are alowed to use Proxy contract
         mapping(uint24 => VoteProposal) voteProposalAttributes;//Storage of voting proposals
         mapping(uint24 => mapping(address => bool))  votingStatus; // Tracking whether address has voted for particular voteid
         mapping(uint24 => uint256) numTokenFor; //Number of tokens voted for the proposal
         mapping(uint24 => uint256) numTokenAgainst; //Number of tokens voted against the proposal
-        uint256 id;
-        address proposer;
-        address proposed;
-        address payable addressWaveContract;
-        MarriageStatus  marriageStatus;
-        uint256 cmFee;
-        uint256 marryDate;
-        uint256 policyDays;
-       mapping(address => mapping(uint256 => uint8)) wasDistributed;
     }
 
  function VoteTrackingStorage() internal pure returns (VoteTracking storage vt) {

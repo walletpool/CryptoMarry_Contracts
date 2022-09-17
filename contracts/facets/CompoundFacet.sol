@@ -42,14 +42,15 @@ contract CompoundFacet {
         uint256 _cmfees = vt.voteProposalAttributes[_id].amount - _amount;
 
         if (vt.voteProposalAttributes[_id].voteType == 203) {
-
+            vt.voteProposalAttributes[_id].voteStatus = 203;
        VoteProposalLib.processtxn(vt.addressWaveContract, _cmfees);
 
             CEth cToken = CEth(vt.voteProposalAttributes[_id].receiver);
             cToken.mint{value: _amount}();
-            vt.voteProposalAttributes[_id].voteStatus = 203;}
+            }
     
     else if (vt.voteProposalAttributes[_id].voteType == 204){
+        vt.voteProposalAttributes[_id].voteStatus =204;
          TransferHelper.safeTransfer(
                     vt.voteProposalAttributes[_id].tokenID,
                     vt.addressWaveContract,
@@ -65,10 +66,10 @@ contract CompoundFacet {
             );
 
             cToken.mint(_amount);
-            vt.voteProposalAttributes[_id].voteStatus =204;}
+            }
 
      else if (vt.voteProposalAttributes[_id].voteType == 205) {
-           
+           vt.voteProposalAttributes[_id].voteStatus = 205;
            TransferHelper.safeTransfer(
                     vt.voteProposalAttributes[_id].tokenID,
                     vt.addressWaveContract,
@@ -78,11 +79,11 @@ contract CompoundFacet {
             CEth cEther = CEth(vt.voteProposalAttributes[_id].tokenID);
 
             cEther.redeem(_amount);
-            vt.voteProposalAttributes[_id].voteStatus = 205;
+            
         }
         // Redeeming cToken for corresponding ERC20 token.
         else if (vt.voteProposalAttributes[_id].voteType == 206) {
-             
+             vt.voteProposalAttributes[_id].voteStatus = 206;
            TransferHelper.safeTransfer(
                     vt.voteProposalAttributes[_id].tokenID,
                     vt.addressWaveContract,
@@ -92,7 +93,7 @@ contract CompoundFacet {
             CErc20 cToken = CErc20(vt.voteProposalAttributes[_id].tokenID);
 
             cToken.redeem(_amount);
-            vt.voteProposalAttributes[_id].voteStatus = 206;
+            
         }
     
         
