@@ -139,9 +139,8 @@ contract nftmint2 is ERC721 {
             certBackgroundID: _certBackgroundID,
             additionalGraphicsID: _additionalGraphicsID
         });
-
         nftHolder[_marriageContract] = newItemId;
-
+         _tokenIds.increment();
     }
 
     /**
