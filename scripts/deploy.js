@@ -162,11 +162,11 @@ async function main() {
   txn.wait();
   sleep(10000);
 
-  txn =  await nftViewContract.addheartPatterns(0, "0x3c726563742f3e");
+  txn =  await nftViewContract.addheartPatterns(0, "0x3c6c696e6561724772616469656e742069643d227022203e3c73746f70206f66667365743d22302522207374796c653d2273746f702d636f6c6f723a20233930363b2073746f702d6f7061636974793a2030222f3e3c2f6c696e6561724772616469656e743e");
   console.log("Updated patterns");
   txn.wait();
   sleep(10000);
-  txn = await nftViewContract.addadditionalGraphics(0, "0x3c726563742f3e");
+  txn = await nftViewContract.addadditionalGraphics(0, "0x3c6c696e6561724772616469656e742069643d227022203e3c73746f70206f66667365743d22302522207374796c653d2273746f702d636f6c6f723a20233930363b2073746f702d6f7061636974793a2030222f3e3c2f6c696e6561724772616469656e743e");
   console.log("Updated Graphics");
   txn.wait();
   sleep(10000);

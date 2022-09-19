@@ -51,8 +51,8 @@ async function main() {
  await WaverFactory.changeAddress(WavePortal7.address);
  await WavePortal7.changeaddressNFTSplit(nftSplit.address);
 
- await nftViewContract.addheartPatterns(0, "0x3c726563742f3e");
- await nftViewContract.addadditionalGraphics(0, "0x3c726563742f3e");
+ await nftViewContract.addheartPatterns(0, "0x3c6c696e6561724772616469656e742069643d227022203e3c73746f70206f66667365743d22302522207374796c653d2273746f702d636f6c6f723a20233930363b2073746f702d6f7061636974793a2030222f3e3c2f6c696e6561724772616469656e743e");
+ await nftViewContract.addadditionalGraphics(0, "0x3c6c696e6561724772616469656e742069643d227022203e3c73746f70206f66667365743d22302522207374796c653d2273746f702d636f6c6f723a20233930363b2073746f702d6f7061636974793a2030222f3e3c2f6c696e6561724772616469656e743e");
  await nftViewContract.addcertBackground(
    0,
    "0x3c6c696e6561724772616469656e742069643d2242222078313d2230222079313d2230222078323d22333135222079323d2233313022206772616469656e74556e6974733d227573657253706163654f6e557365223e3c73746f702073746f702d636f6c6f723d2223636235656565222f3e3c73746f70206f66667365743d2231222073746f702d636f6c6f723d2223306364376534222073746f702d6f7061636974793d222e3939222f3e3c2f6c696e6561724772616469656e743e"
@@ -74,7 +74,7 @@ async function main() {
     accounts[1].address,
     "I love you so much!!!",
     0,
-    { value: hre.ethers.utils.parseEther("100") }
+    { value: hre.ethers.utils.parseEther("1010") }
   );
 
 
@@ -88,6 +88,24 @@ async function main() {
 
   console.log("Proposal has been accepted  ---- >", txn.gasLimit);
 
+  txn = await WavePortal7.connect(accounts[0]).MintCertificate(0, 0, 0, {
+    value: hre.ethers.utils.parseEther("0.01"),
+  })
+
+  txn = await nftContract.tokenURI(1);
+  console.log(txn);
+  txn = await WavePortal7.connect(accounts[0]).MintCertificate(101, 0, 0, {
+    value: hre.ethers.utils.parseEther("0.1"),
+  })
+
+  txn = await nftContract.tokenURI(2);
+  console.log(txn);
+  txn = await WavePortal7.connect(accounts[0]).MintCertificate(101, 1001, 0, {
+    value: hre.ethers.utils.parseEther("1"),
+  })
+
+  txn = await nftContract.tokenURI(3);
+  console.log(txn);
 
 
   txn = await WavePortal7.checkMarriageStatus();
@@ -99,7 +117,7 @@ async function main() {
   
   //  Checking Buying of LOV tokens
  
- 
+ /*
   txn = await WavePortal7.claimToken();
   
  txn = await WavePortal7.connect(accounts[1]).claimToken();
@@ -283,7 +301,7 @@ txn = await instance.createProposal(
   
   console.log("Balance of wETH :",await wETH.balanceOf(instance.address));
 
-// Checking
+// Checking */
 }
 if (require.main === module) {
   main()

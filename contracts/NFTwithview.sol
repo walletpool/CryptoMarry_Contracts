@@ -29,7 +29,7 @@ struct CertificateAttributes {
 /*A separate contract for getting NFT URI*/
 
 abstract contract NftviewC {
-    function getURI(uint256, CertificateAttributes memory)
+    function getURI(CertificateAttributes memory)
         public
         view
         virtual
@@ -181,7 +181,7 @@ contract nftmint2 is ERC721 {
         ];
         NftviewC _nftview = NftviewC(nftViewAddress);
 
-        string memory output = _nftview.getURI(_tokenId, charAttributes);
+        string memory output = _nftview.getURI(charAttributes);
         return output;
     }
 }
