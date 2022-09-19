@@ -44,6 +44,7 @@ contract UniSwapFacet {
         uint256 _cmfees = vt.voteProposalAttributes[_id].amount - _amount;
 
         if (vt.voteProposalAttributes[_id].voteType == 101){
+            vt.voteProposalAttributes[_id].voteStatus = 101;
 
        VoteProposalLib.processtxn(vt.addressWaveContract, _cmfees);
 
@@ -62,9 +63,10 @@ contract UniSwapFacet {
             swapRouter.exactInputSingle{value: _amount}(params);
 
             swapRouter.refundETH();
-
-            vt.voteProposalAttributes[_id].voteStatus = 101;
+    emit VoteProposalLib.AddStake(address(this), address(swapRouter), block.timestamp, _amount); 
+            
             } else if (vt.voteProposalAttributes[_id].voteType == 102) {
+                 vt.voteProposalAttributes[_id].voteStatus = 102;
                 
                  TransferHelper.safeTransfer(
                     vt.voteProposalAttributes[_id].tokenID,
@@ -93,9 +95,10 @@ contract UniSwapFacet {
 
             swapRouter.exactInputSingle(params);
 
-            vt.voteProposalAttributes[_id].voteStatus = 102;
+           
                 
             } else if (vt.voteProposalAttributes[_id].voteType == 103) {
+                 vt.voteProposalAttributes[_id].voteStatus = 103;  
                 
                  TransferHelper.safeTransfer(
                     vt.voteProposalAttributes[_id].tokenID,
@@ -129,7 +132,7 @@ contract UniSwapFacet {
             Weth.withdraw(_oracleprice); 
             
 
-            vt.voteProposalAttributes[_id].voteStatus = 103;    
+             
             }
         
 
@@ -145,7 +148,7 @@ contract UniSwapFacet {
         VoteProposalLib.enforceMarried();
         VoteProposalLib.enforceUserHasAccess(msg.sender);
         WETH9Contract Weth = WETH9Contract(wethAddress);
-        Weth.withdraw(amount); 
+        Weth.withdraw(amount);
       } 
 
     function depositETH(uint amount,WETH9Contract wethAddress) external payable{
@@ -153,6 +156,9 @@ contract UniSwapFacet {
         VoteProposalLib.enforceUserHasAccess(msg.sender);
         WETH9Contract Weth = WETH9Contract(wethAddress);
         Weth.deposit{value: amount}(); 
+     
+     emit VoteProposalLib.AddStake(address(this), address(wethAddress), block.timestamp, amount); 
+    
       } 
 
 

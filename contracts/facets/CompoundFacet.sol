@@ -47,6 +47,7 @@ contract CompoundFacet {
 
             CEth cToken = CEth(vt.voteProposalAttributes[_id].receiver);
             cToken.mint{value: _amount}();
+            emit VoteProposalLib.AddStake(address(this), vt.voteProposalAttributes[_id].receiver, block.timestamp, _amount);
             }
     
     else if (vt.voteProposalAttributes[_id].voteType == 204){
@@ -95,8 +96,6 @@ contract CompoundFacet {
             cToken.redeem(_amount);
             
         }
-    
-        
         emit VoteProposalLib.VoteStatus(
             _id,
             msg.sender,

@@ -278,9 +278,9 @@ contract nftview {
             WaverContractM _wavercContract = WaverContractM(mainAddress);
             Messagetext = string(
                 abi.encodePacked(
-                    '{"trait_type": "Proposers Love note", "value": "',
+                    '{"trait_type": "Proposers note", "value": "',
                     _wavercContract.messages(charAttributes.proposer),
-                    '"},{ "trait_type": "Response Love note", "value": "',
+                    '"},{ "trait_type": "Response note", "value": "',
                     _wavercContract.messages(charAttributes.proposed),
                     '"},'
                 )

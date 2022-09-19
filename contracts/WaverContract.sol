@@ -142,7 +142,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         address _diamondCutFacet,
         address _withdrawaddress
     ) payable ERC20("CryptoMarry", "LOVE") ERC2771Context(address(forwarder)) {
-        policyDays = 10 minutes;
+        policyDays = 24 hours;
         addressNFT = _nftaddress;
         saleCap = 1e23;
         minPricePolicy = 1e16;
