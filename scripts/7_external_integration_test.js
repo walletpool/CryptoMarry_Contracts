@@ -74,7 +74,7 @@ async function main() {
     accounts[1].address,
     "I love you so much!!!",
     0,
-    { value: hre.ethers.utils.parseEther("1010") }
+    { value: hre.ethers.utils.parseEther("100") }
   );
 
 
@@ -88,24 +88,6 @@ async function main() {
 
   console.log("Proposal has been accepted  ---- >", txn.gasLimit);
 
-  txn = await WavePortal7.connect(accounts[0]).MintCertificate(0, 0, 0, {
-    value: hre.ethers.utils.parseEther("0.01"),
-  })
-
-  txn = await nftContract.tokenURI(1);
-  console.log(txn);
-  txn = await WavePortal7.connect(accounts[0]).MintCertificate(101, 0, 0, {
-    value: hre.ethers.utils.parseEther("0.1"),
-  })
-
-  txn = await nftContract.tokenURI(2);
-  console.log(txn);
-  txn = await WavePortal7.connect(accounts[0]).MintCertificate(101, 1001, 0, {
-    value: hre.ethers.utils.parseEther("1"),
-  })
-
-  txn = await nftContract.tokenURI(3);
-  console.log(txn);
 
 
   txn = await WavePortal7.checkMarriageStatus();
@@ -117,7 +99,7 @@ async function main() {
   
   //  Checking Buying of LOV tokens
  
- /*
+ 
   txn = await WavePortal7.claimToken();
   
  txn = await WavePortal7.connect(accounts[1]).claimToken();
@@ -301,7 +283,7 @@ txn = await instance.createProposal(
   
   console.log("Balance of wETH :",await wETH.balanceOf(instance.address));
 
-// Checking */
+// Checking
 }
 if (require.main === module) {
   main()
