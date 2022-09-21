@@ -287,6 +287,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         waver.ProposalStatus = Status.Cancelled;
         //emit NewWave(_id, waver.proposer, block.timestamp, Status.Cancelled);
         proposers[waver.proposer] = 0;
+        proposedto[waver.proposed] = 0;
     }
 
     /**
