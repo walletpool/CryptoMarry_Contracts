@@ -89,7 +89,8 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     uint24 public poolFee; // Fee paid by users for Uniswap
     uint256 public cmFee; // Small percentage paid by users for incoming and outgoing transactions.
     uint256 public exchangeRate; // Exchange rate for LOVE tokens for 1 ETH
-    uint256 public policyDays; //Cooldown for claiming LOVE tokens and divorce proposal;
+    uint256 public policyDays; //Cooldown for Dissolution proposal;
+    uint256 public claimPolicyDays; //Cooldown for claiming LOVE tokens;
 
     //Structs
 
@@ -109,6 +110,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
     struct Wave {
         uint256 id;
+        uint256 stake;
         address proposer;
         address proposed;
         Status ProposalStatus;
@@ -142,6 +144,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         address _diamondCutFacet,
         address _withdrawaddress
     ) payable ERC20("CryptoMarry", "LOVE") ERC2771Context(address(forwarder)) {
+        claimPolicyDays =  24 hours;
         policyDays = 24 hours;
         addressNFT = _nftaddress;
         saleCap = 1e23;
@@ -229,6 +232,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
         proposalAttributes[id] = Wave({
             id: id,
+            stake: msg.value,
             proposer: msg.sender,
             proposed: _proposed,
             ProposalStatus: Status.Proposed,
@@ -300,7 +304,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         Wave storage waver = proposalAttributes[_id];
         require(waver.ProposalStatus == Status.Processed);
         
-        require(claimtimer[msgSender_] + policyDays < block.timestamp);
+        require(claimtimer[msgSender_] + claimPolicyDays < block.timestamp);
           waverImplementation1 waverImplementation = waverImplementation1(
             waver.marriageContract
         );
@@ -562,6 +566,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
             return
                 Wave({
                     id: _id,
+                    stake: 0,
                     proposer: msgSender_,
                     proposed: msgSender_,
                     ProposalStatus: Status.WaitingConfirmation,
@@ -592,8 +597,9 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      * @param _policyDays The number of days.   
      */
 
-    function changePolicy(uint256 _policyDays) external onlyOwner {
+    function changePolicy(uint256 _policyDays,uint256 _claimPolicyDays) external onlyOwner {
         policyDays = _policyDays;
+        claimPolicyDays = _claimPolicyDays;
     }
 
     /**
