@@ -526,7 +526,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      * @dev for a family member that was invited, temporary id is given.
      */
 
-    function isMember(address _partner) internal view returns (uint256 _id) {
+    function isMember(address _partner) public view returns (uint256 _id) {
         if (proposers[_partner] > 0) {
             return proposers[_partner];
         } else if (proposedto[_partner] > 0) {
