@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.17;
 
 import {VoteProposalLib} from "../libraries/VotingStatusLib.sol";
 import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
@@ -20,12 +20,18 @@ interface WETH9Contract {
     function deposit() external payable;
 }
 contract UniSwapFacet {
+    IUniswapRouter immutable _swapRouter;
+    WETH9Contract immutable wethAddress;
+
+constructor (IUniswapRouter swapRouter, WETH9Contract _wethAddress) {
+    _swapRouter = swapRouter;
+    wethAddress = _wethAddress;
+}
     
     /* Uniswap Router Address with interface*/
      function executeSwap(
         uint24 _id,
         uint256 _oracleprice,
-        IUniswapRouter _swapRouter,
         uint24 poolfee
     ) external {
 
@@ -60,7 +66,7 @@ contract UniSwapFacet {
                     sqrtPriceLimitX96: 0
                 });
 
-            swapRouter.exactInputSingle{value: _amount}(params);
+            require(swapRouter.exactInputSingle{value: _amount}(params)>0);
 
             swapRouter.refundETH();
     emit VoteProposalLib.AddStake(address(this), address(swapRouter), block.timestamp, _amount); 
@@ -93,7 +99,7 @@ contract UniSwapFacet {
                     sqrtPriceLimitX96: 0
                 });
 
-            swapRouter.exactInputSingle(params);
+            require(swapRouter.exactInputSingle(params)>0);
 
            
                 
@@ -125,7 +131,7 @@ contract UniSwapFacet {
                     sqrtPriceLimitX96: 0
                 });
             
-            swapRouter.exactInputSingle(params);
+            require (swapRouter.exactInputSingle(params)>0);
            
             WETH9Contract Weth = WETH9Contract(vt.voteProposalAttributes[_id].receiver);
             
@@ -136,22 +142,22 @@ contract UniSwapFacet {
             }
         
 
-        emit VoteProposalLib.VoteStatus(
+       emit VoteProposalLib.VoteStatus(
             _id,
             msg.sender,
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
-        );
+        ); 
     }
 
-    function withdrawWeth(uint amount,WETH9Contract wethAddress) external{
+    function withdrawWeth(uint amount) external{
         VoteProposalLib.enforceMarried();
         VoteProposalLib.enforceUserHasAccess(msg.sender);
         WETH9Contract Weth = WETH9Contract(wethAddress);
         Weth.withdraw(amount);
       } 
 
-    function depositETH(uint amount,WETH9Contract wethAddress) external payable{
+    function depositETH(uint amount) external payable{
         VoteProposalLib.enforceMarried();
         VoteProposalLib.enforceUserHasAccess(msg.sender);
         WETH9Contract Weth = WETH9Contract(wethAddress);

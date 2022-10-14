@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSL
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.17;
 
 /**
 *   [BSL License]
@@ -19,8 +19,8 @@ import "@gnus.ai/contracts-upgradeable-diamond/metatx/ERC2771ContextUpgradeable.
 import "@gnus.ai/contracts-upgradeable-diamond/metatx/MinimalForwarderUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "./SecuredTokenTransfer.sol";
-import "./DefaultCallbackHandler.sol";
+import "./handlers/SecuredTokenTransfer.sol";
+import "./handlers/DefaultCallbackHandler.sol";
 
 import {LibDiamond} from "./libraries/LibDiamond.sol";
 import {IDiamondCut} from "./interfaces/IDiamondCut.sol";
@@ -183,12 +183,12 @@ contract WaverIDiamond is
             vt.addressWaveContract,
             ((msg.value) * vt.cmFee) / 10000
         );
-        emit VoteProposalLib.AddStake(
+       emit VoteProposalLib.AddStake(
             msg.sender,
             address(this),
             block.timestamp,
             msg.value
-        );
+        ); 
     }
 
     /**
@@ -252,15 +252,15 @@ contract WaverIDiamond is
         vt.votingStatus[vt.voteid][msgSender_] = true;
         _wavercContract.burn(msgSender_, _numTokens);
 
-        emit VoteProposalLib.VoteStatus(
+       emit VoteProposalLib.VoteStatus(
             vt.voteid,
             msgSender_,
             1,
             block.timestamp
-        );
+        ); 
 
         unchecked {
-            ++vt.voteid;
+            vt.voteid++;
         }
         checkForwarder(_GasLeft, vt);
     }
@@ -307,12 +307,12 @@ contract WaverIDiamond is
         }
 
         _wavercContract.burn(msgSender_, _numTokens);
-        emit VoteProposalLib.VoteStatus(
+         emit VoteProposalLib.VoteStatus(
             _id,
             msgSender_,
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
-        );
+        );  
         checkForwarder(_GasLeft, vt);
     }
 
@@ -331,12 +331,12 @@ contract WaverIDiamond is
             .VoteTrackingStorage();
         vt.voteProposalAttributes[_id].voteStatus = 4;
 
-        emit VoteProposalLib.VoteStatus(
+       emit VoteProposalLib.VoteStatus(
             _id,
             msgSender_,
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
-        );
+        ); 
         checkForwarder(_GasLeft, vt);
     }
 
@@ -362,12 +362,12 @@ contract WaverIDiamond is
             vt.voteProposalAttributes[_id].voteStatus = 2;
         }
 
-        emit VoteProposalLib.VoteStatus(
+      emit VoteProposalLib.VoteStatus(
             _id,
             msgSender_ ,
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
-        );
+        ); 
         checkForwarder(_GasLeft, vt);
     }
 
@@ -456,12 +456,12 @@ contract WaverIDiamond is
         } else {
             revert();
         }
-        emit VoteProposalLib.VoteStatus(
+       emit VoteProposalLib.VoteStatus(
             _id,
             msg.sender,
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
-        );
+        ); 
     }
 
     /**
@@ -497,13 +497,6 @@ contract WaverIDiamond is
 
         WaverContract _waverContract = WaverContract(vt.addressWaveContract);
         _waverContract.addFamilyMember(_member, vt.id);
-
-        emit VoteProposalLib.VoteStatus(
-            0,
-            msgSender_,
-            11,
-            block.timestamp
-        );
         checkForwarder(_GasLeft, vt);
     }
 
@@ -541,12 +534,6 @@ contract WaverIDiamond is
         if (vt.hasAccess[_member] == true) {
         delete vt.hasAccess[_member];
         vt.familyMembers -= 1;}
-        emit VoteProposalLib.VoteStatus(
-            0,
-            msgSender_,
-            12,
-            block.timestamp
-        );
         checkForwarder(_GasLeft, vt);
     }
 
@@ -669,8 +656,8 @@ contract WaverIDiamond is
             .VoteTrackingStorage();
         uint24 length = vt.voteid - 1;
         uint24 page = length / 20;
-        uint24 size;
-        uint24 start;
+        uint24 size = 0;
+        uint24 start = 0;
         if (_pagenumber * 20 > length) {
             size = length % 20;
             if (size == 0 && page != 0) {
@@ -786,7 +773,7 @@ contract WaverIDiamond is
                 address(this),
                 block.timestamp,
                 msg.value
-            );
+            ); 
         }
     }
 }

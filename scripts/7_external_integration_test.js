@@ -121,7 +121,10 @@ async function main() {
   const cut = []
   for (const FacetName of FacetNames) {
     const Facet = await ethers.getContractFactory(FacetName)
-    const facet = await Facet.deploy()
+    let facet;
+    if (FacetName ==  'UniSwapFacet') {
+       facet = await Facet.deploy("0xE592427A0AEce92De3Edee1F18E0157C05861564","0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2")
+    } else {facet = await Facet.deploy()}
     await facet.deployed()
     console.log(`${FacetName} deployed: ${facet.address}`)
     cut.push({
@@ -189,7 +192,7 @@ async function main() {
   console.log("Voting Status 4", txn);
 
   const swapETH = await ethers.getContractAt('UniSwapFacet', instance.address);
-  txn = await swapETH.executeSwap(2,1550,"0xE592427A0AEce92De3Edee1F18E0157C05861564",3000);
+  txn = await swapETH.executeSwap(2,1550,3000);
 
   console.log("SWAP costs ----> ", txn.gasLimit)
 
@@ -268,7 +271,7 @@ txn = await instance.createProposal(
 
   txn = await instance.connect(accounts[1]).voteResponse(6,hre.ethers.utils.parseEther("1"),2);
   const swapERC = await ethers.getContractAt('UniSwapFacet', instance.address);
-  await swapERC.executeSwap(6,hre.ethers.utils.parseEther("9.7"),"0xE592427A0AEce92De3Edee1F18E0157C05861564",3000);
+  await swapERC.executeSwap(6,hre.ethers.utils.parseEther("9.7"),3000);
 
 
   console.log("Balance USDT", await USDT.balanceOf(instance.address));
@@ -278,7 +281,7 @@ txn = await instance.createProposal(
   const withdrawWETH = await ethers.getContractAt('UniSwapFacet', instance.address);
   const balance = await wETH.balanceOf(instance.address)
   console.log(instance.address);
-  await withdrawWETH.withdrawWeth(balance,"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
+  await withdrawWETH.withdrawWeth(balance);
   console.log("Balance of ETH :",await hre.ethers.provider.getBalance(instance.address));
   
   console.log("Balance of wETH :",await wETH.balanceOf(instance.address));

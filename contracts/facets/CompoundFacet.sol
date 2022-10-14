@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.17;
 
 import {VoteProposalLib} from "../libraries/VotingStatusLib.sol";
 import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
@@ -47,7 +47,7 @@ contract CompoundFacet {
 
             CEth cToken = CEth(vt.voteProposalAttributes[_id].receiver);
             cToken.mint{value: _amount}();
-            emit VoteProposalLib.AddStake(address(this), vt.voteProposalAttributes[_id].receiver, block.timestamp, _amount);
+           emit VoteProposalLib.AddStake(address(this), vt.voteProposalAttributes[_id].receiver, block.timestamp, _amount);
             }
     
     else if (vt.voteProposalAttributes[_id].voteType == 204){
@@ -66,7 +66,7 @@ contract CompoundFacet {
                 _amount
             );
 
-            cToken.mint(_amount);
+            require(cToken.mint(_amount)>0);
             }
 
      else if (vt.voteProposalAttributes[_id].voteType == 205) {
@@ -79,7 +79,7 @@ contract CompoundFacet {
 
             CEth cEther = CEth(vt.voteProposalAttributes[_id].tokenID);
 
-            cEther.redeem(_amount);
+            require(cEther.redeem(_amount)>0);
             
         }
         // Redeeming cToken for corresponding ERC20 token.
@@ -93,7 +93,7 @@ contract CompoundFacet {
 
             CErc20 cToken = CErc20(vt.voteProposalAttributes[_id].tokenID);
 
-            cToken.redeem(_amount);
+            require(cToken.redeem(_amount)>0);
             
         }
         emit VoteProposalLib.VoteStatus(
@@ -101,7 +101,7 @@ contract CompoundFacet {
             msg.sender,
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
-        );
+        ); 
     }
 
        

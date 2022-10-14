@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSL
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.17;
 /**
 /// [BSL License]
 /// @title CryptoMarry NFT Certificate Factory

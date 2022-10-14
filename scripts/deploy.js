@@ -37,7 +37,7 @@ async function main() {
   CompoundFacet.address,
   CompoundFacet.deployTransaction.gasLimit
 );
- const UniSwapFacet = await deploy('UniSwapFacet');
+ const UniSwapFacet = await deploy('UniSwapFacet', "0xE592427A0AEce92De3Edee1F18E0157C05861564","0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
  console.log(
   "UniSwapFacet deployed:",
   UniSwapFacet.address,
@@ -47,7 +47,7 @@ async function main() {
  //const diamondInit = await deploy('DiamondInit');
  const nftViewContract = await deploy(
    "nftview",
-   "0x196eC7109e127A353B709a20da25052617295F6f"
+   "0x333Fc8f550043f239a2CF79aEd5e9cF4A20Eb41e"
  );
 
  console.log(

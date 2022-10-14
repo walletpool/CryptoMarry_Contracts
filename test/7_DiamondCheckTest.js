@@ -52,7 +52,10 @@ describe("Testing Diamond Facets", function () {
   const cut = []
   for (const FacetName of FacetNames) {
     const Facet = await ethers.getContractFactory(FacetName)
-    const facet = await Facet.deploy()
+    let facet;
+    if (FacetName ==  'UniSwapFacet') {
+       facet = await Facet.deploy("0xE592427A0AEce92De3Edee1F18E0157C05861564","0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6")
+    } else {facet = await Facet.deploy()}
     await facet.deployed()
     console.log(`${FacetName} deployed: ${facet.address}`)
     cut.push({
@@ -124,6 +127,8 @@ describe("Testing Diamond Facets", function () {
 
   it('selectors should be associated to facets correctly -- multiple calls to facetAddress function', async () => {
     const {diamondCutFacet,diamondLoupeFacet,UniswapFacet,CompoundFacet} = await loadFixture(deployTokenFixture);
+    const selectors = getSelectors(UniswapFacet);
+    console.log("UNISWAP SELECTORS", selectors)
     assert.equal(
       addresses[1],
       await diamondLoupeFacet.facetAddress('0xcdffacc6')
@@ -134,11 +139,11 @@ describe("Testing Diamond Facets", function () {
     )
     assert.equal(
       addresses[3],
-      await diamondLoupeFacet.facetAddress('0xd0310d45')
+      await diamondLoupeFacet.facetAddress('0x5358fbda')
     )
     assert.equal(
       addresses[3],
-      await diamondLoupeFacet.facetAddress('0x02a0ba3f')
+      await diamondLoupeFacet.facetAddress('0xecbe78d5')
     )
   })
 

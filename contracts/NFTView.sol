@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSL
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.17;
 /**
  *[BSL License]
  *@title CryptoMarry NFT VIEW contract
@@ -9,6 +9,7 @@ pragma solidity ^0.8.10;
  */
 
 import "@openzeppelin/contracts/utils/Base64.sol";
+
 
 /* This function is to retreive the messages that are to be included in the NFT*/
 abstract contract WaverContractM {

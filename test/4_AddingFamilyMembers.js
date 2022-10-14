@@ -97,16 +97,16 @@ describe("Adding Family Members Testing", function () {
 
     txn = await WavePortal7.checkMarriageStatus();
 
-    await expect(await WavePortal7.member(accounts[2].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[2].address, 0)).to.equal(
       txn.id.toNumber()
     );
-    await expect(await WavePortal7.member(accounts[3].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[3].address, 0)).to.equal(
       txn.id.toNumber()
     );
-    await expect(await WavePortal7.member(accounts[2].address, true)).to.equal(
+    await expect(await WavePortal7.member(accounts[2].address, 1)).to.equal(
       0
     );
-    await expect(await WavePortal7.member(accounts[3].address, true)).to.equal(
+    await expect(await WavePortal7.member(accounts[3].address, 1)).to.equal(
       0
     );
 
@@ -150,29 +150,29 @@ describe("Adding Family Members Testing", function () {
     txn = await WavePortal7.connect(accounts[6]).joinFamily(1);
     txn = await WavePortal7.connect(accounts[7]).joinFamily(1);
 
-    await expect(await WavePortal7.member(accounts[4].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[4].address, 0)).to.equal(
       0
     );
-    await expect(await WavePortal7.member(accounts[5].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[5].address, 0)).to.equal(
       0
     );
-    await expect(await WavePortal7.member(accounts[6].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[6].address, 0)).to.equal(
       0
     );
-    await expect(await WavePortal7.member(accounts[7].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[7].address, 0)).to.equal(
       0
     );
 
-    await expect(await WavePortal7.member(accounts[4].address, true)).to.equal(
+    await expect(await WavePortal7.member(accounts[4].address, 1)).to.equal(
       0
     );
-    await expect(await WavePortal7.member(accounts[5].address, true)).to.equal(
+    await expect(await WavePortal7.member(accounts[5].address, 1)).to.equal(
       0
     );
-    await expect(await WavePortal7.member(accounts[6].address, true)).to.equal(
+    await expect(await WavePortal7.member(accounts[6].address, 1)).to.equal(
       0
     );
-    await expect(await WavePortal7.member(accounts[7].address, true)).to.equal(
+    await expect(await WavePortal7.member(accounts[7].address, 1)).to.equal(
       0
     );
   });
@@ -209,30 +209,30 @@ describe("Adding Family Members Testing", function () {
       .addFamilyMember(accounts[7].address);
 
     txn = await WavePortal7.checkMarriageStatus();
-    await expect(await WavePortal7.member(accounts[4].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[4].address, 0)).to.equal(
       txn.id.toNumber()
     );
-    await expect(await WavePortal7.member(accounts[5].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[5].address, 0)).to.equal(
       txn.id.toNumber()
     );
-    await expect(await WavePortal7.member(accounts[4].address, true)).to.equal(
+    await expect(await WavePortal7.member(accounts[4].address, 1)).to.equal(
       0
     );
-    await expect(await WavePortal7.member(accounts[5].address, true)).to.equal(
+    await expect(await WavePortal7.member(accounts[5].address, 1)).to.equal(
       0
     );
 
     txn = await WavePortal7.connect(accounts[2]).checkMarriageStatus();
-    await expect(await WavePortal7.member(accounts[6].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[6].address, 0)).to.equal(
       txn.id.toNumber()
     );
-    await expect(await WavePortal7.member(accounts[7].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[7].address, 0)).to.equal(
       txn.id.toNumber()
     );
-    await expect(await WavePortal7.member(accounts[6].address, true)).to.equal(
+    await expect(await WavePortal7.member(accounts[6].address, 1)).to.equal(
       0
     );
-    await expect(await WavePortal7.member(accounts[7].address, true)).to.equal(
+    await expect(await WavePortal7.member(accounts[7].address, 1)).to.equal(
       0
     );
 
@@ -241,32 +241,32 @@ describe("Adding Family Members Testing", function () {
     txn = await WavePortal7.connect(accounts[6]).joinFamily(2);
     txn = await WavePortal7.connect(accounts[7]).joinFamily(2);
 
-    await expect(await WavePortal7.member(accounts[4].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[4].address, 0)).to.equal(
       0
     );
-    await expect(await WavePortal7.member(accounts[5].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[5].address, 0)).to.equal(
       0
     );
-    await expect(await WavePortal7.member(accounts[6].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[6].address, 0)).to.equal(
       0
     );
-    await expect(await WavePortal7.member(accounts[7].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[7].address, 0)).to.equal(
       0
     );
 
     txn = await WavePortal7.checkMarriageStatus();
-    await expect(await WavePortal7.member(accounts[4].address, true)).to.equal(
+    await expect(await WavePortal7.member(accounts[4].address, 1)).to.equal(
       txn.id.toNumber()
     );
-    await expect(await WavePortal7.member(accounts[5].address, true)).to.equal(
+    await expect(await WavePortal7.member(accounts[5].address, 1)).to.equal(
       txn.id.toNumber()
     );
 
     txn = await WavePortal7.connect(accounts[2]).checkMarriageStatus();
-    await expect(await WavePortal7.member(accounts[6].address, true)).to.equal(
+    await expect(await WavePortal7.member(accounts[6].address, 1)).to.equal(
       txn.id.toNumber()
     );
-    await expect(await WavePortal7.member(accounts[7].address, true)).to.equal(
+    await expect(await WavePortal7.member(accounts[7].address, 1)).to.equal(
       txn.id.toNumber()
     );
   });
@@ -347,10 +347,10 @@ describe("Adding Family Members Testing", function () {
       .connect(accounts[1])
       .addFamilyMember(accounts[7].address);
     txn = await WavePortal7.checkMarriageStatus();
-    await expect(await WavePortal7.member(accounts[6].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[6].address, 0)).to.equal(
       txn.id.toNumber()
     );
-    await expect(await WavePortal7.member(accounts[7].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[7].address, 0)).to.equal(
       txn.id.toNumber()
     );
   });
@@ -434,12 +434,12 @@ describe("Adding Family Members Testing", function () {
       .connect(accounts[1])
       .addFamilyMember(accounts[5].address);
     txn = await WavePortal7.checkMarriageStatus();
-    await expect(await WavePortal7.member(accounts[4].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[4].address, 0)).to.equal(
       txn.id.toNumber()
     );
     txn = await WavePortal7.connect(accounts[4]).joinFamily(2);
     txn = await WavePortal7.connect(accounts[4]).checkMarriageStatus();
-    await expect(await WavePortal7.member(accounts[4].address, true)).to.equal(
+    await expect(await WavePortal7.member(accounts[4].address, 1)).to.equal(
       txn.id.toNumber()
     );
 
@@ -448,10 +448,10 @@ describe("Adding Family Members Testing", function () {
     txn = await instance
       .connect(accounts[0])
       .deleteFamilyMember(accounts[4].address);
-    await expect(await WavePortal7.member(accounts[4].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[4].address, 0)).to.equal(
       0
     );
-    await expect(await WavePortal7.member(accounts[4].address, true)).to.equal(
+    await expect(await WavePortal7.member(accounts[4].address, 1)).to.equal(
       0
     );
     await expect(instance.connect(accounts[4]).getVotingStatuses(1)).to
@@ -460,10 +460,10 @@ describe("Adding Family Members Testing", function () {
     txn = await instance
       .connect(accounts[1])
       .deleteFamilyMember(accounts[5].address);
-    await expect(await WavePortal7.member(accounts[5].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[5].address, 0)).to.equal(
       0
     );
-    await expect(await WavePortal7.member(accounts[5].address, true)).to.equal(
+    await expect(await WavePortal7.member(accounts[5].address, 1)).to.equal(
       0
     );
   });
@@ -480,12 +480,12 @@ describe("Adding Family Members Testing", function () {
       .connect(accounts[1])
       .addFamilyMember(accounts[5].address);
     txn = await WavePortal7.checkMarriageStatus();
-    await expect(await WavePortal7.member(accounts[4].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[4].address, 0)).to.equal(
       txn.id.toNumber()
     );
     txn = await WavePortal7.connect(accounts[4]).joinFamily(2);
     txn = await WavePortal7.connect(accounts[4]).checkMarriageStatus();
-    await expect(await WavePortal7.member(accounts[4].address, true)).to.equal(
+    await expect(await WavePortal7.member(accounts[4].address, 1)).to.equal(
       txn.id.toNumber()
     );
 
@@ -494,10 +494,10 @@ describe("Adding Family Members Testing", function () {
     txn = await instance
       .connect(accounts[0])
       .deleteFamilyMember(accounts[4].address);
-    await expect(await WavePortal7.member(accounts[4].address, false)).to.equal(
+    await expect(await WavePortal7.member(accounts[4].address, 0)).to.equal(
       0
     );
-    await expect(await WavePortal7.member(accounts[4].address, true)).to.equal(
+    await expect(await WavePortal7.member(accounts[4].address, 1)).to.equal(
       0
     );
     await expect(instance.connect(accounts[4]).getVotingStatuses(1)).to

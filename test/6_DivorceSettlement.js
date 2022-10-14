@@ -57,13 +57,12 @@ describe("Divorce Settlement Functions", function () {
     const { instance, accounts, WavePortal7 } = await loadFixture(
       deployTokenFixture
     );
-    await mine(1000);
+    await mine(100000);
     txn = await instance
       .connect(accounts[0])
       .createProposal(
         "Divorce",
         4,
-
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
@@ -94,7 +93,7 @@ describe("Divorce Settlement Functions", function () {
 
   it("After divorce proposals cannot be created", async function () {
     const { instance, accounts } = await loadFixture(deployTokenFixture);
-    await mine(1000);
+    await mine(100000);
     txn = await instance
       .connect(accounts[0])
       .createProposal(
@@ -179,7 +178,7 @@ describe("Divorce Settlement Functions", function () {
 
   it("After divorce ETH cannot be deposited", async function () {
     const { instance, accounts } = await loadFixture(deployTokenFixture);
-    await mine(1000);
+    await mine(100000);
     txn = await instance
       .connect(accounts[0])
       .createProposal(
@@ -239,7 +238,7 @@ describe("Divorce Settlement Functions", function () {
       .connect(accounts[5])
       .voteResponse(1, hre.ethers.utils.parseEther("100"), 2);
 
-    await mine(1000);
+    await mine(100000);
     txn = await instance
       .connect(accounts[0])
       .createProposal(
@@ -305,7 +304,7 @@ describe("Divorce Settlement Functions", function () {
       [hre.ethers.utils.parseEther("-50"), hre.ethers.utils.parseEther("50")]
     );
 
-    await mine(1000);
+    await mine(100000);
     txn = await instance
       .connect(accounts[0])
       .createProposal(
@@ -370,7 +369,7 @@ describe("Divorce Settlement Functions", function () {
 
     await expect(await nftContract.ownerOf(1)).to.be.equal(instance.address);
 
-    await mine(1000);
+    await mine(100000);
     txn = await instance
       .connect(accounts[0])
       .createProposal(
@@ -413,7 +412,7 @@ describe("Divorce Settlement Functions", function () {
  
     await expect(await nftContract.ownerOf(1)).to.be.equal(instance.address);
 
-    await mine(1000);
+    await mine(100000);
     txn = await instance
       .connect(accounts[0])
       .createProposal(
@@ -464,7 +463,7 @@ describe("Divorce Settlement Functions", function () {
   
     await expect(await nftContract.ownerOf(1)).to.be.equal(instance.address);
 
-    await mine(1000);
+    await mine(100000);
     txn = await instance
       .connect(accounts[0])
       .createProposal(

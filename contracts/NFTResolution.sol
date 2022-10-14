@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSL
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
@@ -209,12 +209,12 @@ contract nftSplit is ERC1155Royalty, Ownable {
         require(balanceOf(msg.sender, _tokenID) == 2, "Not enough balance");
         NFTAttributes storage nftAttributes = nftHolderAttributes[_tokenID];
         Instance instance = Instance(nftAttributes.implementationAddr);
+         _burn(msg.sender, _tokenID, 2);
         instance.sendNft(
             nftAttributes.nft_address,
             msg.sender,
             nftAttributes.nft_ID
         );
-        _burn(msg.sender, _tokenID, 2);
     }
 
        /**

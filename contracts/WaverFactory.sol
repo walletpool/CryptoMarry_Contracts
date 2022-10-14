@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSL
-pragma solidity 0.8.13;
+pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import "./WaverImplementationDiamond.sol";

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity >=0.7.0 <0.9.0;
+pragma solidity ^0.8.17;
 
-import "./interfaces/ERC1155TokenReceiver.sol";
-import "./interfaces/ERC721TokenReceiver.sol";
+import "../interfaces/ERC1155TokenReceiver.sol";
+import "../interfaces/ERC721TokenReceiver.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 /// @title Default Callback Handler - returns true for known token callbacks

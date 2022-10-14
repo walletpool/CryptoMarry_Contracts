@@ -12,6 +12,7 @@ module.exports = {deployTest: async function deployTest(){
 
   const DiamondCutFacet = await deploy('DiamondCutFacet');
   const diamondInit = await deploy('DiamondInit');
+  const UniSwapFacet = await deploy('UniSwapFacet', "0xE592427A0AEce92De3Edee1F18E0157C05861564","0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6");
 
 
   const nftViewContract = await deploy(

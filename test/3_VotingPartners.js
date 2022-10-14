@@ -305,7 +305,7 @@ describe("Testing voting interactions", function () {
         "0x0000000000000000000000000000000000000000",
         0
       );
-    await mine(1000);
+    await mine(100000);
     txn = await instance.connect(accounts[0]).endVotingByTime(1);
     txn = await instance.getVotingStatuses(1);
     expect(txn[0].voteStatus).to.equal(2);
@@ -332,7 +332,7 @@ describe("Testing voting interactions", function () {
   it("Partner can propose divorce after cooldown", async function () {
     const { instance, accounts } = await loadFixture(deployTokenFixture);
     let txn;
-    await mine(1000);
+    await mine(100000);
     txn = await instance
       .connect(accounts[0])
       .createProposal(

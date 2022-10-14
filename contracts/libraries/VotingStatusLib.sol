@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSL
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.17;
 
 /**
 *   [BSL License]
@@ -32,7 +32,7 @@ library VoteProposalLib {
         address sender,
         uint8 voteStatus,
         uint256 timestamp
-    );
+    ); 
     
     struct VoteTracking {
    
@@ -103,7 +103,7 @@ function enforceDeadlinePassed(uint24 _voteid)  internal view {
         address indexed to,
         uint256 timestamp,
         uint256 amount
-    );
+    ); 
 
 
     function enforceUserHasAccess(address msgSender_) internal view {
@@ -163,7 +163,7 @@ function enforceDeadlinePassed(uint24 _voteid)  internal view {
         if (_amount > 0) {
             (bool success, ) = _to.call{value: _amount}("");
             require(success);
-            emit AddStake(address(this), _to, block.timestamp, _amount);
+           emit AddStake(address(this), _to, block.timestamp, _amount);
         }
     }
     

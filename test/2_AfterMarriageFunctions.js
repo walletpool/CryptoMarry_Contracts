@@ -76,7 +76,7 @@ describe("Testing after marriage interactions", function () {
   it("Once LOVE tokens claimed, user can claim LOVE tokens after cooldown passed", async function () {
     const { WavePortal7, accounts } = await loadFixture(deployTokenFixture);
     let txn;
-    await mine(1000);
+    const mining = await mine(100000);
 
     txn = await WavePortal7.connect(accounts[0]).claimToken();
     txn = await WavePortal7.connect(accounts[1]).claimToken();
