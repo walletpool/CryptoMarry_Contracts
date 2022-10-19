@@ -3,6 +3,7 @@ cache/
 coverage/
 bin/
 node_modules/
+bin/
 .env
 coverage.json
 deploytest.json

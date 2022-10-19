@@ -152,6 +152,7 @@ async function main() {
  txn.wait();
  sleep(10000);
 
+  
   txn = await WaverFactory.changeAddress(WavePortal7.address);
   console.log("Wavefactory Main Address updated");
   txn.wait();
