@@ -1,14 +1,15 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BSL
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.17;
 /**
- *[MIT License]
+ *[BSL License]
  *@title CryptoMarry NFT VIEW contract
  *@notice This contract compiles and returns string URI of the NFT.
  *@author Ismailov Altynbek <altyni@gmail.com>
  */
 
 import "@openzeppelin/contracts/utils/Base64.sol";
+
 
 /* This function is to retreive the messages that are to be included in the NFT*/
 abstract contract WaverContractM {
@@ -264,12 +265,10 @@ contract nftview {
     /**
      * @notice This function compiles visual elements of the NFT and sends string URI
      * @dev Token URI is compiled via BASE64 encoding
-     * @param _tokenId the ID of the NFT
      * @param charAttributes Attributes of the NFT
      */
 
     function getURI(
-        uint256 _tokenId,
         CertificateAttributes calldata charAttributes
     ) public view returns (string memory) {
         require(nftmainAddress == msg.sender);
@@ -280,9 +279,9 @@ contract nftview {
             WaverContractM _wavercContract = WaverContractM(mainAddress);
             Messagetext = string(
                 abi.encodePacked(
-                    '{"trait_type": "Proposers Love note", "value": "',
+                    '{"trait_type": "Proposers note", "value": "',
                     _wavercContract.messages(charAttributes.proposer),
-                    '"},{ "trait_type": "Response Love note", "value": "',
+                    '"},{ "trait_type": "Response note", "value": "',
                     _wavercContract.messages(charAttributes.proposed),
                     '"},'
                 )
@@ -293,9 +292,7 @@ contract nftview {
             abi.encodePacked(
                 '{"name": "',
                 "CryptoMarry Certificate.",
-                " -- NFT #: ",
-                uint2str(_tokenId),
-                '", "description": "This Marriage Certificate is stored on the Ethereum.", "image": "data:image/svg+xml;base64,',
+                '", "description": "This certifies that the indicated wallets have Family Account within the CryptoMarry.", "image": "data:image/svg+xml;base64,',
                 Base64.encode(
                     bytes(
                         abi.encodePacked(
@@ -315,13 +312,13 @@ contract nftview {
                             ),
                             '<path fill="url(#p)" stroke="#fff" stroke-width=".4%" d="M72 68 60 56H48L36 68v12l12 12 12 12 12 12 12-12 12-12 12-12V68L96 56H84L72 68Z">',
                             '<animate attributeName="stroke-width" values="1;5;1" dur="1s" repeatCount="indefinite"/>',
-                            '</path><g mask="url(#g)" fill="#fff" font-family="Courier New, monospace"><text y="85" x="130" font-weight="400" font-size="50">CERTIFICATE</text><text y="130" x="131" font-weight="400" font-size="40">of Marriage</text></g><g style="transform:translate(35px,170px)"><rect width="200" height="40" rx="8" ry="8" fill="rgba(0,0,0,0.6)"/><text x="12" y="30" font-family="Courier New, monospace" font-size="30" fill="#fff"><tspan fill="rgba(255,255,255,0.8)">ID: </tspan>',
+                            '</path><g mask="url(#g)" fill="#fff" font-family="Courier New, monospace"><text y="85" x="130" font-weight="400" font-size="50">CERTIFICATE</text><text y="130" x="131" font-weight="400" font-size="32">of Family Account</text></g><g style="transform:translate(35px,170px)"><rect width="200" height="40" rx="8" ry="8" fill="rgba(0,0,0,0.6)"/><text x="12" y="30" font-family="Courier New, monospace" font-size="30" fill="#fff"><tspan fill="rgba(255,255,255,0.8)">ID: </tspan>',
                             uint2str(charAttributes.id),
                             '</text></g><g style="transform:translate(35px,230px)"><rect width="400" height="40" rx="8" ry="8" fill="rgba(0,0,0,0.6)"/><text x="12" y="30" font-family="Courier New, monospace" font-size="30" fill="#fff"><tspan fill="rgba(255,255,255,0.8)">Stake: </tspan>',
                             generateStake(charAttributes.stake),
-                            ' rETH</text></g><g style="transform:translate(35px,290px)"><rect width="400" height="40" rx="8" ry="8" fill="rgba(0,0,0,0.6)"/><text x="12" y="30" font-family="Courier New, monospace" font-size="30" fill="#fff"><tspan fill="rgba(255,255,255,0.8)">Block#: </tspan>',
+                            ' ETH</text></g><g style="transform:translate(35px,290px)"><rect width="400" height="40" rx="8" ry="8" fill="rgba(0,0,0,0.6)"/><text x="12" y="30" font-family="Courier New, monospace" font-size="30" fill="#fff"><tspan fill="rgba(255,255,255,0.8)">Block#: </tspan>',
                             uint2str(charAttributes.blockNumber),
-                            '</text></g><g style="transform:translate(35px,350px)"><rect width="430" height="95" rx="8" ry="8" fill="rgba(0,0,0,0.6)"/><text x="12" y="30" font-family="Courier New, monospace" font-size="30" fill="#fff"><tspan fill="rgba(255,255,255,0.8)">Between: </tspan></text><g fill="#fff" font-family="Courier New, monospace" font-size="16"><text x="12" y="55">',
+                            '</text></g><g style="transform:translate(35px,350px)"><rect width="430" height="95" rx="8" ry="8" fill="rgba(0,0,0,0.6)"/><text x="12" y="30" font-family="Courier New, monospace" font-size="30" fill="#fff"><tspan fill="rgba(255,255,255,0.8)">Partners: </tspan></text><g fill="#fff" font-family="Courier New, monospace" font-size="16"><text x="12" y="55">',
                             getAddr(
                                 charAttributes.proposer,
                                 charAttributes.hasensWaver

@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.10;
+// SPDX-License-Identifier: BSL
+pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/token/common/ERC2981.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 /**
- [MIT License]
+ [BSL License]
  @title NFT Splitter
  @notice This contract transforms ERC721 NFTs into ERC1155 NFTs with 2 identical tokens. 
  @author Ismailov Altynbek <altyni@gmail.com>
@@ -59,7 +59,7 @@ contract nftSplit is ERC1155Royalty, Ownable {
     using Counters for Counters.Counter; // Counting IDs
     Counters.Counter private _tokenIds; //Storing count IF
     address internal mainAddress; //The address of the main contract
-
+    mapping(address => mapping(uint256 => uint8)) public wasDistributed;
     mapping(address => uint8) internal authrizedAddresses; //Proxies have to authorized here to split NFTs
     mapping(address => mapping(uint256 => uint256)) public tokenTracker; //Tracking NFTs that were split
 
@@ -179,6 +179,9 @@ contract nftSplit is ERC1155Royalty, Ownable {
         address _implementationAddr
     ) external {
         require(authrizedAddresses[msg.sender] == 1, "NAuth Split");
+        require(wasDistributed[_tokenAddr][_tokenID] == 0); //ERC721 Token should not be split before
+        require(checkOwnership(_tokenAddr, _tokenID) == true); // Check whether the indicated token is owned by the proxy contract.
+        wasDistributed[_tokenAddr][_tokenID] = 1; //Check and Effect
         uint256 newItemId = _tokenIds.current();
         _mint(proposer, newItemId, 1, "0x0");
         _mint(proposed, newItemId, 1, "0x0");
@@ -206,12 +209,28 @@ contract nftSplit is ERC1155Royalty, Ownable {
         require(balanceOf(msg.sender, _tokenID) == 2, "Not enough balance");
         NFTAttributes storage nftAttributes = nftHolderAttributes[_tokenID];
         Instance instance = Instance(nftAttributes.implementationAddr);
+         _burn(msg.sender, _tokenID, 2);
         instance.sendNft(
             nftAttributes.nft_address,
             msg.sender,
             nftAttributes.nft_ID
         );
-        _burn(msg.sender, _tokenID, 2);
+    }
+
+       /**
+     * @notice Checks the ownership of the ERC721 token.
+     * @param _tokenAddr the address of the ERC721 token that is being split.
+     * @param _tokenID the ID of the ERC721 token that is being split
+     */
+
+    function checkOwnership(address _tokenAddr, uint256 _tokenID)
+        internal
+        view
+        returns (bool)
+    {
+        address _owner;
+        _owner = IERC721(_tokenAddr).ownerOf(_tokenID);
+        return (msg.sender == _owner);
     }
 
     /* A view function to see URI of the ERC1155 token*/

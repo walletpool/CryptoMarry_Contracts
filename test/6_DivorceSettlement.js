@@ -20,6 +20,7 @@ describe("Divorce Settlement Functions", function () {
       0,
       { value: hre.ethers.utils.parseEther("10") }
     );
+  
 
     txn = await WavePortal7.connect(accounts[1]).response("Yes", 1, 0);
 
@@ -29,10 +30,10 @@ describe("Divorce Settlement Functions", function () {
 
     txn = await instance
       .connect(accounts[0])
-      .addFamilyMember(accounts[4].address, 0);
+      .addFamilyMember(accounts[4].address);
     txn = await instance
       .connect(accounts[1])
-      .addFamilyMember(accounts[5].address, 0);
+      .addFamilyMember(accounts[5].address);
 
     txn = await WavePortal7.connect(accounts[4]).joinFamily(2);
     txn = await WavePortal7.connect(accounts[5]).joinFamily(2);
@@ -56,31 +57,29 @@ describe("Divorce Settlement Functions", function () {
     const { instance, accounts, WavePortal7 } = await loadFixture(
       deployTokenFixture
     );
-    await mine(1000);
+    await mine(100000);
     txn = await instance
       .connect(accounts[0])
       .createProposal(
         "Divorce",
         4,
         1,
-        1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     txn = instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
     txn = instance
       .connect(accounts[4])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
     txn = instance
       .connect(accounts[5])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
     await expect(
-      await instance.connect(accounts[0]).executeVoting(1, 0, 0)
+      await instance.connect(accounts[0]).executeVoting(1)
     ).to.changeEtherBalances(
       [instance, WavePortal7, accounts[0], accounts[1]],
       [
@@ -94,30 +93,29 @@ describe("Divorce Settlement Functions", function () {
 
   it("After divorce proposals cannot be created", async function () {
     const { instance, accounts } = await loadFixture(deployTokenFixture);
-    await mine(1000);
+    await mine(100000);
     txn = await instance
       .connect(accounts[0])
       .createProposal(
         "Divorce",
         4,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     txn = instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
     txn = instance
       .connect(accounts[4])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
     txn = instance
       .connect(accounts[5])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
-    txn = await instance.connect(accounts[0]).executeVoting(1, 0, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
+    txn = await instance.connect(accounts[0]).executeVoting(1);
 
     await expect(
       instance
@@ -125,13 +123,12 @@ describe("Divorce Settlement Functions", function () {
         .createProposal(
           "test1",
           1,
-          1,
+
           1,
           hre.ethers.utils.parseEther("100"),
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
-          0,
-          1
+          0
         )
     ).to.reverted;
     await expect(
@@ -140,7 +137,7 @@ describe("Divorce Settlement Functions", function () {
         .createProposal(
           "test1",
           1,
-          1,
+  
           1,
           hre.ethers.utils.parseEther("100"),
           "0x0000000000000000000000000000000000000000",
@@ -155,13 +152,12 @@ describe("Divorce Settlement Functions", function () {
         .createProposal(
           "test1",
           1,
-          1,
+
           1,
           hre.ethers.utils.parseEther("100"),
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
-          0,
-          1
+          0
         )
     ).to.reverted;
     await expect(
@@ -170,43 +166,41 @@ describe("Divorce Settlement Functions", function () {
         .createProposal(
           "test1",
           1,
-          1,
+ 
           1,
           hre.ethers.utils.parseEther("100"),
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
-          0,
-          1
+          0
         )
     ).to.reverted;
   });
 
   it("After divorce ETH cannot be deposited", async function () {
     const { instance, accounts } = await loadFixture(deployTokenFixture);
-    await mine(1000);
+    await mine(100000);
     txn = await instance
       .connect(accounts[0])
       .createProposal(
         "Divorce",
         4,
-        1,
+ 
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     txn = instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
     txn = instance
       .connect(accounts[4])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
     txn = instance
       .connect(accounts[5])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
-    txn = await instance.connect(accounts[0]).executeVoting(1, 0, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
+    txn = await instance.connect(accounts[0]).executeVoting(1);
 
     await expect(
       accounts[0].sendTransaction({
@@ -227,50 +221,48 @@ describe("Divorce Settlement Functions", function () {
       .createProposal(
         "Send ETH",
         3,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         accounts[3].address,
         "0x0000000000000000000000000000000000000000",
-        hre.ethers.utils.parseEther("5"),
-        1
+        hre.ethers.utils.parseEther("5")
       );
     txn = await instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2);
     txn = await instance
       .connect(accounts[4])
-      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2);
     txn = await instance
       .connect(accounts[5])
-      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2);
 
-    await mine(1000);
+    await mine(100000);
     txn = await instance
       .connect(accounts[0])
       .createProposal(
         "Divorce",
         4,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     txn = instance
       .connect(accounts[1])
-      .voteResponse(2, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(2, hre.ethers.utils.parseEther("10"), 1);
     txn = instance
       .connect(accounts[4])
-      .voteResponse(2, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(2, hre.ethers.utils.parseEther("10"), 1);
     txn = instance
       .connect(accounts[5])
-      .voteResponse(2, hre.ethers.utils.parseEther("10"), 1, 0);
-    txn = await instance.connect(accounts[0]).executeVoting(2, 0, 0);
+      .voteResponse(2, hre.ethers.utils.parseEther("10"), 1);
+    txn = await instance.connect(accounts[0]).executeVoting(2);
 
-    await expect(instance.connect(accounts[0]).executeVoting(1, 0, 0)).to
+    await expect(instance.connect(accounts[0]).executeVoting(1)).to
       .reverted;
   });
 
@@ -312,30 +304,29 @@ describe("Divorce Settlement Functions", function () {
       [hre.ethers.utils.parseEther("-50"), hre.ethers.utils.parseEther("50")]
     );
 
-    await mine(1000);
+    await mine(100000);
     txn = await instance
       .connect(accounts[0])
       .createProposal(
         "Divorce",
         4,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     txn = instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
     txn = instance
       .connect(accounts[4])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
     txn = instance
       .connect(accounts[5])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
-    txn = await instance.connect(accounts[0]).executeVoting(1, 0, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
+    txn = await instance.connect(accounts[0]).executeVoting(1);
 
     await expect(() =>
       instance.connect(accounts[1]).withdrawERC20(WavePortal7.address)
@@ -358,9 +349,7 @@ describe("Divorce Settlement Functions", function () {
     txn = await WavePortal7.connect(accounts[0]).MintCertificate(0, 0, 0, {
       value: hre.ethers.utils.parseEther("1"),
     });
-    txn = await nftContract
-      .connect(accounts[0])
-      .transferFrom(accounts[0].address, instance.address, 1);
+
     await expect(await nftContract.ownerOf(1)).to.be.equal(instance.address);
 
   
@@ -377,35 +366,32 @@ describe("Divorce Settlement Functions", function () {
     txn = await WavePortal7.connect(accounts[0]).MintCertificate(0, 0, 0, {
       value: hre.ethers.utils.parseEther("1"),
     });
-    txn = await nftContract
-      .connect(accounts[0])
-      .transferFrom(accounts[0].address, instance.address, 1);
+
     await expect(await nftContract.ownerOf(1)).to.be.equal(instance.address);
 
-    await mine(1000);
+    await mine(100000);
     txn = await instance
       .connect(accounts[0])
       .createProposal(
         "Divorce",
         4,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     txn = instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
     txn = instance
       .connect(accounts[4])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
     txn = instance
       .connect(accounts[5])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
-    txn = await instance.connect(accounts[0]).executeVoting(1, 0, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
+    txn = await instance.connect(accounts[0]).executeVoting(1);
 
     txn = await instance
       .connect(accounts[0])
@@ -423,35 +409,32 @@ describe("Divorce Settlement Functions", function () {
     txn = await WavePortal7.connect(accounts[0]).MintCertificate(0, 0, 0, {
       value: hre.ethers.utils.parseEther("1"),
     });
-    txn = await nftContract
-      .connect(accounts[0])
-      .transferFrom(accounts[0].address, instance.address, 1);
+ 
     await expect(await nftContract.ownerOf(1)).to.be.equal(instance.address);
 
-    await mine(1000);
+    await mine(100000);
     txn = await instance
       .connect(accounts[0])
       .createProposal(
         "Divorce",
         4,
-        1,
+    
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     txn = instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
     txn = instance
       .connect(accounts[4])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
     txn = instance
       .connect(accounts[5])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
-    txn = await instance.connect(accounts[0]).executeVoting(1, 0, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
+    txn = await instance.connect(accounts[0]).executeVoting(1);
 
     txn = await instance
       .connect(accounts[0])
@@ -477,35 +460,32 @@ describe("Divorce Settlement Functions", function () {
     txn = await WavePortal7.connect(accounts[0]).MintCertificate(0, 0, 0, {
       value: hre.ethers.utils.parseEther("1"),
     });
-    txn = await nftContract
-      .connect(accounts[0])
-      .transferFrom(accounts[0].address, instance.address, 1);
+  
     await expect(await nftContract.ownerOf(1)).to.be.equal(instance.address);
 
-    await mine(1000);
+    await mine(100000);
     txn = await instance
       .connect(accounts[0])
       .createProposal(
         "Divorce",
         4,
-        1,
+    
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     txn = instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
     txn = instance
       .connect(accounts[4])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
     txn = instance
       .connect(accounts[5])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
-    txn = await instance.connect(accounts[0]).executeVoting(1, 0, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
+    txn = await instance.connect(accounts[0]).executeVoting(1);
 
     txn = await instance
       .connect(accounts[0])

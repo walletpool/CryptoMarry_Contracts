@@ -41,13 +41,12 @@ describe("Testing voting interactions", function () {
         .createProposal(
           "test1",
           1,
-          1,
+
           1,
           hre.ethers.utils.parseEther("100"),
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
-          0,
-          1
+          0
         )
     ).to.reverted;
   });
@@ -62,26 +61,24 @@ describe("Testing voting interactions", function () {
       .createProposal(
         "test1",
         1,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     txn = await instance
       .connect(accounts[1])
       .createProposal(
         "test2",
         1,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     expect(await WavePortal7.balanceOf(accounts[0].address)).to.equal(
       hre.ethers.utils.parseEther("395")
@@ -104,15 +101,14 @@ describe("Testing voting interactions", function () {
       .createProposal(
         "test1",
         1,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
-    txn = await instance.connect(accounts[0]).cancelVoting(1, 0);
+    txn = await instance.connect(accounts[0]).cancelVoting(1);
 
     txn = await instance.getVotingStatuses(1);
     expect(txn[0].voteStatus).to.equal(4);
@@ -126,16 +122,15 @@ describe("Testing voting interactions", function () {
       .createProposal(
         "test1",
         1,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
-    await expect(instance.connect(accounts[1]).cancelVoting(1, 0)).to.reverted;
-    await expect(instance.connect(accounts[2]).cancelVoting(1, 0)).to.reverted;
+    await expect(instance.connect(accounts[1]).cancelVoting(1)).to.reverted;
+    await expect(instance.connect(accounts[2]).cancelVoting(1)).to.reverted;
   });
 
   it("Initiator cannot vote for its proposal again", async function () {
@@ -146,23 +141,22 @@ describe("Testing voting interactions", function () {
       .createProposal(
         "test1",
         1,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     await expect(
       instance
         .connect(accounts[0])
-        .voteResponse(1, hre.ethers.utils.parseEther("100"), 2, 0)
+        .voteResponse(1, hre.ethers.utils.parseEther("100"), 2)
     ).to.reverted;
     await expect(
       instance
         .connect(accounts[0])
-        .voteResponse(1, hre.ethers.utils.parseEther("100"), 1, 0)
+        .voteResponse(1, hre.ethers.utils.parseEther("100"), 1)
     ).to.reverted;
   });
 
@@ -176,17 +170,16 @@ describe("Testing voting interactions", function () {
       .createProposal(
         "test1",
         1,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     txn = instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2);
 
     expect(await WavePortal7.balanceOf(accounts[1].address)).to.equal(
       hre.ethers.utils.parseEther("395")
@@ -203,21 +196,20 @@ describe("Testing voting interactions", function () {
       .createProposal(
         "test1",
         1,
-        1,
+ 
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     txn = instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("100"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("100"), 1);
     await expect(
       instance
         .connect(accounts[1])
-        .voteResponse(1, hre.ethers.utils.parseEther("100"), 2, 0)
+        .voteResponse(1, hre.ethers.utils.parseEther("100"), 2)
     ).to.reverted;
   });
 
@@ -231,17 +223,16 @@ describe("Testing voting interactions", function () {
       .createProposal(
         "test1",
         1,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     txn = instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("100"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("100"), 1);
 
     expect(await WavePortal7.balanceOf(accounts[1].address)).to.equal(
       hre.ethers.utils.parseEther("395")
@@ -261,17 +252,16 @@ describe("Testing voting interactions", function () {
       .createProposal(
         "test1",
         1,
-        1,
+ 
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     txn = instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("101"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("101"), 1);
 
     expect(await WavePortal7.balanceOf(accounts[1].address)).to.equal(
       hre.ethers.utils.parseEther("394")
@@ -289,15 +279,14 @@ describe("Testing voting interactions", function () {
       .createProposal(
         "test1",
         1,
-        1000,
-        1,
+
+        parseInt(Date.now()/1000) + 1000,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
-    await expect(instance.connect(accounts[0]).endVotingByTime(1, 0)).to
+    await expect(instance.connect(accounts[0]).endVotingByTime(1)).to
       .reverted;
   });
 
@@ -309,16 +298,15 @@ describe("Testing voting interactions", function () {
       .createProposal(
         "test1",
         1,
-        1000,
-        1,
+
+        parseInt(Date.now()/1000) + 1000,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
-    await mine(1000);
-    txn = instance.connect(accounts[0]).endVotingByTime(1, 0);
+    await mine(100000);
+    txn = await instance.connect(accounts[0]).endVotingByTime(1);
     txn = await instance.getVotingStatuses(1);
     expect(txn[0].voteStatus).to.equal(2);
   });
@@ -331,13 +319,12 @@ describe("Testing voting interactions", function () {
         .createProposal(
           "Divorce",
           4,
-          1,
+ 
           1,
           hre.ethers.utils.parseEther("100"),
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
-          0,
-          1
+          0
         )
     ).to.reverted;
   });
@@ -345,19 +332,18 @@ describe("Testing voting interactions", function () {
   it("Partner can propose divorce after cooldown", async function () {
     const { instance, accounts } = await loadFixture(deployTokenFixture);
     let txn;
-    await mine(1000);
+    await mine(100000);
     txn = await instance
       .connect(accounts[0])
       .createProposal(
         "Divorce",
         4,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     txn = await instance.getVotingStatuses(1);
     expect(txn[0].voteType).to.equal(4);
@@ -373,19 +359,18 @@ describe("Testing voting interactions", function () {
       .createProposal(
         "Send ETH",
         3,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         accounts[3].address,
         "0x0000000000000000000000000000000000000000",
-        hre.ethers.utils.parseEther("5"),
-        1
+        hre.ethers.utils.parseEther("5")
       );
     txn = await instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2);
     await expect(
-      await instance.connect(accounts[0]).executeVoting(1, 0, 0)
+      await instance.connect(accounts[0]).executeVoting(1)
     ).to.changeEtherBalances(
       [instance, WavePortal7, accounts[3]],
       [
@@ -404,18 +389,17 @@ describe("Testing voting interactions", function () {
       .createProposal(
         "Send ETH",
         3,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         accounts[3].address,
         "0x0000000000000000000000000000000000000000",
-        hre.ethers.utils.parseEther("15"),
-        1
+        hre.ethers.utils.parseEther("15")
       );
     txn = await instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2, 0);
-    await expect(instance.connect(accounts[0]).executeVoting(1, 0, 0)).to
+      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2);
+    await expect(instance.connect(accounts[0]).executeVoting(1)).to
       .reverted;
   });
 
@@ -427,18 +411,17 @@ describe("Testing voting interactions", function () {
       .createProposal(
         "Send ETH",
         3,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        hre.ethers.utils.parseEther("5"),
-        1
+        hre.ethers.utils.parseEther("5")
       );
     txn = await instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("101"), 1, 0);
-    await expect(instance.connect(accounts[0]).executeVoting(1, 0, 0)).to
+      .voteResponse(1, hre.ethers.utils.parseEther("101"), 1);
+    await expect(instance.connect(accounts[0]).executeVoting(1)).to
       .reverted;
   });
 
@@ -452,18 +435,17 @@ describe("Testing voting interactions", function () {
       .createProposal(
         "Send ERC20",
         2,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         accounts[3].address,
         WavePortal7.address,
-        hre.ethers.utils.parseEther("5"),
-        1
+        hre.ethers.utils.parseEther("5")
       );
     txn = await instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2, 0);
-    await expect(instance.connect(accounts[0]).executeVoting(1, 0, 0)).to
+      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2);
+    await expect(instance.connect(accounts[0]).executeVoting(1)).to
       .reverted;
   });
 
@@ -488,19 +470,18 @@ describe("Testing voting interactions", function () {
       .createProposal(
         "Send ERC20",
         2,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         accounts[3].address,
         WavePortal7.address,
-        hre.ethers.utils.parseEther("5"),
-        1
+        hre.ethers.utils.parseEther("5")
       );
     txn = await instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2);
     await expect(() =>
-      instance.connect(accounts[0]).executeVoting(1, 0, 0)
+      instance.connect(accounts[0]).executeVoting(1)
     ).to.changeTokenBalances(
       WavePortal7,
       [instance, WavePortal7, accounts[3]],
@@ -522,18 +503,17 @@ describe("Testing voting interactions", function () {
       .createProposal(
         "Send NFT",
         5,
-        1,
+ 
         1,
         hre.ethers.utils.parseEther("100"),
         accounts[3].address,
         nftContract.address,
-        1,
         1
       );
     txn = await instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2, 0);
-    await expect(instance.connect(accounts[0]).executeVoting(1, 0, 0)).to
+      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2);
+    await expect(instance.connect(accounts[0]).executeVoting(1)).to
       .reverted;
   });
 
@@ -546,9 +526,7 @@ describe("Testing voting interactions", function () {
     txn = await WavePortal7.connect(accounts[0]).MintCertificate(0, 0, 0, {
       value: hre.ethers.utils.parseEther("1"),
     });
-    txn = await nftContract
-      .connect(accounts[0])
-      .transferFrom(accounts[0].address, instance.address, 1);
+   
     await expect(await nftContract.ownerOf(1)).to.be.equal(instance.address);
 
     txn = await instance
@@ -556,18 +534,17 @@ describe("Testing voting interactions", function () {
       .createProposal(
         "Send NFT",
         5,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         accounts[3].address,
         nftContract.address,
-        1,
         1
       );
     txn = await instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2, 0);
-    txn = await instance.connect(accounts[0]).executeVoting(1, 0, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2);
+    txn = await instance.connect(accounts[0]).executeVoting(1);
     await expect(await nftContract.ownerOf(1)).to.be.equal(accounts[3].address);
   });
 });

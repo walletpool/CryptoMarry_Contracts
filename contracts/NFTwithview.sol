@@ -1,8 +1,8 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BSL
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.17;
 /**
-/// [MIT License]
+/// [BSL License]
 /// @title CryptoMarry NFT Certificate Factory
 /// @notice This ERC721 contract mints NFT certificates.  
 /// @author Ismailov Altynbek <altyni@gmail.com>
@@ -29,7 +29,7 @@ struct CertificateAttributes {
 /*A separate contract for getting NFT URI*/
 
 abstract contract NftviewC {
-    function getURI(uint256, CertificateAttributes memory)
+    function getURI(CertificateAttributes memory)
         public
         view
         virtual
@@ -45,7 +45,7 @@ contract nftmint2 is ERC721 {
     Counters.Counter private _tokenIds; //Tracking NFT ids
 
     mapping(uint256 => CertificateAttributes) internal nftHolderAttributes; //Storage of NFT attributes
-    mapping(address => mapping(address => uint256)) public nftHolders; //Storage of NFT holders
+    mapping(address => uint256) public nftHolder; //Storage of NFT holders
     mapping(uint256 => mapping(uint256 => mapping(uint256 => uint256)))
         public nftLeft; //tracks a cap for a particular type of NFT certificate
 
@@ -102,7 +102,7 @@ contract nftmint2 is ERC721 {
      * @param _hasensWaver If a proposer has opted in to show ENS within the Certificate
      * @param _proposed Address of the proposed
      * @param _hasensProposed If a proposed has opted in to show ENS within the Certificate.
-     * @param _stake Current balance of the proxy contract
+     * @param _marriageContract Marriage Contract Address to where the NFT will be minted. 
      * @param _heartPatternsID ID of NFT element
      * @param _certBackgroundID ID of NFT element
      * @param _additionalGraphicsID ID of NFT element
@@ -113,7 +113,7 @@ contract nftmint2 is ERC721 {
         uint8 _hasensWaver,
         address _proposed,
         uint8 _hasensProposed,
-        uint256 _stake,
+        address _marriageContract,
         uint256 _id,
         uint256 _heartPatternsID,
         uint256 _certBackgroundID,
@@ -124,7 +124,7 @@ contract nftmint2 is ERC721 {
         uint256 newItemId = _tokenIds.current();
          nftLeft[_heartPatternsID][_certBackgroundID][_additionalGraphicsID] -= 1;
 
-        _safeMint(_proposer, newItemId);
+        _safeMint(_marriageContract, newItemId);
 
         nftHolderAttributes[newItemId] = CertificateAttributes({
             proposer: _proposer,
@@ -132,62 +132,35 @@ contract nftmint2 is ERC721 {
             Status: "Married",
             hasensWaver: _hasensWaver,
             hasensProposed: _hasensProposed,
-            stake: _stake,
+            stake: _marriageContract.balance,
             id: _id,
             blockNumber: block.number,
             heartPatternsID: _heartPatternsID,
             certBackgroundID: _certBackgroundID,
             additionalGraphicsID: _additionalGraphicsID
         });
-
-        nftHolders[_proposer][_proposed] = newItemId;
-
-        _tokenIds.increment();
-        newItemId = _tokenIds.current();
-
-        _safeMint(_proposed, newItemId);
-
-        nftHolderAttributes[newItemId] = CertificateAttributes({
-            proposer: _proposer,
-            proposed: _proposed,
-            Status: "Married",
-            hasensWaver: _hasensWaver,
-            hasensProposed: _hasensProposed,
-            stake: _stake,
-            id: _id,
-            blockNumber: block.number,
-            heartPatternsID: _heartPatternsID,
-            certBackgroundID: _certBackgroundID,
-            additionalGraphicsID: _additionalGraphicsID
-        });
-
-        _tokenIds.increment();
+        nftHolder[_marriageContract] = newItemId;
+         _tokenIds.increment();
     }
 
     /**
      * @notice If partners divorce, this function will change the status of the NFT.
      * @dev Both NFTs change status. Main contract can call this function.
-     * @param _proposer Address of the proposer
-     * @param _proposed Address of the proposed
+     * @param _marriageContract Address of the contract
      * @param _status Status of the marriage
      */
 
     function changeStatus(
-        address _proposer,
-        address _proposed,
+        address _marriageContract,
         bool _status
     ) external {
         require(mainAddress == msg.sender);
-        uint256 nftTokenIdOfPlayer = nftHolders[_proposer][_proposed];
+        uint256 nftTokenId = nftHolder[_marriageContract];
         CertificateAttributes storage certificate = nftHolderAttributes[
-            nftTokenIdOfPlayer
+            nftTokenId
         ];
         if (_status == false) {
             certificate.Status = "Divorced";
-            CertificateAttributes storage certificate2 = nftHolderAttributes[
-                nftTokenIdOfPlayer + 1
-            ];
-            certificate2.Status = "Divorced";
         }
     }
 
@@ -208,7 +181,7 @@ contract nftmint2 is ERC721 {
         ];
         NftviewC _nftview = NftviewC(nftViewAddress);
 
-        string memory output = _nftview.getURI(_tokenId, charAttributes);
+        string memory output = _nftview.getURI(charAttributes);
         return output;
     }
 }

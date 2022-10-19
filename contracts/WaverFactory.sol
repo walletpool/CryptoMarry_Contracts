@@ -1,12 +1,12 @@
-// SPDX-License-Identifier: MIT
-pragma solidity 0.8.13;
+// SPDX-License-Identifier: BSL
+pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
-import "./WaverImplementation.sol";
+import "./WaverImplementationDiamond.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./WaverBeacon.sol";
 
-/// [MIT License]
+/// [BSL License]
 /// @title Proxy contract factory.
 /// @notice A proxy contracts are created through the main contract.
 /// @author Ismailov Altynbek <altyni@gmail.com>
@@ -53,7 +53,8 @@ contract WaverFactory is Ownable {
      * @dev Only the main contract address can create proxy contracts. Beacon proxy is created with 
      the current implementation. 
      * @param _addressWaveContract Address of the main contract. 
-     * @param _swapRouterAddress Address of the Uniswap Router.
+     * @param _diamondCutFacet Address of the Minimal forwarder. 
+   
      * @param id Marriage ID assigned by the main contract.
      * @param _waver Address of the prpoposer.
      * @param _proposed Address of the proposed.
@@ -62,20 +63,22 @@ contract WaverFactory is Ownable {
 
     function newMarriage(
         address _addressWaveContract,
-        address _swapRouterAddress,
+        address _diamondCutFacet,
         uint256 id,
         address _waver,
         address _proposed,
+        uint256 _policyDays,
         uint256 _cmFee
     ) public returns (address) {
         require(WaverContractAddress == msg.sender, "ACCESS DENIED");
         bytes memory dataOfnewMarriage = abi.encodeWithSelector(
-            WaverImplementation(payable(address(0))).initialize.selector,
+            WaverIDiamond(payable(address(0))).initialize.selector,
             _addressWaveContract,
-            _swapRouterAddress,
+            _diamondCutFacet,
             id,
             _waver,
             _proposed,
+            _policyDays,
             _cmFee
         );
 

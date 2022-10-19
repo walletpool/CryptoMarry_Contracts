@@ -29,10 +29,10 @@ describe("Voting with family members", function () {
 
     txn = await instance
       .connect(accounts[0])
-      .addFamilyMember(accounts[4].address, 0);
+      .addFamilyMember(accounts[4].address);
     txn = await instance
       .connect(accounts[1])
-      .addFamilyMember(accounts[5].address, 0);
+      .addFamilyMember(accounts[5].address);
 
     txn = await WavePortal7.connect(accounts[4]).joinFamily(2);
     txn = await WavePortal7.connect(accounts[5]).joinFamily(2);
@@ -61,26 +61,24 @@ describe("Voting with family members", function () {
       .createProposal(
         "test1",
         1,
-        1,
+   
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     txn = instance
       .connect(accounts[5])
       .createProposal(
         "test2",
         1,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     expect(await WavePortal7.balanceOf(accounts[4].address)).to.equal(
       hre.ethers.utils.parseEther("147.5")
@@ -102,15 +100,14 @@ describe("Voting with family members", function () {
       .createProposal(
         "test1",
         1,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
-    txn = await instance.connect(accounts[4]).cancelVoting(1, 0);
+    txn = await instance.connect(accounts[4]).cancelVoting(1);
 
     txn = await instance.getVotingStatuses(1);
     expect(txn[0].voteStatus).to.equal(4);
@@ -124,16 +121,14 @@ describe("Voting with family members", function () {
       .createProposal(
         "test1",
         1,
-        1000,
-        1,
+        parseInt(Date.now()/1000) + 1000,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     await mine(1000);
-    txn = instance.connect(accounts[5]).endVotingByTime(1, 0);
+    txn = instance.connect(accounts[5]).endVotingByTime(1);
     txn = await instance.getVotingStatuses(1);
     expect(txn[0].voteStatus).to.equal(2);
   });
@@ -146,21 +141,20 @@ describe("Voting with family members", function () {
       .createProposal(
         "test1",
         1,
-        1,
+  
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     txn = instance
       .connect(accounts[5])
-      .voteResponse(1, hre.ethers.utils.parseEther("100"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("100"), 1);
     await expect(
       instance
         .connect(accounts[5])
-        .voteResponse(1, hre.ethers.utils.parseEther("100"), 2, 0)
+        .voteResponse(1, hre.ethers.utils.parseEther("100"), 2)
     ).to.reverted;
   });
 
@@ -174,23 +168,22 @@ describe("Voting with family members", function () {
       .createProposal(
         "test1",
         1,
-        1,
+      
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     txn = instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
     txn = instance
       .connect(accounts[4])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
     txn = instance
       .connect(accounts[5])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
 
     expect(await WavePortal7.balanceOf(accounts[1].address)).to.equal(
       hre.ethers.utils.parseEther("237.5")
@@ -216,20 +209,19 @@ describe("Voting with family members", function () {
       .createProposal(
         "test1",
         1,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
+        0
       );
     txn = instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
     txn = instance
       .connect(accounts[4])
-      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("10"), 1);
 
     expect(await WavePortal7.balanceOf(accounts[1].address)).to.equal(
       hre.ethers.utils.parseEther("237.5")
@@ -255,23 +247,21 @@ describe("Voting with family members", function () {
       .createProposal(
         "test1",
         1,
-        1,
+
         1,
         hre.ethers.utils.parseEther("100"),
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
-        0,
-        1
-      );
+        0      );
     txn = instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("50"), 2, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("50"), 2);
     txn = instance
       .connect(accounts[4])
-      .voteResponse(1, hre.ethers.utils.parseEther("50"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("50"), 1);
     txn = instance
       .connect(accounts[5])
-      .voteResponse(1, hre.ethers.utils.parseEther("210"), 1, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("210"), 1);
 
     expect(await WavePortal7.balanceOf(accounts[1].address)).to.equal(
       hre.ethers.utils.parseEther("197.5")
@@ -297,13 +287,12 @@ describe("Voting with family members", function () {
         .createProposal(
           "Divorce",
           4,
-          1,
+
           1,
           hre.ethers.utils.parseEther("100"),
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
-          0,
-          1
+          0
         )
     ).to.reverted;
   });
@@ -319,24 +308,22 @@ describe("Voting with family members", function () {
         "Send ETH",
         3,
         1,
-        1,
         hre.ethers.utils.parseEther("100"),
         accounts[3].address,
         "0x0000000000000000000000000000000000000000",
-        hre.ethers.utils.parseEther("5"),
-        1
+        hre.ethers.utils.parseEther("5")
       );
     txn = await instance
       .connect(accounts[1])
-      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2);
     txn = await instance
       .connect(accounts[4])
-      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2);
     txn = await instance
       .connect(accounts[5])
-      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2, 0);
+      .voteResponse(1, hre.ethers.utils.parseEther("100"), 2);
     await expect(
-      await instance.connect(accounts[4]).executeVoting(1, 0, 0)
+      await instance.connect(accounts[4]).executeVoting(1)
     ).to.changeEtherBalances(
       [instance, WavePortal7, accounts[3]],
       [
