@@ -206,6 +206,7 @@ contract nftSplit is ERC1155Royalty, Ownable {
         NFTAttributes storage nftAttributes = nftHolderAttributes[_tokenID];
         Instance instance = Instance(nftAttributes.implementationAddr);
          _burn(msg.sender, _tokenID, 2);
+         wasDistributed[nftAttributes.nft_address][nftAttributes.nft_ID] == 0;
         instance.sendNft(
             nftAttributes.nft_address,
             msg.sender,
