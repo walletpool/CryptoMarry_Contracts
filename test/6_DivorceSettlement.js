@@ -355,7 +355,7 @@ describe("Divorce Settlement Functions", function () {
   
     await expect( instance
       .connect(accounts[0])
-      .SplitNFT(nftContract.address, 1, "json1", "json2")).to.reverted;
+      .SplitNFT(nftContract.address, 1, "json1")).to.reverted;
     
   });
 
@@ -395,8 +395,10 @@ describe("Divorce Settlement Functions", function () {
 
     txn = await instance
       .connect(accounts[0])
-      .SplitNFT(nftContract.address, 1, "json1", "json2");
+      .SplitNFT(nftContract.address, 1, "json1");
     const id = await nftSplit.tokenTracker(nftContract.address, 1);
+    const resp = await nftSplit.uri(id);
+    console.log(resp)
 
     await expect(await nftSplit.balanceOf(accounts[0].address, id)).to.equal(1);
     await expect(await nftSplit.balanceOf(accounts[1].address, id)).to.equal(1);
@@ -438,7 +440,7 @@ describe("Divorce Settlement Functions", function () {
 
     txn = await instance
       .connect(accounts[0])
-      .SplitNFT(nftContract.address, 1, "json1", "json2");
+      .SplitNFT(nftContract.address, 1, "json1");
     const id = await nftSplit.tokenTracker(nftContract.address, 1);
 
     txn = await nftSplit
@@ -489,7 +491,7 @@ describe("Divorce Settlement Functions", function () {
 
     txn = await instance
       .connect(accounts[0])
-      .SplitNFT(nftContract.address, 1, "json1", "json2");
+      .SplitNFT(nftContract.address, 1, "json1");
     const id = await nftSplit.tokenTracker(nftContract.address, 1);
 
     await expect(nftSplit.connect(accounts[1]).joinNFT(id)).to.reverted;

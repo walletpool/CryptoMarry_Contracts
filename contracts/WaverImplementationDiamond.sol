@@ -47,8 +47,7 @@ interface nftSplitInstance {
     function splitNFT(
         address _nft_Address,
         uint256 _tokenID,
-        string memory nft_json1,
-        string memory nft_json2,
+        string memory image,
         address waver,
         address proposed,
         address _implementationAddr
@@ -575,15 +574,13 @@ contract WaverIDiamond is
 
      * @param _tokenAddr the address of the ERC721 token that is being split. 
      * @param _tokenID the ID of the ERC721 token that is being split
-     * @param nft_json1 metadata of the ERC721.  
-     * @param nft_json2 metadata of the ERC721 part 2.  
+     * @param image the Image of the NFT 
      */
 
     function SplitNFT(
         address _tokenAddr,
         uint256 _tokenID,
-        string memory nft_json1,
-        string memory nft_json2
+        string memory image
     ) external {
         VoteProposalLib.enforceOnlyPartners(msg.sender);
         VoteProposalLib.enforceDivorced();
@@ -593,12 +590,10 @@ contract WaverIDiamond is
         WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
         address nftSplitAddr = _wavercContract.addressNFTSplit(); //gets NFT splitter address from the pain contract
         nftSplitInstance nftSplit = nftSplitInstance(nftSplitAddr);
-      
         nftSplit.splitNFT(
             _tokenAddr,
             _tokenID,
-            nft_json1,
-            nft_json2,
+            image,
             vt.proposer,
             vt.proposed,
             address(this)

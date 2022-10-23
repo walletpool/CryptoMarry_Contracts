@@ -48,7 +48,7 @@ module.exports = {deployTest: async function deployTest(){
   await nftViewContract.changeMainAddress(WavePortal7.address);
   await nftContract.changeMainAddress(WavePortal7.address);
   await WaverFactory.changeAddress(WavePortal7.address);
-  await WavePortal7.changeaddressNFTSplit(nftSplit.address);
+  await WavePortal7.changeaddressNFT(nftContract.address,nftSplit.address);
 
   await nftViewContract.addheartPatterns(0, "0x3c6c696e6561724772616469656e742069643d227022203e3c73746f70206f66667365743d22302522207374796c653d2273746f702d636f6c6f723a20233930363b2073746f702d6f7061636974793a2030222f3e3c2f6c696e6561724772616469656e743e");
   await nftViewContract.addadditionalGraphics(0, "0x3c6c696e6561724772616469656e742069643d227022203e3c73746f70206f66667365743d22302522207374796c653d2273746f702d636f6c6f723a20233930363b2073746f702d6f7061636974793a2030222f3e3c2f6c696e6561724772616469656e743e");

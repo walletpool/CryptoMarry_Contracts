@@ -66,8 +66,7 @@ contract nftSplit is ERC1155Royalty, Ownable {
     /* NFTs that are to be splitted holds the following attrubutes*/
     struct NFTAttributes {
         address nft_address; //the address of the ERC721 NFT
-        string nft_json1; //first part of the json URI
-        string nft_json2; //second part of the json URI
+        string image; //image of the NFT
         uint256 nft_ID; //the ID of the ERC721 token
         address implementationAddr; //The address that holds ERC721 NFT
     }
@@ -162,8 +161,7 @@ contract nftSplit is ERC1155Royalty, Ownable {
 
      * @param _tokenAddr the address of the ERC721 token that is being split. 
      * @param _tokenID the ID of the ERC721 token that is being split
-     * @param nft_json1 metadata of the ERC721.  
-     * @param nft_json2 metadata of the ERC721 part 2. 
+     * @param image image of the NFT 
      * @param proposer A proposer
      * @param proposed A proposed
      * @param _implementationAddr An address of the proxy contract
@@ -172,8 +170,7 @@ contract nftSplit is ERC1155Royalty, Ownable {
     function splitNFT(
         address _tokenAddr,
         uint256 _tokenID,
-        string memory nft_json1,
-        string memory nft_json2,
+        string memory image,
         address proposer,
         address proposed,
         address _implementationAddr
@@ -188,8 +185,7 @@ contract nftSplit is ERC1155Royalty, Ownable {
 
         nftHolderAttributes[newItemId] = NFTAttributes({
             nft_address: _tokenAddr,
-            nft_json1: nft_json1,
-            nft_json2: nft_json2,
+            image: image,
             nft_ID: _tokenID,
             implementationAddr: _implementationAddr
         });
@@ -244,12 +240,15 @@ contract nftSplit is ERC1155Royalty, Ownable {
 
         string memory json = Base64.encode(
             abi.encodePacked(
-                nftAttributes.nft_json1,
+                 '{"name": "',
+                "CryptoMarry NFT Duplicate.",
+                '", "description": "This NFT has been split between partners upon dissolution of the Family Account", "image": "',
+                nftAttributes.image,
+                '", "attributes":[',
                 '{"trait_type": "CryptoMarry copies:", "value": "1 out of 2"},',
                 '{"trait_type": "Original is owned by:", "value": "',
                 addressToString(nftAttributes.implementationAddr),
-                '"},',
-                nftAttributes.nft_json2
+                '"}',']}'
             )
         );
         string memory output = string(
