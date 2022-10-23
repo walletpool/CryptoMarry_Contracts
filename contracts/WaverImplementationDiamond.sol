@@ -562,8 +562,8 @@ contract WaverIDiamond is
         );
         amount = IERC20Upgradeable(_tokenID).balanceOf(address(this));
 
-        transferToken(_tokenID, vt.proposer, (amount / 2));
-        transferToken(_tokenID, vt.proposed, (amount / 2));
+        require(transferToken(_tokenID, vt.proposer, (amount / 2)));
+        require(transferToken(_tokenID, vt.proposed, (amount / 2)));
     }
 
     /**

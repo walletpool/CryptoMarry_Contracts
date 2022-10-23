@@ -464,18 +464,6 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         nameAddress[msg.sender] = _name;
     }
 
-     /**
-     * @notice A function that resets indexes of users 
-     * @dev A user will not be able to access proxy contracts if triggered from the CM FrontEnd
-     */
-
-    function forgetMe() external {
-        require(isMember(msg.sender) > 0);
-        proposers[msg.sender] = 0;
-        proposedto[msg.sender] = 0;
-        member[msg.sender][1] = 0;
-    }
-
     /**
      * @notice A view function to get the list of family members per a Proxy Contract.
      * @dev the list is capped by a proxy contract to avoid unlimited lists.
@@ -491,7 +479,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     }
 
     /**
-     * @notice If a divorce is initiated and accepted, this method updates the status of the marriage as Divorced.
+     * @notice If a Dissolution is initiated and accepted, this method updates the status of the partnership as Divorced.
      It also updates the last NFT Certificates Status.  
      * @dev this method is triggered once settlement has happened within the proxy contract. 
      * @param _id ID of the marriage.   
@@ -591,32 +579,28 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     /* Parameters that are adjusted by the contract owner*/
 
     /**
-     * @notice Policy Days are set to regulate how often LOVE tokens are minted. 
-     This policyDays is also used as a cooldown before a partner can propose a divorce.
-     * @param _policyDays The number of days.   
+     * @notice Tuning policies related to CM functioning
+     * @param _policyDays The number of days required before proposing Dissolution after establishment date
+     * @param _claimPolicyDays The number of days required before claiming next LOVE tokens
+     * @param _minPricePolicy Minimum price of minting NFT certificate of family account
      */
 
-    function changePolicy(uint256 _policyDays,uint256 _claimPolicyDays) external onlyOwner {
+    function changePolicy(uint256 _policyDays,uint256 _claimPolicyDays, uint256 _minPricePolicy) external onlyOwner {
         policyDays = _policyDays;
         claimPolicyDays = _claimPolicyDays;
-    }
-
-    /**
-     * @notice minimum price for the NFT certificate.
-     * @param _minPricePolicy uint is set in Wei.
-     */
-
-    function changePricePolicy(uint256 _minPricePolicy) external onlyOwner {
         minPricePolicy = _minPricePolicy;
     }
 
+
     /**
-     * @notice A Sales Cap for the sale of LOVE tokens.
+     * @notice Changing Token Policy in terms of Sale Cap and the Exchange Rate
      * @param _saleCap uint is set in Wei.
+     * @param _exchangeRate uint is set how much Love Tokens can be bought for 1 Ether.
      */
 
-    function changeSaleCap(uint256 _saleCap) external onlyOwner {
+    function changeTokenPolicy(uint256 _saleCap, uint256 _exchangeRate) external onlyOwner {
         saleCap = _saleCap;
+        exchangeRate = _exchangeRate;
     }
 
 
@@ -630,60 +614,65 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     }
 
     /**
-     * @notice An exchange rate of LOVE tokens per 1 ETH
-     * @param _exchangeRate uint, how many LOVE tokens per 1 ETH.
+     * @notice A reference contract address of NFT Certificates factory and NFT split.
+     * @param _addressNFT an Address of the NFT Factort.
+     * @param _addressNFTSplit an Address of the NFT Split. 
      */
 
-    function changeExchangeRate(uint256 _exchangeRate) external onlyOwner {
-        exchangeRate = _exchangeRate;
-    }
-
-    /**
-     * @notice A reference contract address of NFT Certificates factory.
-     * @param _addressNFT an Address.
-     */
-
-    //These functions to control reference contract addresses if they change
-    function changeaddressNFT(address _addressNFT) external onlyOwner {
+    function changeaddressNFT(address _addressNFT, address _addressNFTSplit ) external onlyOwner {
         addressNFT = _addressNFT;
-    }
-
-    /**
-     * @notice A reference contract address of NFT Splitting factory.
-     * @param _addressNFTSplit an Address.
-     */
-
-    function changeaddressNFTSplit(address _addressNFTSplit)
-        external
-        onlyOwner
-    {
         addressNFTSplit = _addressNFTSplit;
     }
 
     /**
-     * @notice A reference contract address of Proxy Contract factory.
-     * @param _addressFactory an Address.
+     * @notice Changing contract addresses of Factory and Forwarder
+     * @param _addressFactory an Address of the New Factory.
+     * @param _forwarderAddress an Address of the New Forwarder .
      */
 
-    function changewaverFactoryAddress(address _addressFactory)
+    function changeSystemAddresses(address _addressFactory, address _forwarderAddress)
         external
         onlyOwner
     {
         waverFactoryAddress = _addressFactory;
+        forwarderAddress = _forwarderAddress;
+    }
+
+ 
+   /**
+     * @notice A functionality for "Social Changing" of a partner address. 
+     * @dev can be called only by the Partnership contract 
+     * @param _partner an Address to be changed.
+     * @param _newAddress an address to be changed to.
+     * @param id_ Address of the partnership.
+     */
+
+    function changePartnerAddress(address _partner, address _newAddress, uint id_) 
+        external
+        onlyContract
+    {
+         Wave storage waver = proposalAttributes[id_];
+         if (proposers[_partner] > 0) {
+            proposers[_partner] = 0;
+            proposers[_newAddress] = id_;
+            waver.proposer =  _newAddress;
+        } else if (proposedto[_partner] > 0) {
+            proposedto[_partner] = 0;
+            proposedto[_newAddress] = id_; 
+            waver.proposed = _newAddress;
+        } 
     }
 
     /**
-     * @notice A reference contract address of minimal forwarding address.
-     * @param _forwarderAddress an Address.
+     * @notice A function that resets indexes of users 
+     * @dev A user will not be able to access proxy contracts if triggered from the CM FrontEnd
      */
 
-    function changeforwarderAddress(address _forwarderAddress)
-        external
-        onlyOwner
-    {
-        forwarderAddress = _forwarderAddress;
+    function forgetMe() external {
+        proposers[msg.sender] = 0;
+        proposedto[msg.sender] = 0;
+        member[msg.sender][1] = 0;
     }
-  
 
     /**
      * @notice A reference address for withdrawing commissions.

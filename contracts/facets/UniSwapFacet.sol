@@ -66,8 +66,8 @@ constructor (IUniswapRouter swapRouter, WETH9Contract _wethAddress) {
                     sqrtPriceLimitX96: 0
                 });
 
-            require(swapRouter.exactInputSingle{value: _amount}(params)>0);
-
+           uint resp = swapRouter.exactInputSingle{value: _amount}(params);
+           require (resp > 0, "Wrong parameters");
             swapRouter.refundETH();
     emit VoteProposalLib.AddStake(address(this), address(swapRouter), block.timestamp, _amount); 
             
@@ -99,7 +99,9 @@ constructor (IUniswapRouter swapRouter, WETH9Contract _wethAddress) {
                     sqrtPriceLimitX96: 0
                 });
 
-            require(swapRouter.exactInputSingle(params)>0);
+            uint resp = swapRouter.exactInputSingle(params);
+
+            require (resp > 0, "Wrong parameters");
 
            
                 
@@ -130,14 +132,14 @@ constructor (IUniswapRouter swapRouter, WETH9Contract _wethAddress) {
                     amountOutMinimum: _oracleprice,
                     sqrtPriceLimitX96: 0
                 });
+
+            uint resp = swapRouter.exactInputSingle(params);
             
-            require (swapRouter.exactInputSingle(params)>0);
+            require (resp > 0, "Wrong parameters");
            
             WETH9Contract Weth = WETH9Contract(vt.voteProposalAttributes[_id].receiver);
             
             Weth.withdraw(_oracleprice); 
-            
-
              
             }
         

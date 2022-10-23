@@ -166,5 +166,5 @@ function enforceDeadlinePassed(uint24 _voteid)  internal view {
            emit AddStake(address(this), _to, block.timestamp, _amount);
         }
     }
-    
+     
 }

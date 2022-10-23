@@ -25,19 +25,21 @@ async function main() {
   DiamondCutFacet.address,
   DiamondCutFacet.deployTransaction.gasLimit
 );
+/*
  const DiamondLoupeFacet = await deploy('DiamondLoupeFacet');
  console.log(
   "DiamondLoupeFacet deployed:",
   DiamondLoupeFacet.address,
   DiamondLoupeFacet.deployTransaction.gasLimit
-);
+); */
  const CompoundFacet = await deploy('CompoundFacet');
  console.log(
   "CompoundFacet deployed:",
   CompoundFacet.address,
   CompoundFacet.deployTransaction.gasLimit
 );
- const UniSwapFacet = await deploy('UniSwapFacet', "0xE592427A0AEce92De3Edee1F18E0157C05861564","0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2");
+ const UniSwapFacet = await deploy('UniSwapFacet', "0xE592427A0AEce92De3Edee1F18E0157C05861564","0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6");
+ //0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2 --> Mainnet weth9 address
  console.log(
   "UniSwapFacet deployed:",
   UniSwapFacet.address,
@@ -49,6 +51,7 @@ async function main() {
    "nftview",
    "0x333Fc8f550043f239a2CF79aEd5e9cF4A20Eb41e"
  );
+ //0x3671aE578E63FdF66ad4F3E12CC0c0d71Ac7510C --> Mainnet reverse address 
 
  console.log(
   "NFT View Contract deployed:",
@@ -120,7 +123,6 @@ async function main() {
   JSON.stringify(
     { 
       DiamondCutFacet: DiamondCutFacet.address,
-      DiamondLoupeFacet: DiamondLoupeFacet.address,
       CompoundFacet: CompoundFacet.address, 
       UniSwapFacet: UniSwapFacet.address, 
       nftViewContract: nftViewContract.address,
@@ -158,7 +160,7 @@ async function main() {
   txn.wait();
   sleep(10000);
   
-  txn = await WavePortal7.changeaddressNFTSplit(nftSplit.address);
+  txn = await WavePortal7.changeaddressNFT(nftContract.address,nftSplit.address);
   console.log("WavePortal Split Address updated");
   txn.wait();
   sleep(10000);
@@ -175,7 +177,7 @@ async function main() {
    0,
    "0x3c6c696e6561724772616469656e742069643d274227206772616469656e74556e6974733d277573657253706163654f6e557365272078313d272d392e393525272079313d2733302e333225272078323d273130392e393525272079323d2736392e363825273e3c73746f70206f66667365743d272e343438272073746f702d636f6c6f723d2723433537424646272f3e3c73746f70206f66667365743d2731272073746f702d636f6c6f723d2723333035444646272f3e3c2f6c696e6561724772616469656e743e"
  );
- console.log("Added BAckground");
+ console.log("Added Background");
  txn.wait();
   sleep(10000);
   txn =   await nftViewContract.addcertBackground(

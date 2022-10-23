@@ -22,7 +22,6 @@ interface CEth {
 
 contract CompoundFacet {
     
-    /* Uniswap Router Address with interface*/
 
      function executeInvest(
         uint24 _id
@@ -65,8 +64,8 @@ contract CompoundFacet {
                 vt.voteProposalAttributes[_id].receiver,
                 _amount
             );
-
-            require(cToken.mint(_amount)>0);
+            uint resp = cToken.mint(_amount);
+            require(resp > 0,"Not passed");
             }
 
      else if (vt.voteProposalAttributes[_id].voteType == 205) {
@@ -79,7 +78,9 @@ contract CompoundFacet {
 
             CEth cEther = CEth(vt.voteProposalAttributes[_id].tokenID);
 
-            require(cEther.redeem(_amount)>0);
+             uint resp = cEther.redeem(_amount);
+            require(resp > 0,"Not passed");
+
             
         }
         // Redeeming cToken for corresponding ERC20 token.
@@ -92,8 +93,9 @@ contract CompoundFacet {
                 );
 
             CErc20 cToken = CErc20(vt.voteProposalAttributes[_id].tokenID);
+            uint resp = cToken.redeem(_amount);
+            require(resp > 0,"Not passed");
 
-            require(cToken.redeem(_amount)>0);
             
         }
         emit VoteProposalLib.VoteStatus(
@@ -104,6 +106,5 @@ contract CompoundFacet {
         ); 
     }
 
-       
 
 }

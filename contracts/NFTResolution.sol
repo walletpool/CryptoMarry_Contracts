@@ -245,8 +245,8 @@ contract nftSplit is ERC1155Royalty, Ownable {
         string memory json = Base64.encode(
             abi.encodePacked(
                 nftAttributes.nft_json1,
-                '{"trait_type": "CryptoMarry Split:", "value": "1 out of 2"},',
-                '{"trait_type": "Original owned by:", "value": "',
+                '{"trait_type": "CryptoMarry copies:", "value": "1 out of 2"},',
+                '{"trait_type": "Original is owned by:", "value": "',
                 addressToString(nftAttributes.implementationAddr),
                 '"},',
                 nftAttributes.nft_json2
