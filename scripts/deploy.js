@@ -101,7 +101,7 @@ async function main() {
    nftContract.address,
    WaverFactory.address,
    DiamondCutFacet.address,
-   "0xEC3215C0ba03fA75c8291Ce92ace346589483E26"
+   "0x2b2ecab592770601341b742840a4845b10e74995"
  );
 
  console.log(

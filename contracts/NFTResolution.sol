@@ -170,7 +170,7 @@ contract nftSplit is ERC1155Royalty, Ownable {
     function splitNFT(
         address _tokenAddr,
         uint256 _tokenID,
-        string memory image,
+        string calldata image,
         address proposer,
         address proposed,
         address _implementationAddr

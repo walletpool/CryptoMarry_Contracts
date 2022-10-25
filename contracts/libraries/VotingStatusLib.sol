@@ -73,7 +73,8 @@ library VoteProposalLib {
 
   function enforceAcceptedStatus(uint24 _voteid)  internal view {
           require(
-          VoteTrackingStorage().voteProposalAttributes[_voteid].voteStatus == 2
+          VoteTrackingStorage().voteProposalAttributes[_voteid].voteStatus == 2 || 
+          VoteTrackingStorage().voteProposalAttributes[_voteid].voteStatus == 7
         );
     } 
 

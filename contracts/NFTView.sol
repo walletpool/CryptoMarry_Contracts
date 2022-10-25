@@ -281,8 +281,6 @@ contract nftview {
                 abi.encodePacked(
                     '{"trait_type": "Proposers note", "value": "',
                     _wavercContract.messages(charAttributes.proposer),
-                    '"},{ "trait_type": "Response note", "value": "',
-                    _wavercContract.messages(charAttributes.proposed),
                     '"},'
                 )
             );

@@ -79,18 +79,17 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     address internal addressNFT; // Address of NFT certificate factory
     address public addressNFTSplit; // Address of NFT splitting contract
     address internal waverFactoryAddress; // Address of Proxy contract factory
-    address internal forwarderAddress; // Address of Minimal Forwarder
     address internal diamondCutFacetAddress; // Address of SWAP router UNISWAP
     address internal withdrawaddress; //Address to where comissions are withdrawed/
 
     uint256 internal id; //IDs of a marriage
     uint256 public saleCap; //Maximum cap of a LOVE token Sale
     uint256 public minPricePolicy; //Minimum price for NFTs
-    uint24 public poolFee; // Fee paid by users for Uniswap
     uint256 public cmFee; // Small percentage paid by users for incoming and outgoing transactions.
     uint256 public exchangeRate; // Exchange rate for LOVE tokens for 1 ETH
     uint256 public policyDays; //Cooldown for Dissolution proposal;
     uint256 public claimPolicyDays; //Cooldown for claiming LOVE tokens;
+    uint256 public promoDays; //promoDays for free 
 
     //Structs
 
@@ -102,10 +101,10 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         Processed,
         Divorced,
         WaitingConfirmation,
-        joinConfirmed,
-        NftMinted,
-        TokenSold,
-        Tokenclaimed
+        InvitationAccepted,
+        InvitationDeclined,
+        MemberDeleted,
+        PartnerAddressChanged
     }
 
     struct Wave {
@@ -126,13 +125,14 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     mapping(address => uint8) internal authrizedAddresses; //Tracks whether a proxy contract addresses is authorized to interact with this contract.
     mapping(address => address[]) internal familyMembers; // List of family members addresses
     mapping(address => uint256) public claimtimer; //maps addresses to when the last time LOVE tokens were claimed.
-    mapping (address => string) public nameAddress; //For giving Names for addresses. 
+    mapping(address => string) public nameAddress; //For giving Names for addresses. 
+    mapping(address => uint8) public pauseAddresses; //Addresses that can be paused.
 
     /* An event to track status changes of the contract*/
     event NewWave(
         uint256 id,
-        address indexed sender,
-        uint256 timestamp,
+        address sender,
+        address indexed marriageContract,
         Status vid
     );
 
@@ -144,17 +144,18 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         address _diamondCutFacet,
         address _withdrawaddress
     ) payable ERC20("CryptoMarry", "LOVE") ERC2771Context(address(forwarder)) {
-        claimPolicyDays =  24 hours;
-        policyDays = 24 hours;
+        claimPolicyDays = 1;
+        policyDays = 1;
         addressNFT = _nftaddress;
-        saleCap = 1e23;
+        saleCap = 1e25;
         minPricePolicy = 1e16;
-        forwarderAddress = address(forwarder);
         waverFactoryAddress = _waveFactory;
         diamondCutFacetAddress = _diamondCutFacet;
         cmFee = 100;
         exchangeRate = 1000;
         withdrawaddress = _withdrawaddress;
+        _mint(msg.sender,1e18);
+        promoDays = 5 minutes;
     }
 
     /*This modifier check whether an address is authorised proxy contract*/
@@ -241,19 +242,17 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
         processtxn(payable(_newMarriageAddress), msg.value);
 
-        emit NewWave(id, msg.sender, block.timestamp, Status.Proposed);
+        emit NewWave(id, msg.sender,_newMarriageAddress, Status.Proposed);
     }
 
     /**
      * @notice Response is given from the proposed Address.
      * @dev Updates are made to the proxy contract with respective response. ENS preferences will be checked onchain.
-     * @param _message String message that will be recorded as response.
      * @param _agreed Response sent as uint. 1 - Agreed, anything else will trigger Declined status.
      * @param _hasensProposed preference whether Proposed wants to display ENS on the NFT certificate
      */
 
     function response(
-        string memory _message,
         uint8 _agreed,
         uint8 _hasensProposed
     ) public {
@@ -262,7 +261,6 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
         Wave storage waver = proposalAttributes[_id];
         require(waver.ProposalStatus == Status.Proposed);
-        messages[msgSender_] = _message;
 
         waverImplementation1 waverImplementation = waverImplementation1(
             waver.marriageContract
@@ -277,7 +275,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
             proposedto[msgSender_] = 0;
             waverImplementation.declined();
         }
-        emit NewWave(_id, msgSender_, block.timestamp, waver.ProposalStatus);
+        emit NewWave(_id, msgSender_, waver.marriageContract, waver.ProposalStatus);
     }
 
     /**
@@ -289,9 +287,9 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     function cancel(uint256 _id) external onlyContract {
         Wave storage waver = proposalAttributes[_id];
         waver.ProposalStatus = Status.Cancelled;
-        //emit NewWave(_id, waver.proposer, block.timestamp, Status.Cancelled);
         proposers[waver.proposer] = 0;
         proposedto[waver.proposed] = 0;
+    emit NewWave(_id, tx.origin, msg.sender, Status.Cancelled);
     }
 
     /**
@@ -304,7 +302,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         Wave storage waver = proposalAttributes[_id];
         require(waver.ProposalStatus == Status.Processed);
         
-        require(claimtimer[msgSender_] + claimPolicyDays < block.timestamp, "Not passed");
+        require(claimtimer[msgSender_] + claimPolicyDays < block.timestamp);
           waverImplementation1 waverImplementation = waverImplementation1(
             waver.marriageContract
         );
@@ -314,12 +312,6 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
         _mint(msgSender_, amount);
 
-        emit NewWave(
-            waver.id,
-            msgSender_,
-            block.timestamp,
-            Status.Tokenclaimed
-        );
     }
 
     /**
@@ -332,11 +324,8 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         Wave storage waver = proposalAttributes[_id];
         require(waver.ProposalStatus == Status.Processed);
         uint256 issued = msg.value * exchangeRate;
-
+        saleCap -= issued;
         _mint(msgSender_, issued);
-        saleCap -= (issued);
-
-        emit NewWave(_id, msgSender_, block.timestamp, Status.TokenSold);
     }
 
     /**
@@ -356,7 +345,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         //getting price and NFT address
         require(msg.value >= minPricePolicy);
 
-        (address msgSender_, uint256 _id) = checkAuth();
+        (, uint256 _id) = checkAuth();
         Wave storage waver = proposalAttributes[_id];
         require(waver.ProposalStatus == Status.Processed);
         uint256 issued = msg.value * exchangeRate;
@@ -385,8 +374,6 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
         _mint(waver.proposer, issued / 2);
         _mint(waver.proposed, issued / 2);
-
-        emit NewWave(_id, msgSender_, block.timestamp, Status.NftMinted);
     }
 
     /* Adding Family Members*/
@@ -403,20 +390,24 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         address msgSender_ = _msgSender();
         require(member[msgSender_][0] > 0);
         uint256 _id = member[msgSender_][0];
+        Wave storage waver = proposalAttributes[_id];
+        Status status;
 
         if (_response == 2) {
             member[msgSender_][1] = _id;
             member[msgSender_][0] = 0;
-            Wave storage waver = proposalAttributes[_id];
+            
             waverImplementation1 waverImplementation = waverImplementation1(
                 waver.marriageContract
             );
             waverImplementation._addFamilyMember(msgSender_);
+            status = Status.InvitationAccepted;
         } else {
             member[msgSender_][0] = 0;
+            status = Status.InvitationDeclined;
         }
 
-        emit NewWave(_id, msgSender_, block.timestamp, Status.joinConfirmed);
+      emit NewWave(_id, msgSender_, waver.marriageContract, status);
     }
 
     /**
@@ -444,13 +435,14 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      * @param _familyMember Address of a member being deleted.    
      */
 
-    function deleteFamilyMember(address _familyMember) external onlyContract {
+    function deleteFamilyMember(address _familyMember, uint id_) external onlyContract {
         if (member[_familyMember][1] > 0) {
             member[_familyMember][1] = 0;
         } else {
             require(member[_familyMember][0] > 0);
             member[_familyMember][0] = 0;
         }
+    emit NewWave(id_, _familyMember, msg.sender, Status.MemberDeleted);
     }
 
       /**
@@ -460,7 +452,6 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      */
 
     function addName(string memory _name) external {
-        require(isMember(msg.sender) > 0);
         nameAddress[msg.sender] = _name;
     }
 
@@ -494,6 +485,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         if (NFTmint.nftHolder(waver.marriageContract)>0) {
             NFTmint.changeStatus(waver.marriageContract, false);
         }
+    emit NewWave(_id, msg.sender, msg.sender, Status.Divorced);
     }
 
     /**
@@ -593,25 +585,27 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
 
     /**
-     * @notice Changing Token Policy in terms of Sale Cap and the Exchange Rate
+     * @notice Changing Policies in terms of Sale Cap, Fees and the Exchange Rate
      * @param _saleCap uint is set in Wei.
      * @param _exchangeRate uint is set how much Love Tokens can be bought for 1 Ether.
+     * @param _cmFee uint is set in Wei.
      */
 
-    function changeTokenPolicy(uint256 _saleCap, uint256 _exchangeRate) external onlyOwner {
+    function changeTokenPolicy(uint256 _saleCap, uint256 _exchangeRate, uint256 _cmFee, uint256 _promoDays) external onlyOwner {
         saleCap = _saleCap;
         exchangeRate = _exchangeRate;
+        cmFee = _cmFee;
+        promoDays = _promoDays;
     }
-
 
     /**
      * @notice A fee that is paid by users for incoming and outgoing transactions.
      * @param _cmFee uint is set in Wei.
-     */
+     
 
     function changeFee(uint256 _cmFee) external onlyOwner {
-        cmFee = _cmFee;
-    }
+       cmFee = _cmFee;
+    }*/
 
     /**
      * @notice A reference contract address of NFT Certificates factory and NFT split.
@@ -627,15 +621,14 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     /**
      * @notice Changing contract addresses of Factory and Forwarder
      * @param _addressFactory an Address of the New Factory.
-     * @param _forwarderAddress an Address of the New Forwarder .
      */
 
-    function changeSystemAddresses(address _addressFactory, address _forwarderAddress)
+    function changeSystemAddresses(address _addressFactory, address _withdrawaddress)
         external
         onlyOwner
     {
         waverFactoryAddress = _addressFactory;
-        forwarderAddress = _forwarderAddress;
+        withdrawaddress = _withdrawaddress;
     }
 
  
@@ -649,9 +642,9 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
     function changePartnerAddress(address _partner, address _newAddress, uint id_) 
         external
-        onlyContract
     {
          Wave storage waver = proposalAttributes[id_];
+         require(msg.sender == waver.marriageContract);
          if (proposers[_partner] > 0) {
             proposers[_partner] = 0;
             proposers[_newAddress] = id_;
@@ -661,6 +654,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
             proposedto[_newAddress] = id_; 
             waver.proposed = _newAddress;
         } 
+    emit NewWave(id_, _newAddress, msg.sender, Status.PartnerAddressChanged);
     }
 
     /**
@@ -675,23 +669,13 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     }
 
     /**
-     * @notice A reference address for withdrawing commissions.
-     * @param _withdrawaddress an Address.
-     */
-
-    function changesWithdrawAddress(address _withdrawaddress)
-        external
-        onlyOwner
-    {
-        withdrawaddress = _withdrawaddress;
-    }
-
-    /**
      * @notice A method to withdraw comission that is accumulated within the main contract. 
      Withdraws the whole balance.
      */
 
-    function withdrawcomission() external onlyOwner {
+    function withdrawcomission() external {
+        require (msg.sender == withdrawaddress);
+        require(pauseAddresses[owner()] == 0);
         processtxn(payable(withdrawaddress), address(this).balance);
     }
 
@@ -700,13 +684,32 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      Withdraws the whole balance.
      * @param _tokenID the address of the ERC20 contract.
      */
-    function withdrawERC20(address _tokenID) external onlyOwner {
+    function withdrawERC20(address _tokenID) external {
+        require (msg.sender == withdrawaddress);
         uint256 amount;
         amount = IERC20(_tokenID).balanceOf(address(this));
         require(IERC20(_tokenID).transfer(withdrawaddress, amount));
     }
 
+    /**
+     * @notice A method to pause withdrawals from the this and proxy contracts.
+     * @param pauseAddress an address to be paused/unpaused
+     */
+    function pause(address pauseAddress, uint8 param) external {
+        require (msg.sender == withdrawaddress);
+        pauseAddresses[pauseAddress] = param;
+    }
+
+  /**
+     * @notice A view function to monitor balance
+     */
+
+    function balance() external view returns (uint ETHBalance) {
+       return address(this).balance;
+    }
+
     receive() external payable {
+        require(pauseAddresses[msg.sender] == 0);
         require(msg.value > 0);
     }
 }
