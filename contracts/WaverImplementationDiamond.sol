@@ -7,8 +7,9 @@ pragma solidity ^0.8.17;
 *   @notice Individual contract is created after proposal has been sent to the partner. 
     ETH stake will be deposited to this newly created contract.
 *   @dev The proxy uses Diamond Pattern for modularity. Relevant code was borrowed from  
-    Nick Mudge <nick@perfectabstractions.com>. Reimbursement of sponsored TXFee through
-    MinimalForwarder, amounts to full estimated TX Costs at the beginning of relevant 
+    Nick Mudge <nick@perfectabstractions.com>. 
+*   Reimbursement of sponsored TXFee through 
+    MinimalForwarder, amounts to full estimated TX Costs of relevant 
     functions.   
 *   @author Ismailov Altynbek <altyni@gmail.com>
 */
@@ -171,27 +172,7 @@ contract WaverIDiamond is
         vt.marriageStatus = VoteProposalLib.MarriageStatus.Declined;
     }
 
-    /**
-     * @notice This method allows to add stake to the contract.
-     * @dev it is required that the marriage status is proper, since the funds will be locked if otherwise.
-     
-
-    function addstake() external payable {
-        VoteProposalLib.enforceNotDivorced();
-        VoteProposalLib.VoteTracking storage vt = VoteProposalLib
-            .VoteTrackingStorage();
-        VoteProposalLib.processtxn(
-            vt.addressWaveContract,
-            ((msg.value) * vt.cmFee) / 10000
-        );
-       emit VoteProposalLib.AddStake(
-            msg.sender,
-            address(this),
-            block.timestamp,
-            msg.value
-        ); 
-    } */
-
+   
     /**
      * @notice Through this method proposals for voting is created. 
      * @dev All params are required. tokenID for the native currency is 0x0 address. To create proposals it is necessary to 
@@ -214,7 +195,6 @@ contract WaverIDiamond is
         address _tokenID,
         uint256 _amount
     ) external {
-        uint256 _GasLeft = gasleft();
         address msgSender_ = _msgSender();
         VoteProposalLib.enforceUserHasAccess(msgSender_);
         VoteProposalLib.enforceMarried();
@@ -234,7 +214,7 @@ contract WaverIDiamond is
             _voteends = block.timestamp + 10 days;
         } else {
             vt.numTokenFor[vt.voteid] = _numTokens;
-            if (_voteends < 3 hours) {_voteends = 3 hours; }
+            if (_voteends < 6 hours) {_voteends = 6 hours; }
         }
 
         vt.voteProposalAttributes[vt.voteid] = VoteProposalLib.VoteProposal({
@@ -264,7 +244,7 @@ contract WaverIDiamond is
         unchecked {
             vt.voteid++;
         }
-        checkForwarder(_GasLeft, vt);
+        checkForwarder(vt);
     }
 
     /**
@@ -281,7 +261,6 @@ contract WaverIDiamond is
         uint256 _numTokens,
         uint8 responsetype
     ) external {
-        uint256 _GasLeft = gasleft();
         address msgSender_ = _msgSender();
         VoteProposalLib.enforceUserHasAccess(msgSender_);
         VoteProposalLib.enforceNotVoted(_id,msgSender_);
@@ -315,7 +294,7 @@ contract WaverIDiamond is
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
         );  
-        checkForwarder(_GasLeft, vt);
+        checkForwarder(vt);
     }
 
     /**
@@ -326,7 +305,6 @@ contract WaverIDiamond is
 
     function cancelVoting(uint24 _id) external {
         address msgSender_ = _msgSender();
-        uint256 _GasLeft = gasleft();
         VoteProposalLib.enforceProposedStatus(_id);
         VoteProposalLib.enforceOnlyProposer(_id, msgSender_);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
@@ -339,7 +317,7 @@ contract WaverIDiamond is
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
         ); 
-        checkForwarder(_GasLeft, vt);
+        checkForwarder(vt);
     }
 
     /**
@@ -350,8 +328,7 @@ contract WaverIDiamond is
 
     function endVotingByTime(uint24 _id) external {
         address msgSender_ = _msgSender();
-        uint256 _GasLeft = gasleft();
-        VoteProposalLib.enforceUserHasAccess(msgSender_ );
+        VoteProposalLib.enforceOnlyPartners(msgSender_);
         VoteProposalLib.enforceProposedStatus(_id);
         VoteProposalLib.enforceDeadlinePassed(_id);
 
@@ -370,7 +347,7 @@ contract WaverIDiamond is
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
         ); 
-        checkForwarder(_GasLeft, vt);
+        checkForwarder(vt);
     }
 
     /**
@@ -464,17 +441,19 @@ contract WaverIDiamond is
     }
 
     /**
-     * @notice Function to reimburse transactions costs of relayers
-     * @param _GasLeft Gas left at the beginning of the transaction*/
+     * @notice Function to reimburse transactions costs of relayers. 
+     * @dev 1050000 is a gas limit put by the OZ relaying platform. 2400 is .call gas cost that was not taken into account.
+     * @param vt is a storage parameter to process payment.      
+     */
 
     function checkForwarder(
-        uint256 _GasLeft,
         VoteProposalLib.VoteTracking storage vt
     ) internal {
         if (isTrustedForwarder(msg.sender)) {
+            uint Gasleft = (1050000- gasleft() + 2400)* tx.gasprice; //???
             VoteProposalLib.processtxn(
                 vt.addressWaveContract,
-                _GasLeft * tx.gasprice
+                Gasleft
             );
         }
     }
@@ -494,7 +473,6 @@ contract WaverIDiamond is
 
     function addFamilyMember(address _member) external {
         address msgSender_ = _msgSender();
-        uint256 _GasLeft = gasleft();
         VoteProposalLib.enforceOnlyPartners(msgSender_);
         VoteProposalLib.enforceNotPartnerAddr(_member);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
@@ -503,7 +481,7 @@ contract WaverIDiamond is
 
         WaverContract _waverContract = WaverContract(vt.addressWaveContract);
         _waverContract.addFamilyMember(_member, vt.id);
-        checkForwarder(_GasLeft, vt);
+        checkForwarder(vt);
     }
 
     /**
@@ -527,7 +505,6 @@ contract WaverIDiamond is
      */
 
     function deleteFamilyMember(address _member) external {
-        uint256 _GasLeft = gasleft();
         address msgSender_ = _msgSender();
         VoteProposalLib.enforceOnlyPartners(msgSender_);
         VoteProposalLib.enforceNotPartnerAddr(_member);
@@ -540,7 +517,7 @@ contract WaverIDiamond is
         if (vt.hasAccess[_member] == true) {
         delete vt.hasAccess[_member];
         vt.familyMembers -= 1;}
-        checkForwarder(_GasLeft, vt);
+        checkForwarder(vt);
     }
 
     /* Divorce settlement. Once Divorce is processed there are 
@@ -687,7 +664,7 @@ contract WaverIDiamond is
             .VoteTrackingStorage();
         return vt.familyMembers;
     }
-
+  
       /* Getter of cooldown before divorce*/
 
     function getPolicyDays() external view returns (uint256) {

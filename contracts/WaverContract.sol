@@ -144,17 +144,17 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         address _diamondCutFacet,
         address _withdrawaddress
     ) payable ERC20("CryptoMarry", "LOVE") ERC2771Context(address(forwarder)) {
-        claimPolicyDays = 1;
-        policyDays = 1;
+        claimPolicyDays = 5 minutes;
+        policyDays = 5 minutes;
         addressNFT = _nftaddress;
         saleCap = 1e25;
         minPricePolicy = 1e16;
         waverFactoryAddress = _waveFactory;
         diamondCutFacetAddress = _diamondCutFacet;
-        cmFee = 100;
+        //cmFee = 100;
         exchangeRate = 1000;
         withdrawaddress = _withdrawaddress;
-        _mint(msg.sender,1e18);
+        //_mint(msg.sender,1e18);
         promoDays = 5 minutes;
     }
 
@@ -344,7 +344,6 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     ) external payable {
         //getting price and NFT address
         require(msg.value >= minPricePolicy);
-
         (, uint256 _id) = checkAuth();
         Wave storage waver = proposalAttributes[_id];
         require(waver.ProposalStatus == Status.Processed);

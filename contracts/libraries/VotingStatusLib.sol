@@ -51,6 +51,7 @@ library VoteProposalLib {
         mapping(uint24 => mapping(address => bool))  votingStatus; // Tracking whether address has voted for particular voteid
         mapping(uint24 => uint256) numTokenFor; //Number of tokens voted for the proposal
         mapping(uint24 => uint256) numTokenAgainst; //Number of tokens voted against the proposal
+        mapping (address => string) contactDetails; //Details to contact  
     }
 
  function VoteTrackingStorage() internal pure returns (VoteTracking storage vt) {
