@@ -22,7 +22,7 @@ describe("Divorce Settlement Functions", function () {
     );
   
 
-    txn = await WavePortal7.connect(accounts[1]).response("Yes", 1, 0);
+    txn = await WavePortal7.connect(accounts[1]).response(1, 0);
 
     txn = await WavePortal7.checkMarriageStatus();
 
@@ -209,8 +209,13 @@ describe("Divorce Settlement Functions", function () {
       })
     ).to.reverted;
 
+    const TX = {
+      to: instance.address,
+      value: hre.ethers.utils.parseEther("10"),
+    };
+
     await expect(
-      instance.addstake({ value: hre.ethers.utils.parseEther("10") })
+      accounts[0].sendTransaction(TX)
     ).to.reverted;
   });
 

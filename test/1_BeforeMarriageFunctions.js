@@ -131,9 +131,13 @@ describe("Testing before marriage interactions", function () {
         hre.ethers.utils.parseEther("-10"),
       ]
     );
-
+    const TX = {
+      to: instance.address,
+      value: hre.ethers.utils.parseEther("10"),
+    };
+   
     await expect(
-      await instance.addstake({ value: hre.ethers.utils.parseEther("10") })
+      await accounts[0].sendTransaction(TX)
     ).to.changeEtherBalances(
       [instance, WavePortal7, accounts[0]],
       [
@@ -334,7 +338,7 @@ describe("Testing before marriage interactions", function () {
       { value: hre.ethers.utils.parseEther("10") }
     );
 
-    txn = await WavePortal7.connect(accounts[1]).response("No", 2, 0);
+    txn = await WavePortal7.connect(accounts[1]).response( 2, 0);
 
     txn = await WavePortal7.checkMarriageStatus();
 
@@ -358,7 +362,7 @@ describe("Testing before marriage interactions", function () {
       { value: hre.ethers.utils.parseEther("10") }
     );
 
-    txn = await WavePortal7.connect(accounts[1]).response("No", 2, 0);
+    txn = await WavePortal7.connect(accounts[1]).response(2, 0);
 
     txn = await WavePortal7.checkMarriageStatus();
 
@@ -390,7 +394,7 @@ describe("Testing before marriage interactions", function () {
       { value: hre.ethers.utils.parseEther("10") }
     );
 
-    txn = await WavePortal7.connect(accounts[1]).response("Yes", 1, 0);
+    txn = await WavePortal7.connect(accounts[1]).response(1, 0);
 
     txn = await WavePortal7.checkMarriageStatus();
     expect(await txn.ProposalStatus).to.equal(4);
@@ -409,7 +413,7 @@ describe("Testing before marriage interactions", function () {
       { value: hre.ethers.utils.parseEther("10") }
     );
 
-    await expect(WavePortal7.connect(accounts[3]).response("Yes", 1, 0)).to
+    await expect(WavePortal7.connect(accounts[3]).response(1, 0)).to
       .reverted;
   });
 
@@ -426,7 +430,7 @@ describe("Testing before marriage interactions", function () {
       { value: hre.ethers.utils.parseEther("10") }
     );
 
-    txn = await WavePortal7.connect(accounts[1]).response("Yes", 1, 0);
+    txn = await WavePortal7.connect(accounts[1]).response(1, 0);
 
     txn = await WavePortal7.checkMarriageStatus();
     const instance = await WaverImplementation.attach(txn.marriageContract);
@@ -445,7 +449,7 @@ describe("Testing before marriage interactions", function () {
       { value: hre.ethers.utils.parseEther("10") }
     );
 
-    txn = await WavePortal7.connect(accounts[1]).response("Yes", 1, 0);
+    txn = await WavePortal7.connect(accounts[1]).response(1, 0);
 
     txn = await WavePortal7.connect(accounts[0]).claimToken();
     txn = await WavePortal7.connect(accounts[1]).claimToken();

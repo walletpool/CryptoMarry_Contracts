@@ -147,11 +147,11 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         claimPolicyDays = 5 minutes;
         policyDays = 5 minutes;
         addressNFT = _nftaddress;
-        saleCap = 1e25;
+        saleCap = 1e23;
         minPricePolicy = 1e16;
         waverFactoryAddress = _waveFactory;
         diamondCutFacetAddress = _diamondCutFacet;
-        //cmFee = 100;
+        cmFee = 100;
         exchangeRate = 1000;
         withdrawaddress = _withdrawaddress;
         //_mint(msg.sender,1e18);

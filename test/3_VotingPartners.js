@@ -21,7 +21,7 @@ describe("Testing voting interactions", function () {
       { value: hre.ethers.utils.parseEther("10") }
     );
 
-    txn = await WavePortal7.connect(accounts[1]).response("Yes", 1, 0);
+    txn = await WavePortal7.connect(accounts[1]).response(1, 0);
 
     txn = await WavePortal7.checkMarriageStatus();
 
@@ -308,7 +308,7 @@ describe("Testing voting interactions", function () {
     await mine(100000);
     txn = await instance.connect(accounts[0]).endVotingByTime(1);
     txn = await instance.getVotingStatuses(1);
-    expect(txn[0].voteStatus).to.equal(2);
+    expect(txn[0].voteStatus).to.equal(7);
   });
 
   it("Partner cannot propose divorce before cooldown", async function () {

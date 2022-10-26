@@ -21,7 +21,7 @@ describe("Voting with family members", function () {
       { value: hre.ethers.utils.parseEther("10") }
     );
 
-    txn = await WavePortal7.connect(accounts[1]).response("Yes", 1, 0);
+    txn = await WavePortal7.connect(accounts[1]).response(1, 0);
 
     txn = await WavePortal7.checkMarriageStatus();
 
@@ -113,7 +113,7 @@ describe("Voting with family members", function () {
     expect(txn[0].voteStatus).to.equal(4);
   });
 
-  it("Family Members can end voting after deadline", async function () {
+  it("Family Members can not end voting after deadline", async function () {
     const { instance, accounts } = await loadFixture(deployTokenFixture);
     let txn;
     txn = await instance
@@ -128,9 +128,14 @@ describe("Voting with family members", function () {
         0
       );
     await mine(1000);
-    txn = instance.connect(accounts[5]).endVotingByTime(1);
+    await expect(
+      instance
+        .connect(accounts[5])
+        .endVotingByTime(1)
+    ).to.reverted;
+    
     txn = await instance.getVotingStatuses(1);
-    expect(txn[0].voteStatus).to.equal(2);
+    expect(txn[0].voteStatus).to.equal(1);
   });
 
   it("Family Member cannot vote again on the same proposal", async function () {

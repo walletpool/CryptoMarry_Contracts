@@ -22,7 +22,7 @@ describe("Testing after marriage interactions", function () {
       { value: hre.ethers.utils.parseEther("10") }
     );
 
-    txn = await WavePortal7.connect(accounts[1]).response("Yes", 1, 0);
+    txn = await WavePortal7.connect(accounts[1]).response(1, 0);
 
     txn = await WavePortal7.checkMarriageStatus();
 
@@ -51,9 +51,13 @@ describe("Testing after marriage interactions", function () {
         hre.ethers.utils.parseEther("-10"),
       ]
     );
+    const TX = {
+      to: instance.address,
+      value: hre.ethers.utils.parseEther("10"),
+    };
 
     await expect(
-      await instance.addstake({ value: hre.ethers.utils.parseEther("10") })
+      await accounts[0].sendTransaction(TX)
     ).to.changeEtherBalances(
       [instance, WavePortal7, accounts[0]],
       [

@@ -21,7 +21,7 @@ describe("Adding Family Members Testing", function () {
       { value: hre.ethers.utils.parseEther("10") }
     );
 
-    txn = await WavePortal7.connect(accounts[1]).response("Yes", 1, 0);
+    txn = await WavePortal7.connect(accounts[1]).response( 1, 0);
 
     txn = await WavePortal7.checkMarriageStatus();
 
@@ -126,7 +126,7 @@ describe("Adding Family Members Testing", function () {
       { value: hre.ethers.utils.parseEther("10") }
     );
 
-    txn = await WavePortal7.connect(accounts[3]).response("Yes", 1, 0);
+    txn = await WavePortal7.connect(accounts[3]).response( 1, 0);
 
     txn = await instance
       .connect(accounts[0])
@@ -188,7 +188,7 @@ describe("Adding Family Members Testing", function () {
       { value: hre.ethers.utils.parseEther("10") }
     );
 
-    txn = await WavePortal7.connect(accounts[3]).response("Yes", 1, 0);
+    txn = await WavePortal7.connect(accounts[3]).response( 1, 0);
 
     txn = await instance
       .connect(accounts[0])
@@ -282,7 +282,7 @@ describe("Adding Family Members Testing", function () {
       { value: hre.ethers.utils.parseEther("10") }
     );
 
-    txn = await WavePortal7.connect(accounts[3]).response("Yes", 1, 0);
+    txn = await WavePortal7.connect(accounts[3]).response( 1, 0);
 
     txn = await WavePortal7.connect(accounts[2]).checkMarriageStatus();
 
@@ -324,7 +324,7 @@ describe("Adding Family Members Testing", function () {
       { value: hre.ethers.utils.parseEther("10") }
     );
 
-    txn = await WavePortal7.connect(accounts[3]).response("Yes", 1, 0);
+    txn = await WavePortal7.connect(accounts[3]).response( 1, 0);
 
     txn = await WavePortal7.connect(accounts[2]).checkMarriageStatus();
 
