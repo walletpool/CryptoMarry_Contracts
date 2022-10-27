@@ -86,7 +86,7 @@ contract nftSplit is ERC1155Royalty, Ownable {
      */
 
     function addAddresses(address _addAddresses) external {
-        require(mainAddress == msg.sender);
+        if (mainAddress != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
         authrizedAddresses[_addAddresses] = 1;
     }
 
@@ -151,6 +151,10 @@ contract nftSplit is ERC1155Royalty, Ownable {
         return trimmed;
     }
 
+
+   error CONTRACT_NOT_AUTHORIZED(address contractAddress);
+   error NFT_HAS_BEEN_SPLIT(address TokenAddress, uint TokenID);
+   error NFT_NOT_OWNED_BY_YOU(address TokenAddress, uint TokenID);
     /**
      * @notice Once divorced, partners can split ERC721 tokens owned by the proxy contract. 
      * @dev Each partner/or other family member can call this function to split ERC721 token between partners.
@@ -175,9 +179,10 @@ contract nftSplit is ERC1155Royalty, Ownable {
         address proposed,
         address _implementationAddr
     ) external {
-        require(authrizedAddresses[msg.sender] == 1, "NAuth Split");
-        require(wasDistributed[_tokenAddr][_tokenID] == 0); //ERC721 Token should not be split before
-        require(checkOwnership(_tokenAddr, _tokenID) == true); // Check whether the indicated token is owned by the proxy contract.
+        if (authrizedAddresses[msg.sender] != 1) {revert CONTRACT_NOT_AUTHORIZED (msg.sender);}
+        if (wasDistributed[_tokenAddr][_tokenID] != 0) {revert NFT_HAS_BEEN_SPLIT(_tokenAddr,_tokenID);}//ERC721 Token should not be split before
+        if (checkOwnership(_tokenAddr, _tokenID) == false) {revert NFT_NOT_OWNED_BY_YOU(_tokenAddr,_tokenID);} // Check whether the indicated token is owned by the proxy contract.
+
         wasDistributed[_tokenAddr][_tokenID] = 1; //Check and Effect
         uint256 newItemId = _tokenIds.current();
         _mint(proposer, newItemId, 1, "0x0");
@@ -195,6 +200,7 @@ contract nftSplit is ERC1155Royalty, Ownable {
         _tokenIds.increment();
     }
 
+    error YOU_HAVE_NOT_COLLECTED_ALL_COPIES(uint balance);
     /**
      * @notice If partner acquires both copies of NFTs, the NFT can be retreived by that partner through this function.
      * @dev The contract checks whether an address has both copies. Tokens are burnt once retreived.
@@ -202,7 +208,7 @@ contract nftSplit is ERC1155Royalty, Ownable {
      */
 
     function joinNFT(uint256 _tokenID) external {
-        require(balanceOf(msg.sender, _tokenID) == 2, "Not enough balance");
+        if (balanceOf(msg.sender, _tokenID) != 2) {revert YOU_HAVE_NOT_COLLECTED_ALL_COPIES(balanceOf(msg.sender, _tokenID));}
         NFTAttributes storage nftAttributes = nftHolderAttributes[_tokenID];
         Instance instance = Instance(nftAttributes.implementationAddr);
          _burn(msg.sender, _tokenID, 2);

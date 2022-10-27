@@ -158,9 +158,11 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         promoDays = 5 minutes;
     }
 
+    error CONTRACT_NOT_AUTHORIZED(address contractAddress);
+
     /*This modifier check whether an address is authorised proxy contract*/
     modifier onlyContract() {
-        require(authrizedAddresses[msg.sender] == 1);
+        if (authrizedAddresses[msg.sender] != 1) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
         _;
     }
 
@@ -183,6 +185,9 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         return ERC2771Context._msgSender();
     }
 
+    /** Errors replated to propose function */
+     error PROPOSED_SAME_ADDRESS(address proposed);
+     error USER_ALREADY_EXISTS_IN_CM(address user);
     /**
      * @notice Proposal and separate contract is created with given params.
      * @dev Proxy contract is created for each proposal. Most functions of the proxy contract will be available if proposal is accepted.
@@ -198,9 +203,11 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     ) public payable {
         id += 1;
 
-        require(msg.sender != _proposed);
-
-        require(isMember(_proposed) == 0 && isMember(msg.sender) == 0);
+       
+        if (msg.sender == _proposed) {revert PROPOSED_SAME_ADDRESS(msg.sender);}
+       
+        if (isMember(_proposed) != 0){revert USER_ALREADY_EXISTS_IN_CM(_proposed);}
+        if (isMember(msg.sender) != 0){revert USER_ALREADY_EXISTS_IN_CM(msg.sender);}
 
         proposers[msg.sender] = id;
         proposedto[_proposed] = id;
@@ -245,6 +252,8 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         emit NewWave(id, msg.sender,_newMarriageAddress, Status.Proposed);
     }
 
+
+    error PROPOSAL_STATUS_CHANGED();
     /**
      * @notice Response is given from the proposed Address.
      * @dev Updates are made to the proxy contract with respective response. ENS preferences will be checked onchain.
@@ -260,8 +269,8 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         uint256 _id = proposedto[msgSender_];
 
         Wave storage waver = proposalAttributes[_id];
-        require(waver.ProposalStatus == Status.Proposed);
-
+        if (waver.ProposalStatus != Status.Proposed) {revert PROPOSAL_STATUS_CHANGED();}
+      
         waverImplementation1 waverImplementation = waverImplementation1(
             waver.marriageContract
         );
@@ -292,6 +301,8 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     emit NewWave(_id, tx.origin, msg.sender, Status.Cancelled);
     }
 
+    error FAMILY_ACCOUNT_NOT_ESTABLISHED();
+    error CLAIM_TIMOUT_NOT_PASSED();
     /**
      * @notice Users claim LOVE tokens depending on the proxy contract's balance and the number of family members.
      * @dev LOVE tokens are distributed once within policyDays defined by the owner.
@@ -300,9 +311,10 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     function claimToken() external {
         (address msgSender_, uint256 _id) = checkAuth();
         Wave storage waver = proposalAttributes[_id];
-        require(waver.ProposalStatus == Status.Processed);
+        if (waver.ProposalStatus != Status.Processed) {revert FAMILY_ACCOUNT_NOT_ESTABLISHED();}
+
+        if (claimtimer[msgSender_] + claimPolicyDays > block.timestamp) {revert CLAIM_TIMOUT_NOT_PASSED();}
         
-        require(claimtimer[msgSender_] + claimPolicyDays < block.timestamp);
           waverImplementation1 waverImplementation = waverImplementation1(
             waver.marriageContract
         );
@@ -322,12 +334,13 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     function buyLovToken() external payable {
         (address msgSender_, uint256 _id) = checkAuth();
         Wave storage waver = proposalAttributes[_id];
-        require(waver.ProposalStatus == Status.Processed);
+       if (waver.ProposalStatus != Status.Processed) {revert FAMILY_ACCOUNT_NOT_ESTABLISHED();}
         uint256 issued = msg.value * exchangeRate;
         saleCap -= issued;
         _mint(msgSender_, issued);
     }
 
+    error PAYMENT_NOT_SUFFICIENT(uint requiredPayment);
     /**
      * @notice Users can mint tiered NFT certificates. 
      * @dev The tier of the NFT is identified by the passed params. The cost of mint depends on minPricePolicy. 
@@ -343,10 +356,11 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         uint256 MainID
     ) external payable {
         //getting price and NFT address
-        require(msg.value >= minPricePolicy);
+        if (msg.value < minPricePolicy) {revert PAYMENT_NOT_SUFFICIENT(minPricePolicy);}
+
         (, uint256 _id) = checkAuth();
         Wave storage waver = proposalAttributes[_id];
-        require(waver.ProposalStatus == Status.Processed);
+      if (waver.ProposalStatus != Status.Processed) {revert FAMILY_ACCOUNT_NOT_ESTABLISHED();}
         uint256 issued = msg.value * exchangeRate;
 
         saleCap -= issued;
@@ -354,9 +368,9 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         NFTContract NFTmint = NFTContract(addressNFT);
 
         if (BackgroundID >= 1000) {
-            require(msg.value >= minPricePolicy * 100);
+            if (msg.value < minPricePolicy * 100) {revert PAYMENT_NOT_SUFFICIENT(minPricePolicy * 100);}
         } else if (logoID >= 100) {
-            require(msg.value >= minPricePolicy * 10);
+            if (msg.value < minPricePolicy * 10) {revert PAYMENT_NOT_SUFFICIENT(minPricePolicy * 10);}
         }
 
         NFTmint.mintCertificate(
@@ -377,6 +391,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
     /* Adding Family Members*/
 
+    error MEMBER_NOT_INVITED(address member);
     /**
      * @notice When an Address has been added to a Proxy contract as a family member, 
      the owner of the Address have to accept the invitation.  
@@ -387,7 +402,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
     function joinFamily(uint8 _response) external {
         address msgSender_ = _msgSender();
-        require(member[msgSender_][0] > 0);
+        if (member[msgSender_][0] == 0) {revert MEMBER_NOT_INVITED(msgSender_);}
         uint256 _id = member[msgSender_][0];
         Wave storage waver = proposalAttributes[_id];
         Status status;
@@ -409,6 +424,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
       emit NewWave(_id, msgSender_, waver.marriageContract, status);
     }
 
+    
     /**
      * @notice A proxy contract adds a family member through this method. A family member is first invited,
      and added only if the indicated Address accepts the invitation.   
@@ -422,11 +438,11 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         external
         onlyContract
     {
-        require(isMember(_familyMember) == 0);
+        if (isMember(_familyMember) != 0) {revert USER_ALREADY_EXISTS_IN_CM(_familyMember);}
         member[_familyMember][0] = _id;
         familyMembers[msg.sender].push(_familyMember);
     }
-
+  
     /**
      * @notice A family member can be deleted through a proxy contract. A family member can be deleted at any stage.
      * @dev the list of a family members per a proxy contract is not updated to keep history of members. Deleted 
@@ -438,7 +454,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         if (member[_familyMember][1] > 0) {
             member[_familyMember][1] = 0;
         } else {
-            require(member[_familyMember][0] > 0);
+            if (member[_familyMember][0] == 0) {revert MEMBER_NOT_INVITED(_familyMember);}
             member[_familyMember][0] = 0;
         }
     emit NewWave(id_, _familyMember, msg.sender, Status.MemberDeleted);
@@ -477,7 +493,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
     function divorceUpdate(uint256 _id) external onlyContract {
         Wave storage waver = proposalAttributes[_id];
-        require(waver.ProposalStatus == Status.Processed);
+      if (waver.ProposalStatus != Status.Processed) {revert FAMILY_ACCOUNT_NOT_ESTABLISHED();}
         waver.ProposalStatus = Status.Divorced;
         NFTContract NFTmint = NFTContract(addressNFT);
 
@@ -486,6 +502,8 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         }
     emit NewWave(_id, msg.sender, msg.sender, Status.Divorced);
     }
+
+    error COULD_NOT_PROCESS(address _to, uint amount);
 
     /**
      * @notice Internal function to process payments.
@@ -496,7 +514,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
     function processtxn(address payable _to, uint256 _amount) internal {
         (bool success, ) = _to.call{value: _amount}("");
-        require(success);
+        if (!success) {revert COULD_NOT_PROCESS(_to,_amount);}
     }
 
     /**
@@ -643,7 +661,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         external
     {
          Wave storage waver = proposalAttributes[id_];
-         require(msg.sender == waver.marriageContract);
+         if (msg.sender != waver.marriageContract) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
          if (proposers[_partner] > 0) {
             proposers[_partner] = 0;
             proposers[_newAddress] = id_;
@@ -666,15 +684,15 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         proposedto[msg.sender] = 0;
         member[msg.sender][1] = 0;
     }
-
+    error ACCOUNT_PAUSED(address sender);
     /**
      * @notice A method to withdraw comission that is accumulated within the main contract. 
      Withdraws the whole balance.
      */
 
     function withdrawcomission() external {
-        require (msg.sender == withdrawaddress);
-        require(pauseAddresses[owner()] == 0);
+        if (msg.sender != withdrawaddress) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
+        if (pauseAddresses[address(this)] != 0){revert ACCOUNT_PAUSED(address(this));}
         processtxn(payable(withdrawaddress), address(this).balance);
     }
 
@@ -684,10 +702,11 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      * @param _tokenID the address of the ERC20 contract.
      */
     function withdrawERC20(address _tokenID) external {
-        require (msg.sender == withdrawaddress);
+        if (msg.sender != withdrawaddress) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
         uint256 amount;
         amount = IERC20(_tokenID).balanceOf(address(this));
-        require(IERC20(_tokenID).transfer(withdrawaddress, amount));
+        bool success =  IERC20(_tokenID).transfer(withdrawaddress, amount);
+        if (!success) {revert COULD_NOT_PROCESS(withdrawaddress,amount);}
     }
 
     /**
@@ -695,7 +714,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      * @param pauseAddress an address to be paused/unpaused
      */
     function pause(address pauseAddress, uint8 param) external {
-        require (msg.sender == withdrawaddress);
+        if (msg.sender != withdrawaddress) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
         pauseAddresses[pauseAddress] = param;
     }
 
@@ -708,7 +727,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     }
 
     receive() external payable {
-        require(pauseAddresses[msg.sender] == 0);
+         if (pauseAddresses[msg.sender] != 0){revert ACCOUNT_PAUSED(msg.sender);}
         require(msg.value > 0);
     }
 }

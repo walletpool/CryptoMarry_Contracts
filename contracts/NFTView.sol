@@ -54,14 +54,14 @@ contract nftview {
         uint256 certBackgroundID; //ID of NFT element
         uint256 additionalGraphicsID; //ID of NFT element
     }
-
+    error CONTRACT_NOT_AUTHORIZED(address contractAddress);
     /**
      * @notice Changing the address of the ENS resolver;
      * @param _ensaddress an Address of ENS resolver
      */
 
     function changeENSAddress(address _ensaddress) external {
-        require(owner == msg.sender);
+        if (owner != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
         addressENS = _ensaddress;
     }
 
@@ -89,7 +89,7 @@ contract nftview {
      */
 
     function addheartPatterns(uint256 _id, bytes memory _pattern) external {
-        require(owner == msg.sender);
+        if (owner != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
         heartPatterns[_id] = _pattern;
     }
 
@@ -103,7 +103,7 @@ contract nftview {
     function addadditionalGraphics(uint256 _id, bytes memory _pattern)
         external
     {
-        require(owner == msg.sender);
+        if (owner != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
         additionalGraphics[_id] = _pattern;
     }
 
@@ -115,7 +115,7 @@ contract nftview {
      */
 
     function addcertBackground(uint256 _id, bytes memory _pattern) external {
-        require(owner == msg.sender);
+        if (owner != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
         certBackground[_id] = _pattern;
     }
 
@@ -125,7 +125,7 @@ contract nftview {
      */
 
     function changeOwner(address _addAddresses) external {
-        require(owner == msg.sender);
+       if (owner != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
         owner = _addAddresses;
     }
 
@@ -134,7 +134,7 @@ contract nftview {
      * @param _nftmainAddress an Address of the ERC721 contract.
      */
     function changenftmainAddress(address _nftmainAddress) external {
-        require(owner == msg.sender);
+        if (owner != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
         nftmainAddress = _nftmainAddress;
     }
 
@@ -144,7 +144,7 @@ contract nftview {
      */
 
     function changeMainAddress(address _mainAddress) external {
-        require(owner == msg.sender);
+        if (owner != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
         mainAddress = _mainAddress;
     }
 
@@ -271,8 +271,9 @@ contract nftview {
     function getURI(
         CertificateAttributes calldata charAttributes
     ) public view returns (string memory) {
-        require(nftmainAddress == msg.sender);
 
+        if (nftmainAddress != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
+       
         string memory Messagetext;
 
         if (charAttributes.heartPatternsID >= 1) {

@@ -15,7 +15,7 @@ pragma solidity ^0.8.17;
 */
 
 import "@gnus.ai/contracts-upgradeable-diamond/proxy/utils/Initializable.sol";
-//import "@gnus.ai/contracts-upgradeable-diamond/security/ReentrancyGuardUpgradeable.sol";
+import "@gnus.ai/contracts-upgradeable-diamond/security/ReentrancyGuardUpgradeable.sol";
 import "@gnus.ai/contracts-upgradeable-diamond/metatx/ERC2771ContextUpgradeable.sol";
 import "@gnus.ai/contracts-upgradeable-diamond/metatx/MinimalForwarderUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -61,7 +61,8 @@ contract WaverIDiamond is
     Initializable,
     SecuredTokenTransfer,
     DefaultCallbackHandler,
-    ERC2771ContextUpgradeable
+    ERC2771ContextUpgradeable,
+    ReentrancyGuardUpgradeable
 {
     /*Constructor to connect Forwarder Address*/
     constructor(MinimalForwarderUpgradeable forwarder)
@@ -104,7 +105,7 @@ contract WaverIDiamond is
         vt.proposed = _proposed;
         vt.cmFee = _cmFee;
         vt.policyDays = _policyDays;
-        vt.setDeadline = 5 minutes;
+        vt.setDeadline = 5 minutes; //!!!
 
         // Add the diamondCut external function from the diamondCutFacet
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
@@ -173,6 +174,7 @@ contract WaverIDiamond is
         vt.marriageStatus = VoteProposalLib.MarriageStatus.Declined;
     }
 
+    error DISSOLUTION_COOLDOWN_NOT_PASSED(uint cooldown);
    
     /**
      * @notice Through this method proposals for voting is created. 
@@ -207,8 +209,9 @@ contract WaverIDiamond is
         WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
           
         if (_votetype == 4) {
-            //Cooldown has to pass before divorce is proposed.
-            require(vt.marryDate + vt.policyDays < block.timestamp);
+             //Cooldown has to pass before divorce is proposed.
+            if (vt.marryDate + vt.policyDays > block.timestamp) { revert DISSOLUTION_COOLDOWN_NOT_PASSED(vt.marryDate + vt.policyDays );}
+           
             //Only partners can propose divorce
             VoteProposalLib.enforceOnlyPartners(msgSender_);
             vt.numTokenFor[vt.voteid] = 1e30;
@@ -357,7 +360,7 @@ contract WaverIDiamond is
      * @param _id Vote ID, that is being voted for/against.
      */
 
-    function executeVoting(uint24 _id) external {
+    function executeVoting(uint24 _id) external nonReentrant {
         VoteProposalLib.enforceMarried();
         VoteProposalLib.enforceUserHasAccess(msg.sender);
         VoteProposalLib.enforceAcceptedStatus(_id);
@@ -388,14 +391,14 @@ contract WaverIDiamond is
                     vt.voteProposalAttributes[_id].tokenID,
                     vt.addressWaveContract,
                     _cmfees
-                )
+                ),"I101"
             );
             require(
                 transferToken(
                     vt.voteProposalAttributes[_id].tokenID,
                     payable(vt.voteProposalAttributes[_id].receiver),
                     _amount
-                )
+                ),"I101"
             );
             
         }
@@ -466,6 +469,7 @@ contract WaverIDiamond is
        return address(this).balance;
     }
 
+    error TOO_MANY_MEMBERS();
     /**
      * @notice Through this method a family member can be invited. Once added, the user needs to accept invitation.
      * @dev Only partners can add new family member. Partners cannot add their current addresses.
@@ -478,8 +482,8 @@ contract WaverIDiamond is
         VoteProposalLib.enforceNotPartnerAddr(_member);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        require(vt.familyMembers < 50);
-
+        if (vt.familyMembers > 50) {revert TOO_MANY_MEMBERS();}
+       
         WaverContract _waverContract = WaverContract(vt.addressWaveContract);
         _waverContract.addFamilyMember(_member, vt.id);
         checkForwarder(vt);
@@ -543,12 +547,12 @@ contract WaverIDiamond is
                 _tokenID,
                 vt.addressWaveContract,
                 amountFee
-            )
+            ),"I101"
         );
         amount = (amount - amountFee)/2;
 
-        require(transferToken(_tokenID, vt.proposer, amount));
-        require(transferToken(_tokenID, vt.proposed, amount));
+        require(transferToken(_tokenID, vt.proposer, amount),"I101");
+        require(transferToken(_tokenID, vt.proposed, amount),"I101");
     }
 
     /**
@@ -602,7 +606,7 @@ contract WaverIDiamond is
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
         WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
-        require(_wavercContract.addressNFTSplit() == msg.sender);
+        if (_wavercContract.addressNFTSplit() != msg.sender) {revert VoteProposalLib.CONTRACT_NOT_AUTHORIZED(msg.sender);}
         IERC721(_tokenAddr).safeTransferFrom(
             address(this),
             _receipent,
@@ -722,6 +726,7 @@ contract WaverIDiamond is
         return ds.connectedApps[appAddress];
     }
 
+    error FACET_DOES_NOT_EXIST(address facet);
     // Find facet for function that is called and execute the
     // function if a facet is found and return any value.
     fallback() external payable {
@@ -735,7 +740,7 @@ contract WaverIDiamond is
         address facet = ds
             .facetAddressAndSelectorPosition[msg.sig]
             .facetAddress;
-        require(facet != address(0));
+        if (facet == address(0)) {revert FACET_DOES_NOT_EXIST(facet);}
         // Execute external function from facet using delegatecall and return any value.
         assembly {
             // copy function selector and any arguments

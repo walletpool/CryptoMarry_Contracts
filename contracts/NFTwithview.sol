@@ -26,6 +26,7 @@ struct CertificateAttributes {
     uint256 additionalGraphicsID; //ID of NFT element
 }
 
+error CONTRACT_NOT_AUTHORIZED(address contractAddress);
 /*A separate contract for getting NFT URI*/
 
 abstract contract NftviewC {
@@ -82,7 +83,7 @@ contract nftmint2 is ERC721 {
         uint256 mainID,
         uint256 cap
     ) external  {
-        require(owner == msg.sender);
+        if (owner != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
         nftLeft[logoID][backgroundID][mainID] = cap;
     }
 
@@ -91,7 +92,7 @@ contract nftmint2 is ERC721 {
      * @param _mainAddress an Address of the main contract that mints NFTs
      */
     function changeMainAddress(address _mainAddress) external {
-        require(owner == msg.sender);
+        if (owner != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
         mainAddress = _mainAddress;
     }
 
@@ -119,7 +120,7 @@ contract nftmint2 is ERC721 {
         uint256 _certBackgroundID,
         uint256 _additionalGraphicsID
     ) external {
-        require(mainAddress == msg.sender);
+         if (mainAddress != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
 
         uint256 newItemId = _tokenIds.current();
          nftLeft[_heartPatternsID][_certBackgroundID][_additionalGraphicsID] -= 1;
@@ -154,7 +155,7 @@ contract nftmint2 is ERC721 {
         address _marriageContract,
         bool _status
     ) external {
-        require(mainAddress == msg.sender);
+        if (mainAddress != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
         uint256 nftTokenId = nftHolder[_marriageContract];
         CertificateAttributes storage certificate = nftHolderAttributes[
             nftTokenId

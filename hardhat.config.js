@@ -2,10 +2,22 @@ require('@nomiclabs/hardhat-waffle');
 require("@nomiclabs/hardhat-etherscan");
 require('dotenv').config()
 require('solidity-coverage');
+require('hardhat-contract-sizer');
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 
 module.exports = {
-  solidity: '0.8.17',
+  solidity: {
+    version: '0.8.17',
+    settings: {
+      optimizer: {
+          enabled: true,
+          runs: 200,
+          details: {
+            yul: false
+          }
+      }
+    },
+},
   networks: {
     forking: {
       url: process.env.FORK_ALCHEMY_URL,
@@ -22,5 +34,5 @@ module.exports = {
   },
   etherscan: {
     apiKey: ETHERSCAN_API_KEY
-  },
-};
+  }
+}

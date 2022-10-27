@@ -21,6 +21,7 @@ interface CEth {
 
 
 contract CompoundFacet {
+    error COULD_NOT_PROCESS();
     
      function executeInvest(
         uint24 _id
@@ -64,7 +65,7 @@ contract CompoundFacet {
                 _amount
             );
             uint resp = cToken.mint(_amount);
-            require(resp > 0,"Not passed");
+            if (resp == 0) {revert COULD_NOT_PROCESS();} 
             }
 
      else if (vt.voteProposalAttributes[_id].voteType == 205) {
@@ -78,7 +79,7 @@ contract CompoundFacet {
             CEth cEther = CEth(vt.voteProposalAttributes[_id].tokenID);
 
              uint resp = cEther.redeem(_amount);
-            require(resp > 0,"Not passed");
+            if (resp == 0) {revert COULD_NOT_PROCESS();} 
 
             
         }
@@ -93,7 +94,7 @@ contract CompoundFacet {
 
             CErc20 cToken = CErc20(vt.voteProposalAttributes[_id].tokenID);
             uint resp = cToken.redeem(_amount);
-            require(resp > 0,"Not passed");
+           if (resp == 0) {revert COULD_NOT_PROCESS();} 
 
             
         }
