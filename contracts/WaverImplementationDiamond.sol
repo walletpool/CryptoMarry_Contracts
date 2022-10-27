@@ -104,6 +104,7 @@ contract WaverIDiamond is
         vt.proposed = _proposed;
         vt.cmFee = _cmFee;
         vt.policyDays = _policyDays;
+        vt.setDeadline = 5 minutes;
 
         // Add the diamondCut external function from the diamondCutFacet
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
@@ -214,7 +215,7 @@ contract WaverIDiamond is
             _voteends = block.timestamp + 10 days;
         } else {
             vt.numTokenFor[vt.voteid] = _numTokens;
-            if (_voteends < 6 hours) {_voteends = 6 hours; }
+            if (_voteends < block.timestamp + vt.setDeadline) {_voteends = block.timestamp + vt.setDeadline; } //Checking for too short notice
         }
 
         vt.voteProposalAttributes[vt.voteid] = VoteProposalLib.VoteProposal({

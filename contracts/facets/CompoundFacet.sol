@@ -22,7 +22,6 @@ interface CEth {
 
 contract CompoundFacet {
     
-
      function executeInvest(
         uint24 _id
     ) external {

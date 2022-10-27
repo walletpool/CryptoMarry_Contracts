@@ -46,6 +46,7 @@ library VoteProposalLib {
         uint256 cmFee;
         uint256 marryDate;
         uint256 policyDays;
+        uint256 setDeadline;
         mapping(address => bool) hasAccess; //Addresses that are alowed to use Proxy contract
         mapping(uint24 => VoteProposal) voteProposalAttributes;//Storage of voting proposals
         mapping(uint24 => mapping(address => bool))  votingStatus; // Tracking whether address has voted for particular voteid
