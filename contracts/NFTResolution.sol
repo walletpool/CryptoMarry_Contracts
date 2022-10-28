@@ -13,7 +13,7 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 /**
  [BSL License]
  @title NFT Splitter
- @notice This contract transforms ERC721 NFTs into ERC1155 NFTs with 2 identical tokens. 
+ @notice This contract transforms ERC721 NFTs into ERC1155 NFTs with 10 identical tokens. 
  @author Ismailov Altynbek <altyni@gmail.com>
 */
 
@@ -104,7 +104,7 @@ contract nftSplit is ERC1155Royalty, Ownable {
      * @param _tokenID The ID of the NFT stored within this contract
      */
     function checkStatus(uint256 _tokenID) external view returns (bool) {
-        return balanceOf(msg.sender, _tokenID) == 2;
+        return balanceOf(msg.sender, _tokenID) == 10;
     }
 
     /* Utility function that transforms address to trimmed string address */
@@ -177,7 +177,8 @@ contract nftSplit is ERC1155Royalty, Ownable {
         string calldata image,
         address proposer,
         address proposed,
-        address _implementationAddr
+        address _implementationAddr,
+        uint _shareDivide
     ) external {
         if (authrizedAddresses[msg.sender] != 1) {revert CONTRACT_NOT_AUTHORIZED (msg.sender);}
         if (wasDistributed[_tokenAddr][_tokenID] != 0) {revert NFT_HAS_BEEN_SPLIT(_tokenAddr,_tokenID);}//ERC721 Token should not be split before
@@ -185,8 +186,10 @@ contract nftSplit is ERC1155Royalty, Ownable {
 
         wasDistributed[_tokenAddr][_tokenID] = 1; //Check and Effect
         uint256 newItemId = _tokenIds.current();
-        _mint(proposer, newItemId, 1, "0x0");
-        _mint(proposed, newItemId, 1, "0x0");
+
+
+        _mint(proposer, newItemId, _shareDivide, "0x0");
+        _mint(proposed, newItemId, 10 - _shareDivide, "0x0");
 
         nftHolderAttributes[newItemId] = NFTAttributes({
             nft_address: _tokenAddr,
@@ -208,10 +211,10 @@ contract nftSplit is ERC1155Royalty, Ownable {
      */
 
     function joinNFT(uint256 _tokenID) external {
-        if (balanceOf(msg.sender, _tokenID) != 2) {revert YOU_HAVE_NOT_COLLECTED_ALL_COPIES(balanceOf(msg.sender, _tokenID));}
+        if (balanceOf(msg.sender, _tokenID) != 10) {revert YOU_HAVE_NOT_COLLECTED_ALL_COPIES(balanceOf(msg.sender, _tokenID));}
         NFTAttributes storage nftAttributes = nftHolderAttributes[_tokenID];
         Instance instance = Instance(nftAttributes.implementationAddr);
-         _burn(msg.sender, _tokenID, 2);
+         _burn(msg.sender, _tokenID, 10);
          wasDistributed[nftAttributes.nft_address][nftAttributes.nft_ID] == 0;
         instance.sendNft(
             nftAttributes.nft_address,
@@ -252,7 +255,7 @@ contract nftSplit is ERC1155Royalty, Ownable {
                 '", "description": "This NFT has been split between partners upon dissolution of the Family Account", "image": "',
                 nftAttributes.image,
                 '", "attributes":[',
-                '{"trait_type": "CryptoMarry copies:", "value": "1 out of 2"},',
+                '{"trait_type": "CryptoMarry copies:", "value": "1 out of 10"},',
                 '{"trait_type": "Original is owned by:", "value": "',
                 addressToString(nftAttributes.implementationAddr),
                 '"}',']}'

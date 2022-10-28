@@ -18,6 +18,9 @@ describe("Testing voting interactions", function () {
       accounts[1].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
 
@@ -286,6 +289,24 @@ describe("Testing voting interactions", function () {
         "0x0000000000000000000000000000000000000000",
         0
       );
+    await expect(instance.connect(accounts[0]).endVotingByTime(1)).to
+      .reverted;
+  });
+  it("Initiator cannot end voting before minimum deadline", async function () {
+    const { instance, accounts } = await loadFixture(deployTokenFixture);
+    let txn;
+    txn = await instance
+      .connect(accounts[0])
+      .createProposal(
+        "test1",
+        1,
+        0,
+        hre.ethers.utils.parseEther("100"),
+        "0x0000000000000000000000000000000000000000",
+        "0x0000000000000000000000000000000000000000",
+        0
+      );
+      await mine(10);
     await expect(instance.connect(accounts[0]).endVotingByTime(1)).to
       .reverted;
   });

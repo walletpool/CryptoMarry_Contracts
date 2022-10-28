@@ -24,7 +24,7 @@ module.exports = {deployTest: async function deployTest(){
 
   const forwarder = await deploy("MinimalForwarder");
 
-  const WaverImplementation = await deploy("WaverIDiamond",forwarder.address);
+  const WaverImplementation = await deploy("WaverIDiamond",forwarder.address,DiamondCutFacet.address);
 
   const WaverFactory = await deploy(
     "WaverFactory",
@@ -36,7 +36,6 @@ module.exports = {deployTest: async function deployTest(){
     forwarder.address,
     nftContract.address,
     WaverFactory.address,
-    DiamondCutFacet.address,
     accounts[0].address
   );
 

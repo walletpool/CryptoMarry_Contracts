@@ -17,7 +17,14 @@ describe("Testing before marriage interactions", function () {
     const { WavePortal7, accounts } = await loadFixture(deployTokenFixture);
 
     await expect(
-      WavePortal7.propose(accounts[0].address, "I love you so much!!!", 0, {
+      WavePortal7.propose(
+      accounts[0].address, 
+      "I love you so much!!!", 
+      0, 
+      86400,
+      86400,
+      5,
+      {
         value: hre.ethers.utils.parseEther("10"),
       })
     ).to.reverted;
@@ -33,6 +40,9 @@ describe("Testing before marriage interactions", function () {
       accounts[1].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
     txn = await WavePortal7.checkMarriageStatus();
@@ -60,6 +70,9 @@ describe("Testing before marriage interactions", function () {
       accounts[1].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
     txn = await WavePortal7.checkMarriageStatus();
@@ -90,6 +103,9 @@ describe("Testing before marriage interactions", function () {
       accounts[1].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
     txn = await WavePortal7.checkMarriageStatus();
@@ -111,6 +127,9 @@ describe("Testing before marriage interactions", function () {
       accounts[1].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
 
@@ -156,6 +175,9 @@ describe("Testing before marriage interactions", function () {
       accounts[1].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
 
@@ -174,6 +196,9 @@ describe("Testing before marriage interactions", function () {
       accounts[1].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
 
@@ -199,6 +224,9 @@ describe("Testing before marriage interactions", function () {
       accounts[1].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
     txn = await WavePortal7.checkMarriageStatus();
@@ -245,6 +273,9 @@ describe("Testing before marriage interactions", function () {
       accounts[1].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
 
@@ -273,6 +304,9 @@ describe("Testing before marriage interactions", function () {
       accounts[1].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
 
@@ -281,6 +315,9 @@ describe("Testing before marriage interactions", function () {
         accounts[0].address,
         "I love you so much!!!",
         0,
+        86400,
+        86400,
+        5,
         { value: hre.ethers.utils.parseEther("10") }
       )
     ).to.reverted;
@@ -290,6 +327,9 @@ describe("Testing before marriage interactions", function () {
         accounts[1].address,
         "I love you so much!!!",
         0,
+        86400,
+        86400,
+        5,
         { value: hre.ethers.utils.parseEther("10") }
       )
     ).to.reverted;
@@ -303,6 +343,9 @@ describe("Testing before marriage interactions", function () {
       accounts[1].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
 
@@ -311,6 +354,9 @@ describe("Testing before marriage interactions", function () {
         accounts[3].address,
         "I love you so much!!!",
         0,
+        86400,
+        86400,
+        5,
         { value: hre.ethers.utils.parseEther("10") }
       )
     ).to.reverted;
@@ -320,6 +366,9 @@ describe("Testing before marriage interactions", function () {
         accounts[3].address,
         "I love you so much!!!",
         0,
+        86400,
+        86400,
+        5,
         { value: hre.ethers.utils.parseEther("10") }
       )
     ).to.reverted;
@@ -335,6 +384,9 @@ describe("Testing before marriage interactions", function () {
       accounts[1].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
 
@@ -359,6 +411,9 @@ describe("Testing before marriage interactions", function () {
       accounts[1].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
 
@@ -391,6 +446,9 @@ describe("Testing before marriage interactions", function () {
       accounts[1].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
 
@@ -410,6 +468,9 @@ describe("Testing before marriage interactions", function () {
       accounts[1].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
 
@@ -427,6 +488,9 @@ describe("Testing before marriage interactions", function () {
       accounts[1].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
 
@@ -446,6 +510,9 @@ describe("Testing before marriage interactions", function () {
       accounts[1].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
 
@@ -473,23 +540,31 @@ describe("Testing before marriage interactions", function () {
       accounts[1].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
     txn = await WavePortal7.connect(accounts[2]).propose(
       accounts[3].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
     txn = await WavePortal7.connect(accounts[4]).propose(
       accounts[5].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
 
     expect (await WavePortal7.connect(accounts[0]).checkMarriageStatus()).to.not.equal(await WavePortal7.connect(accounts[2]).checkMarriageStatus());
-
   });
 
 });

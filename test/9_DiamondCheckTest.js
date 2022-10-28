@@ -31,6 +31,9 @@ describe("Testing Diamond Facets", function () {
       accounts[1].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("100") }
     );
 
@@ -38,6 +41,9 @@ describe("Testing Diamond Facets", function () {
       accounts[3].address,
       "Let's do it",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("100") }
     );
     txn = await WavePortal7.checkMarriageStatus();

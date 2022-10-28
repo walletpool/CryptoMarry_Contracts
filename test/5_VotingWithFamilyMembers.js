@@ -18,6 +18,9 @@ describe("Voting with family members", function () {
       accounts[1].address,
       "I love you so much!!!",
       0,
+      86400,
+      86400,
+      5,
       { value: hre.ethers.utils.parseEther("10") }
     );
 

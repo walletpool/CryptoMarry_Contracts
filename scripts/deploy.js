@@ -100,7 +100,6 @@ async function main() {
    forwarder.address,
    nftContract.address,
    WaverFactory.address,
-   DiamondCutFacet.address,
    "0x2b2ecab592770601341b742840a4845b10e74995"
  );
 

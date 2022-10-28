@@ -53,7 +53,8 @@ interface nftSplitInstance {
         string memory image,
         address waver,
         address proposed,
-        address _implementationAddr
+        address _implementationAddr,
+        uint shareDivide
     ) external;
 }
 
@@ -64,38 +65,39 @@ contract WaverIDiamond is
     ERC2771ContextUpgradeable,
     ReentrancyGuardUpgradeable
 {
+    address immutable diamondcut;
     /*Constructor to connect Forwarder Address*/
-    constructor(MinimalForwarderUpgradeable forwarder)
+    constructor(MinimalForwarderUpgradeable forwarder, address _diamondcut)
         initializer
         ERC2771ContextUpgradeable(address(forwarder))
-    {}
+    {diamondcut = _diamondcut;}
 
     /**
      * @notice Initialization function of the proxy contract
      * @dev Initialization params are passed from the main contract.
      * @param _addressWaveContract Address of the main contract.
-     * @param _diamondCutFacet Address of the Diamond Facet Cut
      * @param _id Marriage ID assigned by the main contract.
      * @param _proposer Address of the prpoposer.
      * @param _proposer Address of the proposed.
-     * @param _policyDays Cooldown before divorcing
+     * @param _policyDays Cooldown before dissolution
      * @param _cmFee CM fee, as a small percentage of incoming and outgoing transactions.
+     * @param _divideShare the share that will be divided among partners upon dissolution.
      */
 
     function initialize(
         address payable _addressWaveContract,
-        address _diamondCutFacet,
         uint256 _id,
         address _proposer,
         address _proposed,
         uint256 _policyDays,
-        uint256 _cmFee
+        uint256 _cmFee,
+        uint256 _minimumDeadline,
+        uint256 _divideShare
     ) public initializer {
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-
         unchecked {
-            ++vt.voteid;
+            vt.voteid++;
         }
         vt.addressWaveContract = _addressWaveContract;
         vt.marriageStatus = VoteProposalLib.MarriageStatus.Proposed;
@@ -105,7 +107,8 @@ contract WaverIDiamond is
         vt.proposed = _proposed;
         vt.cmFee = _cmFee;
         vt.policyDays = _policyDays;
-        vt.setDeadline = 5 minutes; //!!!
+        vt.setDeadline = _minimumDeadline;
+        vt.divideShare = _divideShare;
 
         // Add the diamondCut external function from the diamondCutFacet
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
@@ -115,7 +118,7 @@ contract WaverIDiamond is
         functionSelectors[0] = IDiamondCut.diamondCut.selector;
 
         cut[0] = IDiamondCut.FacetCut({
-            facetAddress: _diamondCutFacet,
+            facetAddress: diamondcut,
             action: IDiamondCut.FacetCutAction.Add,
             functionSelectors: functionSelectors
         });
@@ -418,9 +421,11 @@ contract WaverIDiamond is
                 (address(this).balance * vt.cmFee) / 10000
             );
 
-            uint256 splitamount = address(this).balance / 2;
-            VoteProposalLib.processtxn(payable(vt.proposer), splitamount);
-            VoteProposalLib.processtxn(payable(vt.proposed), splitamount);
+            uint256 shareProposer = address(this).balance * vt.divideShare/10;
+            uint256 shareProposed = address(this).balance - shareProposer;
+
+            VoteProposalLib.processtxn(payable(vt.proposer), shareProposer);
+            VoteProposalLib.processtxn(payable(vt.proposed), shareProposed);
 
             _wavercContract.divorceUpdate(vt.id);
 
@@ -549,10 +554,12 @@ contract WaverIDiamond is
                 amountFee
             ),"I101"
         );
-        amount = (amount - amountFee)/2;
+         amount = (amount - amountFee);
+        uint256 shareProposer = amount * vt.divideShare/10;
+        uint256 shareProposed = amount - shareProposer;
 
-        require(transferToken(_tokenID, vt.proposer, amount),"I101");
-        require(transferToken(_tokenID, vt.proposed, amount),"I101");
+        require(transferToken(_tokenID, vt.proposer, shareProposer),"I101");
+        require(transferToken(_tokenID, vt.proposed, shareProposed),"I101");
     }
 
     /**
@@ -586,7 +593,8 @@ contract WaverIDiamond is
             image,
             vt.proposer,
             vt.proposed,
-            address(this)
+            address(this),
+            vt.divideShare
         ); //A copy of the NFT is created by the NFT Splitter.
     }
 
@@ -672,25 +680,17 @@ contract WaverIDiamond is
   
       /* Getter of cooldown before divorce*/
 
-    function getPolicyDays() external view returns (uint256) {
+    function getPolicies() external view returns (uint policyDays, uint marryDate, uint cmFee, uint divideShare, uint setDeadline) {
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        return vt.policyDays;
+        return (vt.policyDays,
+                vt.marryDate,
+                vt.cmFee,
+                vt.divideShare,
+                vt.setDeadline);
     }
 
-    /* Getter date of marriage*/
-    function getMarryDate() external view returns (uint256) {
-        VoteProposalLib.VoteTracking storage vt = VoteProposalLib
-            .VoteTrackingStorage();
-        return vt.marryDate;
-    }
-
-    /* Getter of current CMfee*/
-    function getCMfee() external view returns (uint256) {
-        VoteProposalLib.VoteTracking storage vt = VoteProposalLib
-            .VoteTrackingStorage();
-        return vt.cmFee;
-    }
+    error NOT_IN_PROMO();
     /**
      * @notice A user may have a promo period with zero comissions 
      * @dev a function may be called externally and triggered by bot to check whether promo period has passed.  
@@ -698,8 +698,8 @@ contract WaverIDiamond is
     function resetFee() external {
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
+        if (vt.cmFee>0) {revert NOT_IN_PROMO(); }
         WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
-
         if (vt.marryDate + _wavercContract.promoDays() < block.timestamp) {
             vt.cmFee = 100;
         }   

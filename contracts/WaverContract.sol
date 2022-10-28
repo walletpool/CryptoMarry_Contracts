@@ -21,12 +21,13 @@ below.
 interface WaverFactoryC {
     function newMarriage(
         address _addressWaveContract,
-        address _diamondCutFacet,
         uint256 id,
         address _waver,
         address _proposed,
         uint256 policyDays,
-        uint256 cmFee
+        uint256 cmFee,
+        uint256 _minimumDeadline,
+        uint256 _divideShare
     ) external returns (address);
 
     function MarriageID(uint256 id) external returns (address);
@@ -76,20 +77,21 @@ interface waverImplementation1 {
 
 contract WavePortal7 is ERC20, ERC2771Context, Ownable {
    
-    address internal addressNFT; // Address of NFT certificate factory
+    address public addressNFT; // Address of NFT certificate factory
     address public addressNFTSplit; // Address of NFT splitting contract
-    address internal waverFactoryAddress; // Address of Proxy contract factory
-    address internal diamondCutFacetAddress; // Address of SWAP router UNISWAP
-    address internal withdrawaddress; //Address to where comissions are withdrawed/
+    address public waverFactoryAddress; // Address of Proxy contract factory
+    address public withdrawaddress; //Address to where comissions are withdrawed/
 
     uint256 internal id; //IDs of a marriage
+    
+
+    uint256 public claimPolicyDays; //Cooldown for claiming LOVE tokens;
+    uint256 public promoDays; //promoDays for free 
     uint256 public saleCap; //Maximum cap of a LOVE token Sale
     uint256 public minPricePolicy; //Minimum price for NFTs
     uint256 public cmFee; // Small percentage paid by users for incoming and outgoing transactions.
     uint256 public exchangeRate; // Exchange rate for LOVE tokens for 1 ETH
-    uint256 public policyDays; //Cooldown for Dissolution proposal;
-    uint256 public claimPolicyDays; //Cooldown for claiming LOVE tokens;
-    uint256 public promoDays; //promoDays for free 
+
 
     //Structs
 
@@ -141,16 +143,13 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         MinimalForwarder forwarder,
         address _nftaddress,
         address _waveFactory,
-        address _diamondCutFacet,
         address _withdrawaddress
     ) payable ERC20("CryptoMarry", "LOVE") ERC2771Context(address(forwarder)) {
         claimPolicyDays = 5 minutes;
-        policyDays = 5 minutes;
         addressNFT = _nftaddress;
         saleCap = 1e23;
         minPricePolicy = 1e16;
         waverFactoryAddress = _waveFactory;
-        diamondCutFacetAddress = _diamondCutFacet;
         cmFee = 100;
         exchangeRate = 1000;
         withdrawaddress = _withdrawaddress;
@@ -186,8 +185,9 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     }
 
     /** Errors replated to propose function */
-     error PROPOSED_SAME_ADDRESS(address proposed);
+     error YOU_CANNOT_PROPOSE_YOURSELF(address proposed);
      error USER_ALREADY_EXISTS_IN_CM(address user);
+     error INALID_SHARE_PROPORTION(uint share);
     /**
      * @notice Proposal and separate contract is created with given params.
      * @dev Proxy contract is created for each proposal. Most functions of the proxy contract will be available if proposal is accepted.
@@ -199,15 +199,17 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     function propose(
         address _proposed,
         string memory _message,
-        uint8 _hasensWaver
+        uint8 _hasensWaver,
+        uint _policyDays,
+        uint _minimumDeadline,
+        uint _divideShare
     ) public payable {
         id += 1;
 
-       
-        if (msg.sender == _proposed) {revert PROPOSED_SAME_ADDRESS(msg.sender);}
-       
+        if (msg.sender == _proposed) {revert YOU_CANNOT_PROPOSE_YOURSELF(msg.sender);}
         if (isMember(_proposed) != 0){revert USER_ALREADY_EXISTS_IN_CM(_proposed);}
         if (isMember(msg.sender) != 0){revert USER_ALREADY_EXISTS_IN_CM(msg.sender);}
+        if (_divideShare > 10) {revert INALID_SHARE_PROPORTION (_divideShare);}
 
         proposers[msg.sender] = id;
         proposedto[_proposed] = id;
@@ -223,16 +225,16 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         /*Creating proxy contract here */
         _newMarriageAddress = factory.newMarriage(
             address(this),
-            diamondCutFacetAddress,
             id,
             msg.sender,
             _proposed,
-            policyDays,
-            cmFee
+            _policyDays,
+            cmFee,
+            _minimumDeadline,
+            _divideShare
         );
 
-        //_newMarriageAddress = factory.MarriageID(id);
-
+    
         nftSplitC nftsplit = nftSplitC(addressNFTSplit);
         nftsplit.addAddresses(_newMarriageAddress);
 
@@ -485,7 +487,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     }
 
     /**
-     * @notice If a Dissolution is initiated and accepted, this method updates the status of the partnership as Divorced.
+     * @notice If a Dissalution is initiated and accepted, this method updates the status of the partnership as Divorced.
      It also updates the last NFT Certificates Status.  
      * @dev this method is triggered once settlement has happened within the proxy contract. 
      * @param _id ID of the marriage.   
@@ -589,13 +591,11 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
     /**
      * @notice Tuning policies related to CM functioning
-     * @param _policyDays The number of days required before proposing Dissolution after establishment date
      * @param _claimPolicyDays The number of days required before claiming next LOVE tokens
      * @param _minPricePolicy Minimum price of minting NFT certificate of family account
      */
 
-    function changePolicy(uint256 _policyDays,uint256 _claimPolicyDays, uint256 _minPricePolicy) external onlyOwner {
-        policyDays = _policyDays;
+    function changePolicy(uint256 _claimPolicyDays, uint256 _minPricePolicy) external onlyOwner {
         claimPolicyDays = _claimPolicyDays;
         minPricePolicy = _minPricePolicy;
     }

@@ -14,3 +14,4 @@ package-lock.json
 slither.config.json
 slitherReport.json
 optimize.json
+gas-report.txt

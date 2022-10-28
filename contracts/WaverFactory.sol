@@ -52,34 +52,35 @@ contract WaverFactory is Ownable {
      * @notice A method for creating proxy contracts.   
      * @dev Only the main contract address can create proxy contracts. Beacon proxy is created with 
      the current implementation. 
-     * @param _addressWaveContract Address of the main contract. 
-     * @param _diamondCutFacet Address of the Minimal forwarder. 
-   
+     * @param _addressWaveContract Address of the main contract.   
      * @param id Marriage ID assigned by the main contract.
      * @param _waver Address of the prpoposer.
      * @param _proposed Address of the proposed.
      * @param _cmFee CM fee, as a small percentage of incoming and outgoing transactions.
+     * @param _divideShare the share that will be divided among partners upon dissolution.
      */
 
     function newMarriage(
         address _addressWaveContract,
-        address _diamondCutFacet,
         uint256 id,
         address _waver,
         address _proposed,
         uint256 _policyDays,
-        uint256 _cmFee
+        uint256 _cmFee,
+        uint256 _minimumDeadline,
+        uint256 _divideShare
     ) public returns (address) {
         require(WaverContractAddress == msg.sender, "ACCESS DENIED");
         bytes memory dataOfnewMarriage = abi.encodeWithSelector(
             WaverIDiamond(payable(address(0))).initialize.selector,
             _addressWaveContract,
-            _diamondCutFacet,
             id,
             _waver,
             _proposed,
             _policyDays,
-            _cmFee
+            _cmFee,
+            _minimumDeadline,
+            _divideShare
         );
 
         BeaconProxy NewMarriageBeaconProxy = new BeaconProxy(

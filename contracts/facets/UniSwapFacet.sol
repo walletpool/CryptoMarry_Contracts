@@ -7,7 +7,6 @@ import { LibDiamond } from "../libraries/LibDiamond.sol";
 
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
-//import "hardhat/console.sol";
 
 /*Interface for the ISWAP Router (Uniswap)  Contract*/
 interface IUniswapRouter is ISwapRouter {

@@ -25,7 +25,7 @@ async function main() {
 
  const forwarder = await deploy("MinimalForwarder");
 
- const WaverImplementation = await deploy("WaverIDiamond",forwarder.address);
+ const WaverImplementation = await deploy("WaverIDiamond",forwarder.address,DiamondCutFacet.address);
 
  const WaverFactory = await deploy(
    "WaverFactory",
@@ -37,7 +37,6 @@ async function main() {
    forwarder.address,
    nftContract.address,
    WaverFactory.address,
-   DiamondCutFacet.address,
    "0xEC3215C0ba03fA75c8291Ce92ace346589483E26"
  );
 
@@ -74,6 +73,9 @@ await WavePortal7.changeaddressNFT(nftContract.address,nftSplit.address);
     accounts[1].address,
     "I love you so much!!!",
     0,
+    86400,
+    86400,
+    5,
     { value: hre.ethers.utils.parseEther("100") }
   );
 
