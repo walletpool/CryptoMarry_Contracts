@@ -71,7 +71,9 @@ interface waverImplementation1 {
 
     function declined() external;
 
-    function getFamilyMembersNumber() external returns (uint);
+    function getFamilyMembersNumber() external view returns (uint);
+
+    function getCMfee() external view returns (uint);
 }
 
 
@@ -103,6 +105,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         Processed,
         Divorced,
         WaitingConfirmation,
+        MemberInvited,
         InvitationAccepted,
         InvitationDeclined,
         MemberDeleted,
@@ -118,6 +121,11 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         address marriageContract;
     }
 
+    struct Pause {
+        address ContractAddress;
+        uint Status;
+    }
+
     mapping(address => uint256) internal proposers; //Marriage ID of proposer partner
     mapping(address => uint256) internal proposedto; //Marriage ID of proposed partner
     mapping(address => mapping(uint8 => uint256)) public member; //Stores family member IDs
@@ -128,7 +136,9 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     mapping(address => address[]) internal familyMembers; // List of family members addresses
     mapping(address => uint256) public claimtimer; //maps addresses to when the last time LOVE tokens were claimed.
     mapping(address => string) public nameAddress; //For giving Names for addresses. 
-    mapping(address => uint8) public pauseAddresses; //Addresses that can be paused.
+    mapping(address => uint) public pauseAddresses; //Addresses that can be paused.
+    mapping(address => uint) public rewardAddresses; //Addresses that may claim reward. 
+    mapping(address => string) public contactDetails; //Details of contact to send notifications
 
     /* An event to track status changes of the contract*/
     event NewWave(
@@ -137,6 +147,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         address indexed marriageContract,
         Status vid
     );
+
 
     /* A contructor that sets initial conditions of the Contract*/
     constructor(
@@ -150,10 +161,9 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         saleCap = 1e23;
         minPricePolicy = 1e16;
         waverFactoryAddress = _waveFactory;
-        cmFee = 100;
+        //cmFee = 100;
         exchangeRate = 1000;
         withdrawaddress = _withdrawaddress;
-        //_mint(msg.sender,1e18);
         promoDays = 5 minutes;
     }
 
@@ -188,6 +198,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      error YOU_CANNOT_PROPOSE_YOURSELF(address proposed);
      error USER_ALREADY_EXISTS_IN_CM(address user);
      error INALID_SHARE_PROPORTION(uint share);
+     error PLATFORM_TEMPORARILY_PAUSED();
     /**
      * @notice Proposal and separate contract is created with given params.
      * @dev Proxy contract is created for each proposal. Most functions of the proxy contract will be available if proposal is accepted.
@@ -205,7 +216,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         uint _divideShare
     ) public payable {
         id += 1;
-
+        if (pauseAddresses[address(this)]==1) {revert PLATFORM_TEMPORARILY_PAUSED();}
         if (msg.sender == _proposed) {revert YOU_CANNOT_PROPOSE_YOURSELF(msg.sender);}
         if (isMember(_proposed) != 0){revert USER_ALREADY_EXISTS_IN_CM(_proposed);}
         if (isMember(msg.sender) != 0){revert USER_ALREADY_EXISTS_IN_CM(msg.sender);}
@@ -321,11 +332,13 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
             waver.marriageContract
         );
         claimtimer[msgSender_] = block.timestamp;
-        uint256 amount = (waver.marriageContract.balance * exchangeRate) /
-            (10 * waverImplementation.getFamilyMembersNumber());
-
+        uint amount;
+        uint fee = waverImplementation.getCMfee();
+        if ( fee == 0) { amount = 5*1e18; } 
+        else if (fee < 50 && fee>0) { 
+            amount = (waver.marriageContract.balance * exchangeRate) / (20 * waverImplementation.getFamilyMembersNumber());
+        } else if (fee>50) { amount = (waver.marriageContract.balance * exchangeRate) / (10 * waverImplementation.getFamilyMembersNumber());} 
         _mint(msgSender_, amount);
-
     }
 
     /**
@@ -443,6 +456,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         if (isMember(_familyMember) != 0) {revert USER_ALREADY_EXISTS_IN_CM(_familyMember);}
         member[_familyMember][0] = _id;
         familyMembers[msg.sender].push(_familyMember);
+        emit NewWave(_id, _familyMember,msg.sender,Status.MemberInvited);
     }
   
     /**
@@ -470,6 +484,16 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
     function addName(string memory _name) external {
         nameAddress[msg.sender] = _name;
+    }
+
+      /**
+     * @notice A function to add contact for notifications 
+     * @dev It is planned to send notifications using webhooks
+     * @param _contact String name
+     */
+
+    function addContact(string memory _contact) external {
+        contactDetails[msg.sender] = _contact;
     }
 
     /**
@@ -605,24 +629,21 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      * @notice Changing Policies in terms of Sale Cap, Fees and the Exchange Rate
      * @param _saleCap uint is set in Wei.
      * @param _exchangeRate uint is set how much Love Tokens can be bought for 1 Ether.
-     * @param _cmFee uint is set in Wei.
      */
 
-    function changeTokenPolicy(uint256 _saleCap, uint256 _exchangeRate, uint256 _cmFee, uint256 _promoDays) external onlyOwner {
+    function changeTokenPolicy(uint256 _saleCap, uint256 _exchangeRate, uint256 _promoDays) external onlyOwner {
         saleCap = _saleCap;
         exchangeRate = _exchangeRate;
-        cmFee = _cmFee;
         promoDays = _promoDays;
     }
 
     /**
      * @notice A fee that is paid by users for incoming and outgoing transactions.
-     * @param _cmFee uint is set in Wei.
+     * @param _cmFee uint is set in Wei.*/
      
-
     function changeFee(uint256 _cmFee) external onlyOwner {
        cmFee = _cmFee;
-    }*/
+    }
 
     /**
      * @notice A reference contract address of NFT Certificates factory and NFT split.
@@ -692,7 +713,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
     function withdrawcomission() external {
         if (msg.sender != withdrawaddress) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
-        if (pauseAddresses[address(this)] != 0){revert ACCOUNT_PAUSED(address(this));}
+        if (pauseAddresses[msg.sender] == 1){revert ACCOUNT_PAUSED(msg.sender);}
         processtxn(payable(withdrawaddress), address(this).balance);
     }
 
@@ -703,6 +724,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      */
     function withdrawERC20(address _tokenID) external {
         if (msg.sender != withdrawaddress) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
+        if (pauseAddresses[msg.sender] == 1){revert ACCOUNT_PAUSED(msg.sender);}
         uint256 amount;
         amount = IERC20(_tokenID).balanceOf(address(this));
         bool success =  IERC20(_tokenID).transfer(withdrawaddress, amount);
@@ -710,12 +732,32 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     }
 
     /**
-     * @notice A method to pause withdrawals from the this and proxy contracts.
-     * @param pauseAddress an address to be paused/unpaused
+     * @notice A method to pause withdrawals from the this and proxy contracts if threat is detected.
+     * @param pauseData an List of addresses to be paused/unpaused
      */
-    function pause(address pauseAddress, uint8 param) external {
+    function pause(Pause[] calldata pauseData) external {
         if (msg.sender != withdrawaddress) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
-        pauseAddresses[pauseAddress] = param;
+        for (uint i; i<pauseData.length; i++) {
+            pauseAddresses[pauseData[i].ContractAddress] = pauseData[i].Status;
+        }   
+    }
+
+     /**
+     * @notice A method to mint LOVE tokens who participated in Reward Program
+     * @param mintData an List of addresses to be rewarded
+     */
+    function reward(Pause[] calldata mintData) external onlyOwner{
+        for (uint i; i<mintData.length; i++) {
+            rewardAddresses[mintData[i].ContractAddress] = mintData[i].Status;
+        }   
+    }
+    error REWARD_NOT_FOUND(address claimer);
+    function claimReward() external {
+        if (rewardAddresses[msg.sender] == 0) {revert REWARD_NOT_FOUND(msg.sender);}
+        uint amount = rewardAddresses[msg.sender];
+        rewardAddresses[msg.sender] = 0;
+        _mint(msg.sender, amount);
+        saleCap-= amount;
     }
 
   /**
@@ -727,7 +769,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     }
 
     receive() external payable {
-         if (pauseAddresses[msg.sender] != 0){revert ACCOUNT_PAUSED(msg.sender);}
+        if (pauseAddresses[msg.sender] == 1){revert ACCOUNT_PAUSED(msg.sender);}
         require(msg.value > 0);
     }
 }

@@ -357,6 +357,7 @@ contract WaverIDiamond is
         checkForwarder(vt);
     }
 
+error VOTE_ID_NOT_FOUND();
     /**
      * @notice If the proposal has been passed, depending on vote type, the proposal is executed.
      * @dev  Two external protocols are used Uniswap and Compound.
@@ -438,8 +439,11 @@ contract WaverIDiamond is
                 vt.voteProposalAttributes[_id].amount
             );
             
+        } else if (vt.voteProposalAttributes[_id].voteType == 6) {
+            vt.voteProposalAttributes[_id].voteStatus = 11;
+            vt.setDeadline = vt.voteProposalAttributes[_id].amount;
         } else {
-            revert();
+            revert VOTE_ID_NOT_FOUND();
         }
        emit VoteProposalLib.VoteStatus(
             _id,
@@ -451,7 +455,7 @@ contract WaverIDiamond is
 
     /**
      * @notice Function to reimburse transactions costs of relayers. 
-     * @dev 1050000 is a gas limit put by the OZ relaying platform. 2400 is .call gas cost that was not taken into account.
+     * @dev 1050000 is a max gas limit put by the OZ relaying platform. 2400 is .call gas cost that was not taken into account.
      * @param vt is a storage parameter to process payment.      
      */
 
@@ -459,7 +463,7 @@ contract WaverIDiamond is
         VoteProposalLib.VoteTracking storage vt
     ) internal {
         if (isTrustedForwarder(msg.sender)) {
-            uint Gasleft = (1050000- gasleft() + 2400)* tx.gasprice; //???
+            uint Gasleft = (1050000- gasleft() + 2400)* tx.gasprice;
             VoteProposalLib.processtxn(
                 vt.addressWaveContract,
                 Gasleft
@@ -677,15 +681,23 @@ contract WaverIDiamond is
             .VoteTrackingStorage();
         return vt.familyMembers;
     }
+
+    /* Getter of Family Members Number*/
+    function getCMfee() external view returns (uint256) {
+        VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
+        return vt.cmFee;
+    }
   
       /* Getter of cooldown before divorce*/
 
-    function getPolicies() external view returns (uint policyDays, uint marryDate, uint cmFee, uint divideShare, uint setDeadline) {
+    function getPolicies() external view 
+    returns (uint policyDays, uint marryDate, uint divideShare, uint setDeadline) 
+    {
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
         return (vt.policyDays,
                 vt.marryDate,
-                vt.cmFee,
                 vt.divideShare,
                 vt.setDeadline);
     }

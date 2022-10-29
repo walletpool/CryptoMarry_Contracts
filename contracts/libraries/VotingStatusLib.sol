@@ -42,18 +42,25 @@ library VoteProposalLib {
         address proposer;
         address proposed;
         address payable addressWaveContract;
+        uint nonce;
+        uint256 threshold;
         uint256 id;
         uint256 cmFee;
         uint256 marryDate;
         uint256 policyDays;
         uint256 setDeadline;
         uint256 divideShare;
+        address [] subAccounts; //an Array of Subaccounts; 
         mapping(address => bool) hasAccess; //Addresses that are alowed to use Proxy contract
         mapping(uint24 => VoteProposal) voteProposalAttributes; //Storage of voting proposals
         mapping(uint24 => mapping(address => bool)) votingStatus; // Tracking whether address has voted for particular voteid
         mapping(uint24 => uint256) numTokenFor; //Number of tokens voted for the proposal
         mapping(uint24 => uint256) numTokenAgainst; //Number of tokens voted against the proposal
-        mapping(address => string) contactDetails; //Details to contact
+        mapping (uint => uint) indexBook; //Keeping track of indexes 
+        mapping(uint => address) addressBook; //To keep Addresses inside
+        mapping(address => uint) subAccountIndex;//To keep track of subAccounts
+        mapping(bytes32 => uint256) signedMessages;
+        mapping(address => mapping(bytes32 => uint256)) approvedHashes;
     }
 
     function VoteTrackingStorage()

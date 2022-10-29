@@ -75,7 +75,7 @@ async function main() {
   forwarder.deployTransaction.gasLimit
 );
 
- const WaverImplementation = await deploy("WaverIDiamond",forwarder.address);
+ const WaverImplementation = await deploy("WaverIDiamond",forwarder.address, DiamondCutFacet.address);
 
  console.log(
   "Waver Implementation Contract deployed:",
