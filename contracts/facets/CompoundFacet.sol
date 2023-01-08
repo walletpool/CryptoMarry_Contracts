@@ -8,17 +8,16 @@ import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 /*Interface for the CERC20 (Compound) Contract*/
 interface CErc20 {
-    function mint(uint256) external returns (uint256);
+    function mint(uint256) external;
 
-    function redeem(uint256) external returns (uint256);
+    function redeem(uint256) external;
 }
 
 /*Interface for the CETH (Compound)  Contract*/
 interface CEth {
     function mint() external payable;
-    function redeem(uint256) external returns (uint256);
+    function redeem(uint256) external;
 }
-
 
 contract CompoundFacet {
     error COULD_NOT_PROCESS();
@@ -26,20 +25,20 @@ contract CompoundFacet {
      function executeInvest(
         uint24 _id
     ) external {
-
+      
+      
         VoteProposalLib.enforceMarried();
         VoteProposalLib.enforceUserHasAccess(msg.sender);
         VoteProposalLib.enforceAcceptedStatus(_id);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-      
-        
+
 
         //A small fee for the protocol is deducted here
         uint256 _amount = (vt.voteProposalAttributes[_id].amount *
             (10000 - vt.cmFee)) / 10000;
         uint256 _cmfees = vt.voteProposalAttributes[_id].amount - _amount;
-
+         
         if (vt.voteProposalAttributes[_id].voteType == 203) {
             vt.voteProposalAttributes[_id].voteStatus = 203;
        VoteProposalLib.processtxn(vt.addressWaveContract, _cmfees);
@@ -64,8 +63,7 @@ contract CompoundFacet {
                 vt.voteProposalAttributes[_id].receiver,
                 _amount
             );
-            uint resp = cToken.mint(_amount);
-            if (resp == 0) {revert COULD_NOT_PROCESS();} 
+             cToken.mint(_amount);
             }
 
      else if (vt.voteProposalAttributes[_id].voteType == 205) {
@@ -78,10 +76,8 @@ contract CompoundFacet {
 
             CEth cEther = CEth(vt.voteProposalAttributes[_id].tokenID);
 
-             uint resp = cEther.redeem(_amount);
-            if (resp == 0) {revert COULD_NOT_PROCESS();} 
+            cEther.redeem(_amount);
 
-            
         }
         // Redeeming cToken for corresponding ERC20 token.
         else if (vt.voteProposalAttributes[_id].voteType == 206) {
@@ -93,11 +89,9 @@ contract CompoundFacet {
                 );
 
             CErc20 cToken = CErc20(vt.voteProposalAttributes[_id].tokenID);
-            uint resp = cToken.redeem(_amount);
-           if (resp == 0) {revert COULD_NOT_PROCESS();} 
+            cToken.redeem(_amount);
 
-            
-        }
+        } else {revert COULD_NOT_PROCESS();}
         emit VoteProposalLib.VoteStatus(
             _id,
             msg.sender,

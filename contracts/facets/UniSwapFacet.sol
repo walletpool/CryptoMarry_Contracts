@@ -7,7 +7,6 @@ import { LibDiamond } from "../libraries/LibDiamond.sol";
 
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
-
 /*Interface for the ISWAP Router (Uniswap)  Contract*/
 interface IUniswapRouter is ISwapRouter {
     function refundETH() external payable;
@@ -64,9 +63,9 @@ constructor (IUniswapRouter swapRouter, WETH9Contract _wethAddress) {
                     amountOutMinimum: _oracleprice,
                     sqrtPriceLimitX96: 0
                 });
-
+           
            uint resp = swapRouter.exactInputSingle{value: _amount}(params);
-           if (resp == 0) {revert COULD_NOT_PROCESS();} 
+           if (resp < _oracleprice) {revert COULD_NOT_PROCESS();} 
             swapRouter.refundETH();
     emit VoteProposalLib.AddStake(address(this), address(swapRouter), block.timestamp, _amount); 
             
@@ -99,8 +98,7 @@ constructor (IUniswapRouter swapRouter, WETH9Contract _wethAddress) {
                 });
 
             uint resp = swapRouter.exactInputSingle(params);
-
-            if (resp == 0) {revert COULD_NOT_PROCESS();} 
+            if (resp < _oracleprice) {revert COULD_NOT_PROCESS();} 
            
                 
             } else if (vt.voteProposalAttributes[_id].voteType == 103) {
@@ -133,13 +131,13 @@ constructor (IUniswapRouter swapRouter, WETH9Contract _wethAddress) {
 
             uint resp = swapRouter.exactInputSingle(params);
             
-            if (resp == 0) {revert COULD_NOT_PROCESS();} 
+            if (resp < _oracleprice) {revert COULD_NOT_PROCESS();} 
            
             WETH9Contract Weth = WETH9Contract(vt.voteProposalAttributes[_id].receiver);
             
             Weth.withdraw(_oracleprice); 
              
-            }
+            } else {revert COULD_NOT_PROCESS();}
         
 
        emit VoteProposalLib.VoteStatus(
