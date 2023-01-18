@@ -15,7 +15,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 struct CertificateAttributes {
     address proposer; //Address of the proposer
     address proposed; //Address of the proposed
-    string Status; //Marriage status  - Married, Divorced.
+    string Status; //Marriage status  - Established, Terminated.
     uint8 hasensWaver; //If a proposer has opted in to show ENS within the Certificate
     uint8 hasensProposed; //If a proposed has opted in to show ENS within the Certificate
     uint256 stake; //Current balance of the proxy contract
@@ -66,7 +66,7 @@ contract nftmint2 is ERC721 {
      * @param _addAddresses an Address to which the owner is being changed.
      */
     function changeOwner(address _addAddresses) external {
-    
+    if (owner != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
         owner = _addAddresses;
     }
 
@@ -130,7 +130,7 @@ contract nftmint2 is ERC721 {
         nftHolderAttributes[newItemId] = CertificateAttributes({
             proposer: _proposer,
             proposed: _proposed,
-            Status: "Married",
+            Status: "Established",
             hasensWaver: _hasensWaver,
             hasensProposed: _hasensProposed,
             stake: _marriageContract.balance,
@@ -161,7 +161,7 @@ contract nftmint2 is ERC721 {
             nftTokenId
         ];
         if (_status == false) {
-            certificate.Status = "Divorced";
+            certificate.Status = "Terminated";
         }
     }
 
