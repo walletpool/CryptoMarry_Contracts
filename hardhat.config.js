@@ -6,6 +6,7 @@ require('hardhat-contract-sizer');
 require("hardhat-gas-reporter");
 //npx hardhat size-contracts
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
+const POLYGONSCAN_API_KEY = process.env.POLYGONSCAN_API_KEY;
 
 module.exports = {
   solidity: {
@@ -32,17 +33,24 @@ gasReporter: {
     forking: {
       url: process.env.FORK_ALCHEMY_URL,
     },
-    rinkeby: {
-      url: process.env.RINKEBY_ALCHEMY_URL,
-      accounts: [process.env.DEPLOY_ACCOUNT],
+    polygon: {
+      url: process.env.POLYGON_ALCHEMY_URL,
+      accounts: [process.env.DEPLOY_ACCOUNT_POLYGON],
       
     },
     goerli: {
       url: process.env.GOERLI_ALCHEMY_URL,
-      accounts: [process.env.DEPLOY_ACCOUNT],
+      accounts: [process.env.DEPLOY_ACCOUNT_GOERLI],
+    },
+    mainnet: {
+      url: process.env.MAINNET_ALCHEMY_URL,
+      accounts: [process.env.DEPLOY_ACCOUNT_MAINNET],
     },
   },
   etherscan: {
-    apiKey: ETHERSCAN_API_KEY
+    apiKey: {
+      mainnet: ETHERSCAN_API_KEY,
+      goerli: ETHERSCAN_API_KEY,
+      polygon: POLYGONSCAN_API_KEY}
   }
 }
