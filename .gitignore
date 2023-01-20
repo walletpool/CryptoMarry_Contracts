@@ -15,3 +15,8 @@ slither.config.json
 slitherReport.json
 optimize.json
 gas-report.txt
+deploytest-mainnet.json
+deploytest-polygon.json
+deploytest-goerli.json
+deploytest-mainnet-updated.json
+deploytest-polygon-updated.json
