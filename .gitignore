@@ -20,3 +20,8 @@ deploytest-polygon.json
 deploytest-goerli.json
 deploytest-mainnet-updated.json
 deploytest-polygon-updated.json
+scripts/deployNfts.js
+scripts/deployNftSwap.js
+scripts/deploySingle copy.js
+scripts/deploySingle.js
+scripts/params.js
