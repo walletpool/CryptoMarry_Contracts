@@ -40,8 +40,19 @@ interface WaverContract {
     function divorceUpdate(uint256 _id) external;
 
     function addressNFTSplit() external returns (address);
+
+    function claimToken(address msgSender_, uint _id) external; 
     
-    function promoDays() external returns (uint);
+    function MintCertificate(
+        uint256 logoID,
+        uint256 BackgroundID,
+        uint256 MainID,
+        uint256 _id,
+        uint256 value,
+        address msgSender_
+    ) external;
+
+    function updateSubscription(address msgSender_, uint _id, uint8 plan , uint value) external;
 }
 
 /*Interface for the NFT Split Contract*/
@@ -65,12 +76,15 @@ contract WaverIDiamond is
     ERC2771ContextUpgradeable,
     ReentrancyGuardUpgradeable
 {
+    string public constant VERSION = "1.0.2"; //Removed CM fees 
     address immutable diamondcut;
+    address private immutable _trustedForwarder;
     /*Constructor to connect Forwarder Address*/
     constructor(MinimalForwarderUpgradeable forwarder, address _diamondcut)
         initializer
         ERC2771ContextUpgradeable(address(forwarder))
-    {diamondcut = _diamondcut;}
+    {diamondcut = _diamondcut;
+    _trustedForwarder= address(forwarder);}
 
     /**
      * @notice Initialization function of the proxy contract
@@ -80,7 +94,6 @@ contract WaverIDiamond is
      * @param _proposer Address of the prpoposer.
      * @param _proposer Address of the proposed.
      * @param _policyDays Cooldown before dissolution
-     * @param _cmFee CM fee, as a small percentage of incoming and outgoing transactions.
      * @param _divideShare the share that will be divided among partners upon dissolution.
      */
 
@@ -90,9 +103,9 @@ contract WaverIDiamond is
         address _proposer,
         address _proposed,
         uint256 _policyDays,
-        uint256 _cmFee,
         uint256 _minimumDeadline,
-        uint256 _divideShare
+        uint256 _divideShare,
+        uint256 _threshold
     ) public initializer {
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -105,10 +118,14 @@ contract WaverIDiamond is
         vt.id = _id;
         vt.proposer = _proposer;
         vt.proposed = _proposed;
-        vt.cmFee = _cmFee;
         vt.policyDays = _policyDays;
         vt.setDeadline = _minimumDeadline;
         vt.divideShare = _divideShare;
+        vt.trustedForwarder = _trustedForwarder;
+        vt.threshold = _threshold;
+
+         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+         ds.waveAddress=_addressWaveContract;
 
         // Add the diamondCut external function from the diamondCutFacet
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
@@ -143,10 +160,6 @@ contract WaverIDiamond is
         WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
         _wavercContract.cancel(vt.id);
 
-        VoteProposalLib.processtxn(
-            vt.addressWaveContract,
-            (address(this).balance * vt.cmFee) / 10000
-        );
         VoteProposalLib.processtxn(payable(vt.proposer), address(this).balance);
     }
 
@@ -185,8 +198,6 @@ contract WaverIDiamond is
      have LOVE tokens as it will be used as backing of the proposal. 
      * @param _message String text on details of the proposal. 
      * @param _votetype Type of the proposal as it was listed in enum above. 
-     * @param _voteends Timestamp on when the voting ends
-     * @param _numTokens Number of LOVE tokens that is used to back this proposal. 
      * @param _receiver Address of the receiver who will be receiving indicated amounts. 
      * @param _tokenID Address of the ERC20, ERC721 or other tokens. 
      * @param _amount The amount of token that is being sent. Alternatively can be used as NFT ID. 
@@ -195,8 +206,6 @@ contract WaverIDiamond is
     function createProposal(
         string calldata _message,
         uint8 _votetype,
-        uint256 _voteends,
-        uint256 _numTokens,
         address payable _receiver,
         address _tokenID,
         uint256 _amount
@@ -204,13 +213,10 @@ contract WaverIDiamond is
         address msgSender_ = _msgSender();
         VoteProposalLib.enforceUserHasAccess(msgSender_);
         VoteProposalLib.enforceMarried();
-
-
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-
-        WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
-          
+        
+        uint256 _voteends;
         if (_votetype == 4) {
              //Cooldown has to pass before divorce is proposed.
             if (vt.marryDate + vt.policyDays > block.timestamp) { revert DISSOLUTION_COOLDOWN_NOT_PASSED(vt.marryDate + vt.policyDays );}
@@ -220,27 +226,26 @@ contract WaverIDiamond is
             vt.numTokenFor[vt.voteid] = 1e30;
             _voteends = block.timestamp + 10 days;
         } else {
-            vt.numTokenFor[vt.voteid] = _numTokens;
-            if (_voteends < block.timestamp + vt.setDeadline) {_voteends = block.timestamp + vt.setDeadline; } //Checking for too short notice
+            vt.numTokenFor[vt.voteid] = 1;
+            _voteends = block.timestamp + vt.setDeadline;
         }
 
         vt.voteProposalAttributes[vt.voteid] = VoteProposalLib.VoteProposal({
             id: vt.voteid,
             proposer: msgSender_,
             voteType: _votetype,
-            tokenVoteQuantity: _numTokens,
             voteProposalText: _message,
             voteStatus: 1,
-            voteends: _voteends,
+            voteends: block.timestamp + 10 days,
             receiver: _receiver,
             tokenID: _tokenID,
             amount: _amount,
-            votersLeft: vt.familyMembers - 1
+            votersLeft: vt.familyMembers - 1,
+            familyDao: 0
         });
 
         vt.votingStatus[vt.voteid][msgSender_] = true;
-        _wavercContract.burn(msgSender_, _numTokens);
-
+      
        emit VoteProposalLib.VoteStatus(
             vt.voteid,
             msgSender_,
@@ -251,7 +256,7 @@ contract WaverIDiamond is
         unchecked {
             vt.voteid++;
         }
-        checkForwarder(vt);
+        VoteProposalLib.checkForwarder();
     }
 
     /**
@@ -259,49 +264,42 @@ contract WaverIDiamond is
      * @dev A user cannot vote twice. User cannot vote on voting which has been already passed/declined. Token staked is burnt.
      There is no explicit ways of identifying votes for or against the vote. 
      * @param _id Vote ID, that is being voted for/against. 
-     * @param _numTokens Number of LOVE tokens that is being backed within the vote. 
      * @param responsetype Voting response for/against
      */
 
     function voteResponse(
         uint24 _id,
-        uint256 _numTokens,
         uint8 responsetype
     ) external {
         address msgSender_ = _msgSender();
         VoteProposalLib.enforceUserHasAccess(msgSender_);
         VoteProposalLib.enforceNotVoted(_id,msgSender_);
         VoteProposalLib.enforceProposedStatus(_id);
+        VoteProposalLib.enforceFamilyDAO(0,_id);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-
-        WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
 
         vt.votingStatus[_id][msgSender_] = true;
         vt.voteProposalAttributes[_id].votersLeft -= 1;
 
         if (responsetype == 2) {
-            vt.numTokenFor[_id] += _numTokens;
-        } else {
-            vt.numTokenAgainst[_id] += _numTokens;
-        }
-
-        if (vt.voteProposalAttributes[_id].votersLeft == 0) {
-            if (vt.numTokenFor[_id] < vt.numTokenAgainst[_id]) {
+            vt.numTokenFor[_id] += 1;
+        } 
+          if (vt.numTokenFor[_id] >= vt.threshold) {
                 vt.voteProposalAttributes[_id].voteStatus = 3;
-            } else {
-                vt.voteProposalAttributes[_id].voteStatus = 2;
             }
+          
+        if (vt.voteProposalAttributes[_id].votersLeft == 0 && vt.voteProposalAttributes[_id].voteStatus == 1) {
+                vt.voteProposalAttributes[_id].voteStatus = 2;  
         }
 
-        _wavercContract.burn(msgSender_, _numTokens);
          emit VoteProposalLib.VoteStatus(
             _id,
             msgSender_,
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
         );  
-        checkForwarder(vt);
+        VoteProposalLib.checkForwarder();
     }
 
     /**
@@ -324,39 +322,10 @@ contract WaverIDiamond is
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
         ); 
-        checkForwarder(vt);
+        VoteProposalLib.checkForwarder();
     }
 
-    /**
-     * @notice The vote can be processed if deadline has been passed.
-     * @dev voteend is compounded. The status of the vote proposal depends on number of Tokens voted for/against.
-     * @param _id Vote ID, that is being voted for/against.
-     */
-
-    function endVotingByTime(uint24 _id) external {
-        address msgSender_ = _msgSender();
-        VoteProposalLib.enforceOnlyPartners(msgSender_);
-        VoteProposalLib.enforceProposedStatus(_id);
-        VoteProposalLib.enforceDeadlinePassed(_id);
-
-        VoteProposalLib.VoteTracking storage vt = VoteProposalLib
-            .VoteTrackingStorage();
-
-        if (vt.numTokenFor[_id] < vt.numTokenAgainst[_id]) {
-            vt.voteProposalAttributes[_id].voteStatus = 3;
-        } else {
-            vt.voteProposalAttributes[_id].voteStatus = 7;
-        }
-
-      emit VoteProposalLib.VoteStatus(
-            _id,
-            msgSender_ ,
-            vt.voteProposalAttributes[_id].voteStatus,
-            block.timestamp
-        ); 
-        checkForwarder(vt);
-    }
-
+    
 error VOTE_ID_NOT_FOUND();
     /**
      * @notice If the proposal has been passed, depending on vote type, the proposal is executed.
@@ -365,22 +334,20 @@ error VOTE_ID_NOT_FOUND();
      */
 
     function executeVoting(uint24 _id) external nonReentrant {
+        address msgSender_ = _msgSender();
         VoteProposalLib.enforceMarried();
-        VoteProposalLib.enforceUserHasAccess(msg.sender);
+        VoteProposalLib.enforceUserHasAccess(msgSender_);
         VoteProposalLib.enforceAcceptedStatus(_id);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
 
         WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
         //A small fee for the protocol is deducted here
-        uint256 _amount = (vt.voteProposalAttributes[_id].amount *
-            (10000 - vt.cmFee)) / 10000;
-        uint256 _cmfees = vt.voteProposalAttributes[_id].amount - _amount;
+        uint256 _amount = vt.voteProposalAttributes[_id].amount;
 
         // Sending ETH from the contract
         if (vt.voteProposalAttributes[_id].voteType == 3) {
             vt.voteProposalAttributes[_id].voteStatus = 5;
-            VoteProposalLib.processtxn(vt.addressWaveContract, _cmfees);
             VoteProposalLib.processtxn(
                 payable(vt.voteProposalAttributes[_id].receiver),
                 _amount
@@ -393,83 +360,60 @@ error VOTE_ID_NOT_FOUND();
             require(
                 transferToken(
                     vt.voteProposalAttributes[_id].tokenID,
-                    vt.addressWaveContract,
-                    _cmfees
-                ),"I101"
-            );
-            require(
-                transferToken(
-                    vt.voteProposalAttributes[_id].tokenID,
                     payable(vt.voteProposalAttributes[_id].receiver),
                     _amount
                 ),"I101"
             );
-            
         }
-         else if (vt.voteProposalAttributes[_id].voteType == 3) {
-            VoteProposalLib.processtxn(vt.addressWaveContract, _cmfees);
-            VoteProposalLib.processtxn(payable(vt.voteProposalAttributes[_id].receiver), _amount);
-        
-            vt.voteProposalAttributes[_id].voteStatus = 5;
-        }
-        //This is if two sides decide to divorce, funds are split between partners
-        else if (vt.voteProposalAttributes[_id].voteType == 4) {
-            vt.marriageStatus = VoteProposalLib.MarriageStatus.Divorced;
-            vt.voteProposalAttributes[_id].voteStatus = 6;
-
-            VoteProposalLib.processtxn(
-                vt.addressWaveContract,
-                (address(this).balance * vt.cmFee) / 10000
-            );
-
-            uint256 shareProposer = address(this).balance * vt.divideShare/10;
-            uint256 shareProposed = address(this).balance - shareProposer;
-
-            VoteProposalLib.processtxn(payable(vt.proposer), shareProposer);
-            VoteProposalLib.processtxn(payable(vt.proposed), shareProposed);
-
-            _wavercContract.divorceUpdate(vt.id);
-
-            //Sending ERC721 tokens owned by the contract
-        } else if (vt.voteProposalAttributes[_id].voteType == 5) {
+         //Sending ERC721 tokens owned by the contract
+         else if (vt.voteProposalAttributes[_id].voteType == 5) {
             vt.voteProposalAttributes[_id].voteStatus = 10;
             IERC721(vt.voteProposalAttributes[_id].tokenID).safeTransferFrom(
                 address(this),
                 vt.voteProposalAttributes[_id].receiver,
                 vt.voteProposalAttributes[_id].amount
             );
-            
+            //Extending minimum deadline for family DAO votes
         } else if (vt.voteProposalAttributes[_id].voteType == 6) {
             vt.voteProposalAttributes[_id].voteStatus = 11;
             vt.setDeadline = vt.voteProposalAttributes[_id].amount;
-        } else {
+
+           //Inviting family members 
+        } else if (vt.voteProposalAttributes[_id].voteType == 7){
+             vt.voteProposalAttributes[_id].voteStatus = 12;
+            if (vt.familyMembers > 50) {revert TOO_MANY_MEMBERS();}
+            address _member = vt.voteProposalAttributes[_id].receiver;
+            require(vt.hasAccess[_member] == false);
+            _wavercContract.addFamilyMember(_member, vt.id);
+            vt.threshold = vt.voteProposalAttributes[_id].amount; 
+          //Deleting a family member 
+        }else if (vt.voteProposalAttributes[_id].voteType == 8){
+             vt.voteProposalAttributes[_id].voteStatus = 13;
+             address _member = vt.voteProposalAttributes[_id].receiver;
+             _wavercContract.deleteFamilyMember(_member,vt.id);
+                if (vt.hasAccess[_member] == true) {
+                delete vt.hasAccess[_member];
+                vt.familyMembers -= 1;}
+                vt.threshold = vt.voteProposalAttributes[_id].amount;
+        }
+        //Changing Threshold of a Family Contract 
+        else if (vt.voteProposalAttributes[_id].voteType == 9){
+             vt.voteProposalAttributes[_id].voteStatus = 14;
+                vt.threshold = vt.voteProposalAttributes[_id].amount;
+        }
+        else {
             revert VOTE_ID_NOT_FOUND();
         }
        emit VoteProposalLib.VoteStatus(
             _id,
-            msg.sender,
+            msgSender_,
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
         ); 
+        VoteProposalLib.checkForwarder();
     }
 
-    /**
-     * @notice Function to reimburse transactions costs of relayers. 
-     * @dev 1050000 is a max gas limit put by the OZ relaying platform. 2400 is .call gas cost that was not taken into account.
-     * @param vt is a storage parameter to process payment.      
-     */
-
-    function checkForwarder(
-        VoteProposalLib.VoteTracking storage vt
-    ) internal {
-        if (isTrustedForwarder(msg.sender)) {
-            uint Gasleft = (1050000- gasleft() + 2400)* tx.gasprice;
-            VoteProposalLib.processtxn(
-                vt.addressWaveContract,
-                Gasleft
-            );
-        }
-    }
+    
       /**
      * @notice A view function to monitor balance
      */
@@ -479,24 +423,6 @@ error VOTE_ID_NOT_FOUND();
     }
 
     error TOO_MANY_MEMBERS();
-    /**
-     * @notice Through this method a family member can be invited. Once added, the user needs to accept invitation.
-     * @dev Only partners can add new family member. Partners cannot add their current addresses.
-     * @param _member The address who are being invited to the proxy.
-     */
-
-    function addFamilyMember(address _member) external {
-        address msgSender_ = _msgSender();
-        VoteProposalLib.enforceOnlyPartners(msgSender_);
-        VoteProposalLib.enforceNotPartnerAddr(_member);
-        VoteProposalLib.VoteTracking storage vt = VoteProposalLib
-            .VoteTrackingStorage();
-        if (vt.familyMembers > 50) {revert TOO_MANY_MEMBERS();}
-       
-        WaverContract _waverContract = WaverContract(vt.addressWaveContract);
-        _waverContract.addFamilyMember(_member, vt.id);
-        checkForwarder(vt);
-    }
 
     /**
      * @notice Through this method a family member is added once invitation is accepted.
@@ -512,28 +438,30 @@ error VOTE_ID_NOT_FOUND();
         vt.familyMembers += 1;
     }
 
-    /**
-     * @notice Through this method a family member can be deleted. Member can be deleted by partners or by the members own address.
-     * @dev Member looses access and will not be able to access to the proxy contract from the front end. Member address cannot be that of partners'.
-     * @param _member The address who are being deleted.
-     */
-
-    function deleteFamilyMember(address _member) external {
+    function settleDivorce(uint24 _id) external nonReentrant{
         address msgSender_ = _msgSender();
+        VoteProposalLib.enforceMarried();
         VoteProposalLib.enforceOnlyPartners(msgSender_);
-        VoteProposalLib.enforceNotPartnerAddr(_member);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
 
-        WaverContract _waverContract = WaverContract(vt.addressWaveContract);
+        WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
 
-        _waverContract.deleteFamilyMember(_member,vt.id);
-        if (vt.hasAccess[_member] == true) {
-        delete vt.hasAccess[_member];
-        vt.familyMembers -= 1;}
-        checkForwarder(vt);
+        require (vt.voteProposalAttributes[_id].voteType == 4 && vt.voteProposalAttributes[_id].voteends< block.timestamp);
+
+            vt.marriageStatus = VoteProposalLib.MarriageStatus.Divorced;
+            vt.voteProposalAttributes[_id].voteStatus = 6;
+
+            uint256 shareProposer = address(this).balance * vt.divideShare/10;
+            uint256 shareProposed = address(this).balance - shareProposer;
+
+            VoteProposalLib.processtxn(payable(vt.proposer), shareProposer);
+            VoteProposalLib.processtxn(payable(vt.proposed), shareProposed);
+
+            _wavercContract.divorceUpdate(vt.id);
     }
 
+  
     /* Divorce settlement. Once Divorce is processed there are 
     other assets that have to be split*/
 
@@ -544,28 +472,37 @@ error VOTE_ID_NOT_FOUND();
      */
 
     function withdrawERC20(address _tokenID) external {
-        VoteProposalLib.enforceOnlyPartners(msg.sender);
+        address msgSender_ = _msgSender();
+        VoteProposalLib.enforceOnlyPartners(msgSender_);
         VoteProposalLib.enforceDivorced();
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
         uint256 amount = IERC20Upgradeable(_tokenID).balanceOf(address(this));
-        uint256 amountFee = (amount * vt.cmFee) / 10000;
-
-        require(
-            transferToken(
-                _tokenID,
-                vt.addressWaveContract,
-                amountFee
-            ),"I101"
-        );
-         amount = (amount - amountFee);
+  
         uint256 shareProposer = amount * vt.divideShare/10;
         uint256 shareProposed = amount - shareProposer;
 
         require(transferToken(_tokenID, vt.proposer, shareProposer),"I101");
         require(transferToken(_tokenID, vt.proposed, shareProposed),"I101");
+        VoteProposalLib.checkForwarder();
     }
 
+    /**
+     * @notice Before partner user accepts invitiation, initiator can claim ERC20 tokens back.
+     * @dev Only Initiator can claim ERC20 tokens
+     * @param _tokenID the address of the ERC20 token.
+     */
+
+    function earlyWithdrawERC20(address _tokenID) external {
+        address msgSender_ = _msgSender();
+        VoteProposalLib.enforceUserHasAccess(msgSender_);
+        VoteProposalLib.enforceNotYetMarried();
+        VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
+        uint256 amount = IERC20Upgradeable(_tokenID).balanceOf(address(this));
+        require(transferToken(_tokenID, vt.proposer, amount),"I101");
+        VoteProposalLib.checkForwarder();
+    }
     /**
      * @notice Once divorced, partners can split ERC721 tokens owned by the proxy contract. 
      * @dev Each partner/or other family member can call this function to split ERC721 token between partners.
@@ -583,7 +520,8 @@ error VOTE_ID_NOT_FOUND();
         uint256 _tokenID,
         string calldata image
     ) external {
-        VoteProposalLib.enforceOnlyPartners(msg.sender);
+        address msgSender_ = _msgSender();
+        VoteProposalLib.enforceOnlyPartners(msgSender_);
         VoteProposalLib.enforceDivorced();
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -600,6 +538,7 @@ error VOTE_ID_NOT_FOUND();
             address(this),
             vt.divideShare
         ); //A copy of the NFT is created by the NFT Splitter.
+        VoteProposalLib.checkForwarder();
     }
 
     /**
@@ -681,13 +620,6 @@ error VOTE_ID_NOT_FOUND();
             .VoteTrackingStorage();
         return vt.familyMembers;
     }
-
-    /* Getter of Family Members Number*/
-    function getCMfee() external view returns (uint256) {
-        VoteProposalLib.VoteTracking storage vt = VoteProposalLib
-            .VoteTrackingStorage();
-        return vt.cmFee;
-    }
   
       /* Getter of cooldown before divorce*/
 
@@ -699,22 +631,67 @@ error VOTE_ID_NOT_FOUND();
         return (vt.policyDays,
                 vt.marryDate,
                 vt.divideShare,
-                vt.setDeadline);
+                vt.setDeadline
+                );
     }
 
-    error NOT_IN_PROMO();
+
+    function _mintCertificate(
+        uint256 logoID,
+        uint256 BackgroundID,
+        uint256 MainID, 
+        uint256 value ) external {
+        address msgSender_ = _msgSender();
+         VoteProposalLib.enforceUserHasAccess(msgSender_);
+         VoteProposalLib.enforceMarried();
+          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
+          WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
+
+          _wavercContract.MintCertificate (
+             logoID,
+             BackgroundID,
+             MainID,
+             vt.id,
+             value,
+             msgSender_
+          );
+         VoteProposalLib.checkForwarder();
+    }
+
+    function _claimToken() external {
+        address msgSender_ = _msgSender();
+         VoteProposalLib.enforceUserHasAccess(msgSender_);
+         VoteProposalLib.enforceMarried();
+          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
+          WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
+         _wavercContract.claimToken(msgSender_,vt.id);
+         
+         VoteProposalLib.checkForwarder();
+    }
+
+
     /**
-     * @notice A user may have a promo period with zero comissions 
-     * @dev a function may be called externally and triggered by bot to check whether promo period has passed.  
+     * @notice A function to add string name for an Address 
+     * @dev Names are used for better UI/UX. 
+     * @param _name String name
      */
-    function resetFee() external {
+ 
+
+    function addName(string memory _name) external {
+        address msgSender_ = _msgSender();
+        VoteProposalLib.enforceUserHasAccess(msgSender_);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.cmFee>0) {revert NOT_IN_PROMO(); }
-        WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
-        if (vt.marryDate + _wavercContract.promoDays() < block.timestamp) {
-            vt.cmFee = 100;
-        }   
+        vt.nameAddress[msgSender_] = _name;
+         VoteProposalLib.checkForwarder();
+    }
+
+    function getNameAddress(address _named) external view returns (string memory name){
+         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
+        return vt.nameAddress[_named];
     }
 
  /* Getter of marriage status*/
@@ -779,13 +756,7 @@ error VOTE_ID_NOT_FOUND();
     receive() external payable {
         require(msg.value > 0);
         if (gasleft() > 2300) {
-            VoteProposalLib.enforceNotDivorced();
-            VoteProposalLib.VoteTracking storage vt = VoteProposalLib
-                .VoteTrackingStorage();
-            VoteProposalLib.processtxn(
-                vt.addressWaveContract,
-                (msg.value * vt.cmFee) / 10000
-            );
+            VoteProposalLib.enforceNotDivorced();   
             emit VoteProposalLib.AddStake(
                 msg.sender,
                 address(this),
