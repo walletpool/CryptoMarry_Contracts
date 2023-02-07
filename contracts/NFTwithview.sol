@@ -15,7 +15,8 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 struct CertificateAttributes {
     address proposer; //Address of the proposer
     address proposed; //Address of the proposed
-    string Status; //Marriage status  - Established, Terminated.
+    address marriageContract; //Address of the Contract 
+    uint8 Status; //Marriage status  - 1 - Established, 2-Terminated.
     uint8 hasensWaver; //If a proposer has opted in to show ENS within the Certificate
     uint8 hasensProposed; //If a proposed has opted in to show ENS within the Certificate
     uint256 stake; //Current balance of the proxy contract
@@ -130,7 +131,8 @@ contract nftmint2 is ERC721 {
         nftHolderAttributes[newItemId] = CertificateAttributes({
             proposer: _proposer,
             proposed: _proposed,
-            Status: "Established",
+            marriageContract: _marriageContract,
+            Status: 1,
             hasensWaver: _hasensWaver,
             hasensProposed: _hasensProposed,
             stake: _marriageContract.balance,
@@ -161,7 +163,7 @@ contract nftmint2 is ERC721 {
             nftTokenId
         ];
         if (_status == false) {
-            certificate.Status = "Terminated";
+            certificate.Status = 2;
         }
     }
 

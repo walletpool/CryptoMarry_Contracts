@@ -44,7 +44,8 @@ contract nftview {
     struct CertificateAttributes {
         address proposer; //Address of the proposer
         address proposed; //Address of the proposed
-        string Status; //Marriage status  - Married, Divorced.
+        address marriageContract; //Address of the Contract
+        uint8 Status; //Marriage status  - 1- Established, 2-Terminated.
         uint8 hasensWaver; //If a proposer has opted in to show ENS within the Certificate
         uint8 hasensProposed; //If a proposed has opted in to show ENS within the Certificate
         uint256 stake; //Current balance of the proxy contract
@@ -281,7 +282,7 @@ contract nftview {
             Messagetext = string(
                 abi.encodePacked(
                     '{"trait_type": "Proposers note", "value": "',
-                    _wavercContract.messages(charAttributes.proposer),
+                    _wavercContract.messages(charAttributes.marriageContract),
                     '"},'
                 )
             );
@@ -334,7 +335,7 @@ contract nftview {
                 '", "attributes":[',
                 Messagetext,
                 ' {"trait_type": "Status", "value": "',
-                charAttributes.Status,
+                charAttributes.Status==1? "Established": "Terminated",
                 '"}]}'
             )
         );

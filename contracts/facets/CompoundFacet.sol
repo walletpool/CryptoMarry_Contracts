@@ -4,6 +4,8 @@ pragma solidity ^0.8.17;
 import {VoteProposalLib} from "../libraries/VotingStatusLib.sol";
 import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
 import { LibDiamond } from "../libraries/LibDiamond.sol";
+import "@gnus.ai/contracts-upgradeable-diamond/metatx/MinimalForwarderUpgradeable.sol";
+import "@gnus.ai/contracts-upgradeable-diamond/metatx/ERC2771ContextUpgradeable.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 /*Interface for the CERC20 (Compound) Contract*/
@@ -19,16 +21,20 @@ interface CEth {
     function redeem(uint256) external;
 }
 
-contract CompoundFacet {
+contract CompoundFacet is ERC2771ContextUpgradeable{
     error COULD_NOT_PROCESS();
     
+    constructor(MinimalForwarderUpgradeable forwarder)
+        ERC2771ContextUpgradeable(address(forwarder))
+        {}
+
      function executeInvest(
         uint24 _id
     ) external {
-      
+       address msgSender_ = _msgSender();
       
         VoteProposalLib.enforceMarried();
-        VoteProposalLib.enforceUserHasAccess(msg.sender);
+        VoteProposalLib.enforceUserHasAccess(msgSender_);
         VoteProposalLib.enforceAcceptedStatus(_id);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -94,10 +100,11 @@ contract CompoundFacet {
         } else {revert COULD_NOT_PROCESS();}
         emit VoteProposalLib.VoteStatus(
             _id,
-            msg.sender,
+            msgSender_,
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
         ); 
+        VoteProposalLib.checkForwarder();
     }
 
 

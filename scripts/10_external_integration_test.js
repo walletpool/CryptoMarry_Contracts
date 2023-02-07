@@ -11,6 +11,7 @@ async function deploy(name, ...params) {
 async function main() {
   console.log("Construction started.....");
   const accounts = await ethers.getSigners();
+  let WhiteListAddr = [];
   
  //Deploying Cuts etc... 
 
@@ -24,7 +25,6 @@ async function main() {
  const nftContract = await deploy("nftmint2", nftViewContract.address);
 
  const forwarder = await deploy("MinimalForwarder");
-
  const WaverImplementation = await deploy("WaverIDiamond",forwarder.address,DiamondCutFacet.address);
 
  const WaverFactory = await deploy(
@@ -37,6 +37,9 @@ async function main() {
    forwarder.address,
    nftContract.address,
    WaverFactory.address,
+   "0xEC3215C0ba03fA75c8291Ce92ace346589483E26",
+   DiamondCutFacet.address,
+   "0xEC3215C0ba03fA75c8291Ce92ace346589483E26",
    "0xEC3215C0ba03fA75c8291Ce92ace346589483E26"
  );
 
@@ -48,8 +51,8 @@ async function main() {
  await nftViewContract.changeMainAddress(WavePortal7.address);
  await nftContract.changeMainAddress(WavePortal7.address);
  await WaverFactory.changeAddress(WavePortal7.address);
-await WavePortal7.changeaddressNFT(nftContract.address,nftSplit.address);
 
+await WavePortal7.changeaddressNFT(nftContract.address,nftSplit.address);
  await nftViewContract.addheartPatterns(0, "0x3c6c696e6561724772616469656e742069643d227022203e3c73746f70206f66667365743d22302522207374796c653d2273746f702d636f6c6f723a20233930363b2073746f702d6f7061636974793a2030222f3e3c2f6c696e6561724772616469656e743e");
  await nftViewContract.addadditionalGraphics(0, "0x3c6c696e6561724772616469656e742069643d227022203e3c73746f70206f66667365743d22302522207374796c653d2273746f702d636f6c6f723a20233930363b2073746f702d6f7061636974793a2030222f3e3c2f6c696e6561724772616469656e743e");
  await nftViewContract.addcertBackground(
@@ -132,6 +135,7 @@ await WavePortal7.changeaddressNFT(nftContract.address,nftSplit.address);
     } else {facet = await Facet.deploy()}
     await facet.deployed()
     console.log(`${FacetName} deployed: ${facet.address}`)
+   await WavePortal7.whiteListAddr([{ContractAddress: facet.address, Status : 1 }]);
     cut.push({
       facetAddress: facet.address,
       action: FacetCutAction.Add,
@@ -158,7 +162,7 @@ await WavePortal7.changeaddressNFT(nftContract.address,nftSplit.address);
   console.log('Completed diamond cut')
   
   txn = await instance.createProposal(
-    "Staking ETH", 103,0, 
+    "Staking ETH", 203,0, 
   hre.ethers.utils.parseEther("1"),"0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5",
   "0x0000000000000000000000000000000000000000", hre.ethers.utils.parseEther("10"));
 
@@ -197,7 +201,7 @@ await WavePortal7.changeaddressNFT(nftContract.address,nftSplit.address);
   console.log("Voting Status 4", txn);
 
   const swapETH = await ethers.getContractAt('UniSwapFacet', instance.address);
-  txn = await swapETH.executeSwap(2,1550,3000);
+  txn = await swapETH.executeSwap(2,hre.ethers.utils.parseUnits("1200",7),3000);
 
   console.log("SWAP costs ----> ", txn.gasLimit)
 
@@ -207,7 +211,7 @@ await WavePortal7.changeaddressNFT(nftContract.address,nftSplit.address);
 
 
   txn = await instance.createProposal(
-    "Staking USDT", 104,0, 
+    "Staking USDT", 204,0, 
   hre.ethers.utils.parseEther("1"),"0xf650c3d88d12db855b8bf7d11be6c55a4e07dcc9",
  "0xdac17f958d2ee523a2206206994597c13d831ec7", 1000000000);
 
@@ -227,7 +231,7 @@ await WavePortal7.changeaddressNFT(nftContract.address,nftSplit.address);
 
 
   txn = await instance.createProposal(
-    "Redeeming cUSDT on compound", 106,0, 
+    "Redeeming cUSDT on compound", 206,0, 
   hre.ethers.utils.parseEther("1"),"0xf650c3d88d12db855b8bf7d11be6c55a4e07dcc9",
   "0xf650c3d88d12db855b8bf7d11be6c55a4e07dcc9",cUSDT.balanceOf(instance.address));
 
@@ -246,7 +250,7 @@ console.log("Balance USDT", await USDT.balanceOf(instance.address));
 
 
 txn = await instance.createProposal(
-    "Redeeming cETH on compound", 105,0, 
+    "Redeeming cETH on compound", 205,0, 
   hre.ethers.utils.parseEther("1"),"0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5",
   "0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5",cETH.balanceOf(instance.address));
 

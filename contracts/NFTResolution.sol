@@ -58,7 +58,7 @@ abstract contract Instance {
 contract nftSplit is ERC1155Royalty, Ownable {
     using Counters for Counters.Counter; // Counting IDs
     Counters.Counter private _tokenIds; //Storing count IF
-    address internal mainAddress; //The address of the main contract
+    address public mainAddress; //The address of the main contract
     mapping(address => mapping(uint256 => uint8)) public wasDistributed;
     mapping(address => uint8) internal authrizedAddresses; //Proxies have to authorized here to split NFTs
     mapping(address => mapping(uint256 => uint256)) public tokenTracker; //Tracking NFTs that were split

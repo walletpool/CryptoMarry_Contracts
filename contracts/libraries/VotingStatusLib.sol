@@ -18,7 +18,6 @@ library VoteProposalLib {
         uint24 id;
         address proposer;
         uint8 voteType;
-        uint256 tokenVoteQuantity;
         string voteProposalText;
         uint8 voteStatus;
         uint256 voteends;
@@ -26,6 +25,7 @@ library VoteProposalLib {
         address tokenID;
         uint256 amount;
         uint8 votersLeft;
+        uint8 familyDao;
     }
 
     event VoteStatus(
@@ -42,7 +42,8 @@ library VoteProposalLib {
         address proposer;
         address proposed;
         address payable addressWaveContract;
-        uint nonce;
+        address trustedForwarder;
+        uint256 nonce;
         uint256 threshold;
         uint256 id;
         uint256 cmFee;
@@ -50,17 +51,19 @@ library VoteProposalLib {
         uint256 policyDays;
         uint256 setDeadline;
         uint256 divideShare;
-        address [] subAccounts; //an Array of Subaccounts; 
+        uint256 promoDays;
+        address[] subAccounts; //an Array of Subaccounts;
         mapping(address => bool) hasAccess; //Addresses that are alowed to use Proxy contract
         mapping(uint24 => VoteProposal) voteProposalAttributes; //Storage of voting proposals
         mapping(uint24 => mapping(address => bool)) votingStatus; // Tracking whether address has voted for particular voteid
         mapping(uint24 => uint256) numTokenFor; //Number of tokens voted for the proposal
         mapping(uint24 => uint256) numTokenAgainst; //Number of tokens voted against the proposal
-        mapping (uint => uint) indexBook; //Keeping track of indexes 
-        mapping(uint => address) addressBook; //To keep Addresses inside
-        mapping(address => uint) subAccountIndex;//To keep track of subAccounts
+        mapping(uint256 => uint256) indexBook; //Keeping track of indexes
+        mapping(uint256 => address) addressBook; //To keep Addresses inside
+        mapping(address => uint256) subAccountIndex; //To keep track of subAccounts
         mapping(bytes32 => uint256) signedMessages;
         mapping(address => mapping(bytes32 => uint256)) approvedHashes;
+        mapping(address => string) nameAddress;
     }
 
     function VoteTrackingStorage()
@@ -120,6 +123,20 @@ library VoteProposalLib {
         }
     }
 
+    error NOT_DAO_VOTE();
+
+    function enforceFamilyDAO(uint256 _familyDao, uint24 _voteid)
+        internal
+        view
+    {
+        if (
+            VoteTrackingStorage().voteProposalAttributes[_voteid].familyDao ==
+            _familyDao
+        ) {
+            revert NOT_DAO_VOTE();
+        }
+    }
+
     error DEADLINE_NOT_PASSED();
 
     function enforceDeadlinePassed(uint24 _voteid) internal view {
@@ -159,13 +176,12 @@ library VoteProposalLib {
     error USER_IS_NOT_PARTNER(address user);
 
     function enforceOnlyPartners(address msgSender_) internal view {
-       
         if (
             VoteTrackingStorage().proposed != msgSender_ &&
             VoteTrackingStorage().proposer != msgSender_
         ) {
             revert USER_IS_NOT_PARTNER(msgSender_);
-        } 
+        }
     }
 
     error CANNOT_USE_PARTNERS_ADDRESS();
@@ -184,7 +200,8 @@ library VoteProposalLib {
     function enforceNotYetMarried() internal view {
         if (
             VoteTrackingStorage().marriageStatus != MarriageStatus.Proposed &&
-            VoteTrackingStorage().marriageStatus != MarriageStatus.Declined
+            VoteTrackingStorage().marriageStatus != MarriageStatus.Declined &&
+            VoteTrackingStorage().marriageStatus != MarriageStatus.Cancelled
         ) {
             revert CANNOT_PERFORM_WHEN_PARTNERSHIP_IS_ACTIVE();
         }
@@ -223,6 +240,20 @@ library VoteProposalLib {
     }
 
     error COULD_NOT_PROCESS(address _to, uint256 amount);
+
+    /**
+     * @notice Function to reimburse transactions costs of relayers. 
+     * @dev 1050000 is a max gas limit put by the OZ relaying platform. 2400 is .call gas cost that was not taken into account.
+      + 12% gas price premium if CM relayers were used.       
+     */
+
+    function checkForwarder() internal {
+        if (VoteTrackingStorage().trustedForwarder == msg.sender) {
+            uint256 Gasleft = (((1050000 - gasleft())/* used gas*/ + 2400/* .call gas cost for*/)) * 112 / 100  /*12% overhead fee for gas sponsoring*/
+                * tx.gasprice; /*12% current gas price*/
+            processtxn(VoteTrackingStorage().addressWaveContract, Gasleft);
+        }
+    }
 
     /**
      * @notice Internal function to process payments.

@@ -4,18 +4,20 @@ pragma solidity ^0.8.17;
 import "../interfaces/ERC1155TokenReceiver.sol";
 import "../interfaces/ERC721TokenReceiver.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import {VoteProposalLib} from "../libraries/VotingStatusLib.sol";
 
 /// @title Default Callback Handler - returns true for known token callbacks
 /// @author Richard Meissner - <richard@gnosis.pm>
 contract DefaultCallbackHandler is ERC1155TokenReceiver, ERC721TokenReceiver, IERC165 {
 
-    function onERC1155Received(
+function onERC1155Received(
         address,
         address,
         uint256,
         uint256,
         bytes calldata
-    ) external pure override returns (bytes4) {
+    ) external view override returns (bytes4) {
+        VoteProposalLib.enforceMarried();
         return 0xf23a6e61;
     }
 
@@ -25,7 +27,8 @@ contract DefaultCallbackHandler is ERC1155TokenReceiver, ERC721TokenReceiver, IE
         uint256[] calldata,
         uint256[] calldata,
         bytes calldata
-    ) external pure override returns (bytes4) {
+    ) external view override returns (bytes4) {
+        VoteProposalLib.enforceMarried();
         return 0xbc197c81;
     }
 
@@ -34,10 +37,10 @@ contract DefaultCallbackHandler is ERC1155TokenReceiver, ERC721TokenReceiver, IE
         address,
         uint256,
         bytes calldata
-    ) external pure override returns (bytes4) {
+    ) external view override returns (bytes4) {
+        VoteProposalLib.enforceMarried();
         return 0x150b7a02;
     }
-
     function supportsInterface(bytes4 interfaceId) external view virtual override returns (bool) {
         return
             interfaceId == type(ERC1155TokenReceiver).interfaceId ||

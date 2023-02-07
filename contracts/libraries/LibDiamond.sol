@@ -9,6 +9,9 @@ import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
 
 // Remember to add the loupe functions from DiamondLoupeFacet to the diamond.
 // The loupe functions are required by the EIP2535 Diamonds standard
+interface WaverContractCheck {
+    function whiteListedAddresses(address _contract) external view returns (uint);
+}
 
 library LibDiamond {
     bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.diamond.storage");
@@ -19,6 +22,7 @@ library LibDiamond {
     }
     //event DiamondCut(IDiamondCut.FacetCut[] _diamondCut, address _init, bytes _calldata);
     struct DiamondStorage {
+        address waveAddress;
         // function selector => facet address and selector position in selectors array
         mapping(bytes4 => FacetAddressAndSelectorPosition) facetAddressAndSelectorPosition;
         bytes4[] selectors;
@@ -61,7 +65,7 @@ library LibDiamond {
     error FACET_ALREADY_EXISTS();
     function addFunctions(address _facetAddress, bytes4[] memory _functionSelectors) internal {
         if (_functionSelectors.length == 0) {revert FUNCTION_SELECTORS_CANNOT_BE_EMPTY();}
-      
+        enforceContractIsWhitelisted(_facetAddress);
         DiamondStorage storage ds = diamondStorage();
         uint16 selectorCount = uint16(ds.selectors.length);
         if (_facetAddress == address(0)) {revert FACET_ADDRESS_CANNOT_BE_EMPTY();}
@@ -120,6 +124,15 @@ library LibDiamond {
         }
     }
 
+    error CONTRACT_NOT_WHITELISTED(address contractAddress);
+
+    function enforceContractIsWhitelisted(address contractAddress) internal view {
+        DiamondStorage storage ds = diamondStorage();
+        WaverContractCheck _wavercContract = WaverContractCheck(ds.waveAddress);
+        if (_wavercContract.whiteListedAddresses(contractAddress) == 0) {
+            revert CONTRACT_NOT_WHITELISTED(contractAddress);
+        }
+    }
     function enforceHasContractCode(address _contract, string memory _errorMessage) internal view {
         uint256 contractSize;
         assembly {

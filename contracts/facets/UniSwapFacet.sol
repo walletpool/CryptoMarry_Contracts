@@ -4,7 +4,8 @@ pragma solidity ^0.8.17;
 import {VoteProposalLib} from "../libraries/VotingStatusLib.sol";
 import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
 import { LibDiamond } from "../libraries/LibDiamond.sol";
-
+import "@gnus.ai/contracts-upgradeable-diamond/metatx/MinimalForwarderUpgradeable.sol";
+import "@gnus.ai/contracts-upgradeable-diamond/metatx/ERC2771ContextUpgradeable.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 /*Interface for the ISWAP Router (Uniswap)  Contract*/
@@ -17,11 +18,13 @@ interface WETH9Contract {
     function withdraw(uint amount) external;
     function deposit() external payable;
 }
-contract UniSwapFacet {
+contract UniSwapFacet is ERC2771ContextUpgradeable{
     IUniswapRouter immutable _swapRouter;
     WETH9Contract immutable wethAddress;
 
-constructor (IUniswapRouter swapRouter, WETH9Contract _wethAddress) {
+constructor (IUniswapRouter swapRouter, WETH9Contract _wethAddress,MinimalForwarderUpgradeable forwarder)
+ERC2771ContextUpgradeable(address(forwarder)) 
+{
     _swapRouter = swapRouter;
     wethAddress = _wethAddress;
 }
@@ -32,9 +35,9 @@ constructor (IUniswapRouter swapRouter, WETH9Contract _wethAddress) {
         uint256 _oracleprice,
         uint24 poolfee
     ) external {
-
+        address msgSender_ = _msgSender();
         VoteProposalLib.enforceMarried();
-        VoteProposalLib.enforceUserHasAccess(msg.sender);
+        VoteProposalLib.enforceUserHasAccess(msgSender_);
         VoteProposalLib.enforceAcceptedStatus(_id);
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -142,26 +145,31 @@ constructor (IUniswapRouter swapRouter, WETH9Contract _wethAddress) {
 
        emit VoteProposalLib.VoteStatus(
             _id,
-            msg.sender,
+            msgSender_,
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
         ); 
+         VoteProposalLib.checkForwarder();
     }
 
     function withdrawWeth(uint amount) external{
+        address msgSender_ = _msgSender();
         VoteProposalLib.enforceMarried();
-        VoteProposalLib.enforceUserHasAccess(msg.sender);
+        VoteProposalLib.enforceUserHasAccess(msgSender_);
         WETH9Contract Weth = WETH9Contract(wethAddress);
         Weth.withdraw(amount);
+        VoteProposalLib.checkForwarder();
       } 
 
     function depositETH(uint amount) external payable{
+        address msgSender_ = _msgSender();
         VoteProposalLib.enforceMarried();
-        VoteProposalLib.enforceUserHasAccess(msg.sender);
+        VoteProposalLib.enforceUserHasAccess(msgSender_);
         WETH9Contract Weth = WETH9Contract(wethAddress);
         Weth.deposit{value: amount}(); 
      
      emit VoteProposalLib.AddStake(address(this), address(wethAddress), block.timestamp, amount); 
+     VoteProposalLib.checkForwarder();
     
       } 
 

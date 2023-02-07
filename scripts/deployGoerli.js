@@ -17,11 +17,20 @@ function sleep(milliseconds) {
 async function main() {
   console.log("Construction started.....");
 
+  const forwarder = await deploy("MinimalForwarder");
+
+  console.log(
+   "Minimal Forwarder Contract deployed:",
+   forwarder.address,
+   forwarder.deployTransaction.gasLimit
+ );
+ sleep(10000);
+
   let WhiteListAddr = [];
 
  //Deploying Cuts etc... 
 
- const DiamondCutFacet = await deploy('DiamondCutFacet');
+ const DiamondCutFacet = await deploy('DiamondCutFacet',forwarder.address);
  console.log(
   "DiamondCutFacet deployed:",
   DiamondCutFacet.address,
@@ -34,7 +43,7 @@ async function main() {
   DiamondLoupeFacet.address,
   DiamondLoupeFacet.deployTransaction.gasLimit
 ); */
- const CompoundFacet = await deploy('CompoundFacet');
+ const CompoundFacet = await deploy('CompoundFacet',forwarder.address);
  console.log(
   "CompoundFacet deployed:",
   CompoundFacet.address,
@@ -44,7 +53,7 @@ WhiteListAddr.push({
   ContractAddress: CompoundFacet.address,
   Status: 1
 })
- const UniSwapFacet = await deploy('UniSwapFacet', "0xE592427A0AEce92De3Edee1F18E0157C05861564","0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6");
+ const UniSwapFacet = await deploy('UniSwapFacet', "0xE592427A0AEce92De3Edee1F18E0157C05861564","0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",forwarder.address);
  //0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2 --> Mainnet weth9 address
  //0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6 -->Goerli weth9 address
  //0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270 --> Polygon WMATIC
@@ -79,14 +88,7 @@ sleep(10000);
   nftContract.deployTransaction.gasLimit
 );
 
- const forwarder = await deploy("MinimalForwarder");
 
- console.log(
-  "Minimal Forwarder Contract deployed:",
-  forwarder.address,
-  forwarder.deployTransaction.gasLimit
-);
-sleep(10000);
  const WaverImplementation = await deploy("WaverIDiamond",forwarder.address, DiamondCutFacet.address);
 
  console.log(

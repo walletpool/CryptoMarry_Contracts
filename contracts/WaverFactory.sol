@@ -56,7 +56,6 @@ contract WaverFactory is Ownable {
      * @param id Marriage ID assigned by the main contract.
      * @param _waver Address of the prpoposer.
      * @param _proposed Address of the proposed.
-     * @param _cmFee CM fee, as a small percentage of incoming and outgoing transactions.
      * @param _divideShare the share that will be divided among partners upon dissolution.
      */
 
@@ -66,9 +65,9 @@ contract WaverFactory is Ownable {
         address _waver,
         address _proposed,
         uint256 _policyDays,
-        uint256 _cmFee,
         uint256 _minimumDeadline,
-        uint256 _divideShare
+        uint256 _divideShare,
+        uint256 _threshold
     ) public returns (address) {
         require(WaverContractAddress == msg.sender, "ACCESS DENIED");
         bytes memory dataOfnewMarriage = abi.encodeWithSelector(
@@ -78,9 +77,9 @@ contract WaverFactory is Ownable {
             _waver,
             _proposed,
             _policyDays,
-            _cmFee,
             _minimumDeadline,
-            _divideShare
+            _divideShare,
+            _threshold
         );
 
         BeaconProxy NewMarriageBeaconProxy = new BeaconProxy(

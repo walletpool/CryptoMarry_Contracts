@@ -59,18 +59,19 @@ describe("Testing Diamond Facets", function () {
   for (const FacetName of FacetNames) {
     const Facet = await ethers.getContractFactory(FacetName)
     let facet;
-    if (FacetName ==  'UniSwapFacet') {
-       facet = await Facet.deploy("0xE592427A0AEce92De3Edee1F18E0157C05861564","0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6")
+    if (FacetName ==  'UniSwapFacet') { 
+      facet = await Facet.deploy("0xE592427A0AEce92De3Edee1F18E0157C05861564","0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6")
     } else {facet = await Facet.deploy()}
     await facet.deployed()
     console.log(`${FacetName} deployed: ${facet.address}`)
+    const txn = await WavePortal7.whiteListAddr([{ContractAddress: facet.address, Status: 1 }])
     cut.push({
       facetAddress: facet.address,
       action: FacetCutAction.Add,
       functionSelectors: getSelectors(facet)
     })
   }
-
+  
   const diamondCut = await ethers.getContractAt('IDiamondCut', instance.address);
   let tx;
   let receipt;

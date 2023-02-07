@@ -25,9 +25,9 @@ interface WaverFactoryC {
         address _waver,
         address _proposed,
         uint256 policyDays,
-        uint256 cmFee,
         uint256 _minimumDeadline,
-        uint256 _divideShare
+        uint256 _divideShare,
+        uint256 _threshold
     ) external returns (address);
 
     function MarriageID(uint256 id) external returns (address);
@@ -72,8 +72,6 @@ interface waverImplementation1 {
     function declined() external;
 
     function getFamilyMembersNumber() external view returns (uint);
-
-    function getCMfee() external view returns (uint);
 }
 
 
@@ -86,14 +84,19 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
     uint256 internal id; //IDs of a marriage
     
-
     uint256 public claimPolicyDays; //Cooldown for claiming LOVE tokens;
-    uint256 public promoDays; //promoDays for free 
+    uint256 public promoAmount; //Amount of token to be disposed in promo period
     uint256 public saleCap; //Maximum cap of a LOVE token Sale
     uint256 public minPricePolicy; //Minimum price for NFTs
-    uint256 public cmFee; // Small percentage paid by users for incoming and outgoing transactions.
     uint256 public exchangeRate; // Exchange rate for LOVE tokens for 1 ETH
+    string public constant VERSION = "1.0.2";// Updates: 06.02.2023
 
+    /**
+    1. Changed monetization scheme from 1% of transaction amount to 12% of gas fee
+    2. Default method of reaching consensus is MultiSig with Threshold 
+    3. Family DAO can be connected separately 
+    4. Added multiple participation in contracts 
+    5.  */
 
     //Structs
 
@@ -119,26 +122,46 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         address proposed;
         Status ProposalStatus;
         address marriageContract;
+        mapping (address => uint8) hasRole;
     }
 
-    struct Pause {
+    struct ReturnAccounts {
+        uint256 id;
+        uint256 stake;
+        address proposer;
+        address proposed;
+        Status ProposalStatus;
+        address marriageContract;
+        uint8 hasRole;
+    }
+
+
+    struct AddressList {
         address ContractAddress;
         uint Status;
     }
 
-    mapping(address => uint256) internal proposers; //Marriage ID of proposer partner
-    mapping(address => uint256) internal proposedto; //Marriage ID of proposed partner
-    mapping(address => mapping(uint8 => uint256)) public member; //Stores family member IDs
-    mapping(address => uint8) internal hasensName; //Whether a partner wants to display ENS address within the NFT
-    mapping(uint256 => Wave) internal proposalAttributes; //Attributes of the Proposal of each marriage
-    mapping(address => string) public messages; //stores messages of CM users
-    mapping(address => uint8) internal authrizedAddresses; //Tracks whether a proxy contract addresses is authorized to interact with this contract.
+    mapping(address => uint256[]) public accountIDJournal; //All accounts IDs of an account 
+    mapping(uint256 => Wave) public proposalAttributes; //Attributes of the Proposal of each marriage
+    mapping(address => mapping(uint256 => uint256)) public idPosition; //Position to pop if needed; 
+    mapping (address => mapping(uint256 => uint8)) public subscriptionPlan; 
+
+
     mapping(address => address[]) internal familyMembers; // List of family members addresses
-    mapping(address => uint256) public claimtimer; //maps addresses to when the last time LOVE tokens were claimed.
-    mapping(address => string) public nameAddress; //For giving Names for addresses. 
+    mapping(address => string) public messages; //stores messages of CM users
+
+  
+
+    mapping(address => uint8) internal hasensName; //Whether a partner wants to display ENS address within the NFT
+    
+   
+    mapping(address => uint8) internal authrizedAddresses; //Tracks whether a proxy contract addresses is authorized to interact with this contract.
+  
+    mapping(address => mapping (uint256 => uint256)) public claimtimer; //maps addresses to when the last time LOVE tokens were claimed.
+    
     mapping(address => uint) public pauseAddresses; //Addresses that can be paused.
     mapping(address => uint) public rewardAddresses; //Addresses that may claim reward. 
-    mapping(address => string) public contactDetails; //Details of contact to send notifications
+    mapping(address => uint) public whiteListedAddresses; // Facet addresses to be whitelisted. 
 
     /* An event to track status changes of the contract*/
     event NewWave(
@@ -154,17 +177,25 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         MinimalForwarder forwarder,
         address _nftaddress,
         address _waveFactory,
-        address _withdrawaddress
+        address _withdrawaddress,
+        address _diamonCut,
+        address _uniswap,
+        address _compound,
+        address _familyDAO
     ) payable ERC20("CryptoMarry", "LOVE") ERC2771Context(address(forwarder)) {
-        claimPolicyDays = 5 minutes;
+        claimPolicyDays = 20 days;
         addressNFT = _nftaddress;
-        saleCap = 1e23;
-        minPricePolicy = 1e16;
+        saleCap = 1e25;
+        minPricePolicy = 5 * 1e18 ;
         waverFactoryAddress = _waveFactory;
-        //cmFee = 100;
-        exchangeRate = 1000;
+        exchangeRate = 500;
         withdrawaddress = _withdrawaddress;
-        promoDays = 5 minutes;
+        promoAmount = 5 * 1e18;
+        whiteListedAddresses[_diamonCut] = 1;
+        whiteListedAddresses[_uniswap] = 1;
+        whiteListedAddresses[_compound] = 1;
+        whiteListedAddresses[_familyDAO] = 1;
+        
     }
 
     error CONTRACT_NOT_AUTHORIZED(address contractAddress);
@@ -213,22 +244,24 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         uint8 _hasensWaver,
         uint _policyDays,
         uint _minimumDeadline,
-        uint _divideShare
+        uint _divideShare,
+        uint _threshold
     ) public payable {
+        address msgSender = _msgSender();
         id += 1;
         if (pauseAddresses[address(this)]==1) {revert PLATFORM_TEMPORARILY_PAUSED();}
-        if (msg.sender == _proposed) {revert YOU_CANNOT_PROPOSE_YOURSELF(msg.sender);}
-        if (isMember(_proposed) != 0){revert USER_ALREADY_EXISTS_IN_CM(_proposed);}
-        if (isMember(msg.sender) != 0){revert USER_ALREADY_EXISTS_IN_CM(msg.sender);}
+        if (msgSender == _proposed) {revert YOU_CANNOT_PROPOSE_YOURSELF(msgSender);}
+             
         if (_divideShare > 10) {revert INALID_SHARE_PROPORTION (_divideShare);}
+        require(bytes(_message).length < 192);
 
-        proposers[msg.sender] = id;
-        proposedto[_proposed] = id;
-    
+        accountIDJournal[msgSender].push(id);
+        accountIDJournal[_proposed].push(id);
+        idPosition[msgSender][id] = accountIDJournal[msgSender].length-1;
+        idPosition[_proposed][id] = accountIDJournal[_proposed].length-1;
 
-        hasensName[msg.sender] = _hasensWaver;
-        messages[msg.sender] = _message;
-
+        hasensName[msgSender] = _hasensWaver;
+        
         WaverFactoryC factory = WaverFactoryC(waverFactoryAddress);
 
         address _newMarriageAddress;
@@ -237,36 +270,40 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         _newMarriageAddress = factory.newMarriage(
             address(this),
             id,
-            msg.sender,
+            msgSender,
             _proposed,
             _policyDays,
-            cmFee,
             _minimumDeadline,
-            _divideShare
+            _divideShare,
+            _threshold
         );
 
     
         nftSplitC nftsplit = nftSplitC(addressNFTSplit);
         nftsplit.addAddresses(_newMarriageAddress);
+        messages[_newMarriageAddress] = _message;
 
         authrizedAddresses[_newMarriageAddress] = 1;
 
-        proposalAttributes[id] = Wave({
-            id: id,
-            stake: msg.value,
-            proposer: msg.sender,
-            proposed: _proposed,
-            ProposalStatus: Status.Proposed,
-            marriageContract: _newMarriageAddress
-        });
+        Wave storage proposal = proposalAttributes[id];
 
-        processtxn(payable(_newMarriageAddress), msg.value);
+        proposal.id = id;
+        proposal.stake = msg.value;
+        proposal.proposer = msgSender;
+        proposal.proposed = _proposed;
+        proposal.ProposalStatus= Status.Proposed;
+        proposal.marriageContract=_newMarriageAddress;
+        proposal.hasRole[msgSender]=1;
+        proposal.hasRole[_proposed]=11;
+   
+        if (msg.value>0) {processtxn(payable(_newMarriageAddress), msg.value);}
 
-        emit NewWave(id, msg.sender,_newMarriageAddress, Status.Proposed);
+        emit NewWave(id, msgSender,_newMarriageAddress, Status.Proposed);
     }
 
 
     error PROPOSAL_STATUS_CHANGED();
+    error HAS_NO_ACCESS(address msgSender);
     /**
      * @notice Response is given from the proposed Address.
      * @dev Updates are made to the proxy contract with respective response. ENS preferences will be checked onchain.
@@ -276,12 +313,14 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
     function response(
         uint8 _agreed,
-        uint8 _hasensProposed
+        uint8 _hasensProposed,
+        uint256 _id
     ) public {
         address msgSender_ = _msgSender();
-        uint256 _id = proposedto[msgSender_];
 
         Wave storage waver = proposalAttributes[_id];
+
+        if (waver.hasRole[msgSender_] != 11) {revert HAS_NO_ACCESS(msgSender_);}
         if (waver.ProposalStatus != Status.Proposed) {revert PROPOSAL_STATUS_CHANGED();}
       
         waverImplementation1 waverImplementation = waverImplementation1(
@@ -292,12 +331,24 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
             waver.ProposalStatus = Status.Processed;
             hasensName[msgSender_] = _hasensProposed;
             waverImplementation.agreed();
+            waver.hasRole[msgSender_] = 2;
         } else {
             waver.ProposalStatus = Status.Declined;
-            proposedto[msgSender_] = 0;
             waverImplementation.declined();
+            //removing from the list of Contracts 
+            removeUser(msgSender_, _id, waver);
+            
         }
         emit NewWave(_id, msgSender_, waver.marriageContract, waver.ProposalStatus);
+    }
+
+    function removeUser (address msgSender_, uint _id, Wave storage waver) internal{
+        uint lastID = accountIDJournal[msgSender_][accountIDJournal[msgSender_].length - 1];
+        uint toBeRemoved = idPosition[msgSender_][_id]; 
+            accountIDJournal[msgSender_][toBeRemoved]=lastID;           
+            accountIDJournal[msgSender_].pop();
+            idPosition[msgSender_][lastID] = toBeRemoved;
+            waver.hasRole[msgSender_]=0;
     }
 
     /**
@@ -308,9 +359,12 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
     function cancel(uint256 _id) external onlyContract {
         Wave storage waver = proposalAttributes[_id];
+        require(waver.ProposalStatus != Status.Cancelled);
         waver.ProposalStatus = Status.Cancelled;
-        proposers[waver.proposer] = 0;
-        proposedto[waver.proposed] = 0;
+
+        removeUser(waver.proposer, _id, waver);
+        removeUser(waver.proposed, _id, waver);
+           
     emit NewWave(_id, tx.origin, msg.sender, Status.Cancelled);
     }
 
@@ -321,24 +375,35 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      * @dev LOVE tokens are distributed once within policyDays defined by the owner.
      */
 
-    function claimToken() external {
-        (address msgSender_, uint256 _id) = checkAuth();
-        Wave storage waver = proposalAttributes[_id];
-        if (waver.ProposalStatus != Status.Processed) {revert FAMILY_ACCOUNT_NOT_ESTABLISHED();}
-
-        if (claimtimer[msgSender_] + claimPolicyDays > block.timestamp) {revert CLAIM_TIMOUT_NOT_PASSED();}
-        
-          waverImplementation1 waverImplementation = waverImplementation1(
-            waver.marriageContract
-        );
-        claimtimer[msgSender_] = block.timestamp;
-        uint amount;
-        uint fee = waverImplementation.getCMfee();
-        if ( fee == 0) { amount = 5*1e18; } 
-        else if (fee < 50 && fee>0) { 
-            amount = (waver.marriageContract.balance * exchangeRate) / (20 * waverImplementation.getFamilyMembersNumber());
-        } else if (fee>50) { amount = (waver.marriageContract.balance * exchangeRate) / (10 * waverImplementation.getFamilyMembersNumber());} 
+    function claimToken(address msgSender_, uint _id) external onlyContract{
+        if (claimtimer[msgSender_][_id] + claimPolicyDays > block.timestamp) {revert CLAIM_TIMOUT_NOT_PASSED();}
+        claimtimer[msgSender_][_id] = block.timestamp;
+        uint amount  = promoAmount;
+        uint8 plan = subscriptionPlan[msgSender_][_id];
+        if (plan == 1) {
+            amount = promoAmount * 10;
+        } else if ( plan == 2) {
+            amount = promoAmount * 50;
+        } else if ( plan == 3) {
+            amount = promoAmount * 100;
+        }
         _mint(msgSender_, amount);
+    }
+
+    function updateSubscription(uint _id) external payable{
+        Wave storage waver = proposalAttributes[_id];
+        if (waver.hasRole[msg.sender] == 0 && waver.hasRole[msg.sender] < 6 ) {revert HAS_NO_ACCESS(msg.sender);}
+        if (waver.ProposalStatus != Status.Processed) {revert PROPOSAL_STATUS_CHANGED();}
+        uint8 plan;
+
+        if (msg.value == exchangeRate * 1e18 /1000) {
+            plan = 1;
+        } else if (msg.value == exchangeRate * 1e18 /200) {
+            plan = 2;
+        } else if (msg.value == 2 * exchangeRate){
+            plan = 3;
+        }
+       subscriptionPlan[msg.sender][_id] = plan;
     }
 
     /**
@@ -346,13 +411,10 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      * @dev Only registered users within the proxy contracts can buy LOVE tokens. Sales Cap is universal for all users.
      */
 
-    function buyLovToken() external payable {
-        (address msgSender_, uint256 _id) = checkAuth();
-        Wave storage waver = proposalAttributes[_id];
-       if (waver.ProposalStatus != Status.Processed) {revert FAMILY_ACCOUNT_NOT_ESTABLISHED();}
+    function buyLovToken() external payable {        
         uint256 issued = msg.value * exchangeRate;
         saleCap -= issued;
-        _mint(msgSender_, issued);
+        _mint(msg.sender, issued);
     }
 
     error PAYMENT_NOT_SUFFICIENT(uint requiredPayment);
@@ -368,24 +430,22 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     function MintCertificate(
         uint256 logoID,
         uint256 BackgroundID,
-        uint256 MainID
-    ) external payable {
+        uint256 MainID,
+        uint256 _id,
+        uint256 value,
+        address msgSender_
+    ) external onlyContract{
         //getting price and NFT address
-        if (msg.value < minPricePolicy) {revert PAYMENT_NOT_SUFFICIENT(minPricePolicy);}
-
-        (, uint256 _id) = checkAuth();
+        if (value < minPricePolicy) {revert PAYMENT_NOT_SUFFICIENT(minPricePolicy);}
         Wave storage waver = proposalAttributes[_id];
       if (waver.ProposalStatus != Status.Processed) {revert FAMILY_ACCOUNT_NOT_ESTABLISHED();}
-        uint256 issued = msg.value * exchangeRate;
-
-        saleCap -= issued;
        
         NFTContract NFTmint = NFTContract(addressNFT);
 
         if (BackgroundID >= 1000) {
-            if (msg.value < minPricePolicy * 100) {revert PAYMENT_NOT_SUFFICIENT(minPricePolicy * 100);}
+            if (value < minPricePolicy * 100) {revert PAYMENT_NOT_SUFFICIENT(minPricePolicy * 100);}
         } else if (logoID >= 100) {
-            if (msg.value < minPricePolicy * 10) {revert PAYMENT_NOT_SUFFICIENT(minPricePolicy * 10);}
+            if (value < minPricePolicy * 10) {revert PAYMENT_NOT_SUFFICIENT(minPricePolicy * 10);}
         }
 
         NFTmint.mintCertificate(
@@ -400,8 +460,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
             MainID
         );
 
-        _mint(waver.proposer, issued / 2);
-        _mint(waver.proposed, issued / 2);
+        _burn(msgSender_, value);
     }
 
     /* Adding Family Members*/
@@ -415,24 +474,23 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      * @param _response Bool response of the owner of Address.    
      */
 
-    function joinFamily(uint8 _response) external {
+    function joinFamily(uint8 _response, uint _id) external {
         address msgSender_ = _msgSender();
-        if (member[msgSender_][0] == 0) {revert MEMBER_NOT_INVITED(msgSender_);}
-        uint256 _id = member[msgSender_][0];
         Wave storage waver = proposalAttributes[_id];
+        if (waver.hasRole[msgSender_] != 10) {revert MEMBER_NOT_INVITED(msgSender_);}
+    
+    
         Status status;
-
         if (_response == 2) {
-            member[msgSender_][1] = _id;
-            member[msgSender_][0] = 0;
-            
+            waver.hasRole[msgSender_] = 3;
+    
             waverImplementation1 waverImplementation = waverImplementation1(
                 waver.marriageContract
             );
             waverImplementation._addFamilyMember(msgSender_);
             status = Status.InvitationAccepted;
         } else {
-            member[msgSender_][0] = 0;
+            removeUser(msgSender_, _id, waver);
             status = Status.InvitationDeclined;
         }
 
@@ -453,9 +511,12 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         external
         onlyContract
     {
-        if (isMember(_familyMember) != 0) {revert USER_ALREADY_EXISTS_IN_CM(_familyMember);}
-        member[_familyMember][0] = _id;
+        accountIDJournal[_familyMember].push(_id);
+        idPosition[_familyMember][_id] = accountIDJournal[_familyMember].length-1;
+        Wave storage waver = proposalAttributes[_id];
+        waver.hasRole[_familyMember] = 10;     
         familyMembers[msg.sender].push(_familyMember);
+
         emit NewWave(_id, _familyMember,msg.sender,Status.MemberInvited);
     }
   
@@ -466,35 +527,14 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      * @param _familyMember Address of a member being deleted.    
      */
 
-    function deleteFamilyMember(address _familyMember, uint id_) external onlyContract {
-        if (member[_familyMember][1] > 0) {
-            member[_familyMember][1] = 0;
-        } else {
-            if (member[_familyMember][0] == 0) {revert MEMBER_NOT_INVITED(_familyMember);}
-            member[_familyMember][0] = 0;
-        }
-    emit NewWave(id_, _familyMember, msg.sender, Status.MemberDeleted);
+    function deleteFamilyMember(address _familyMember, uint _id) external onlyContract {
+        Wave storage waver = proposalAttributes[_id];
+        removeUser(_familyMember, _id, waver);
+        
+    emit NewWave(_id, _familyMember, msg.sender, Status.MemberDeleted);
     }
 
-      /**
-     * @notice A function to add string name for an Address 
-     * @dev Names are used for better UI/UX. 
-     * @param _name String name
-     */
-
-    function addName(string memory _name) external {
-        nameAddress[msg.sender] = _name;
-    }
-
-      /**
-     * @notice A function to add contact for notifications 
-     * @dev It is planned to send notifications using webhooks
-     * @param _contact String name
-     */
-
-    function addContact(string memory _contact) external {
-        contactDetails[msg.sender] = _contact;
-    }
+    
 
     /**
      * @notice A view function to get the list of family members per a Proxy Contract.
@@ -543,32 +583,6 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         if (!success) {revert COULD_NOT_PROCESS(_to,_amount);}
     }
 
-    /**
-     * @notice internal view function to check whether msg.sender has marriage ID.
-     * @dev for a family member that was invited, temporary id is given.
-     */
-
-    function isMember(address _partner) public view returns (uint256 _id) {
-        if (proposers[_partner] > 0) {
-            return proposers[_partner];
-        } else if (proposedto[_partner] > 0) {
-            return proposedto[_partner];
-        } else if (member[_partner][1] > 0) {
-            return member[_partner][1];
-        } else if (member[_partner][0] > 0) {
-            return 1e9;
-        }
-    }
-
-    function checkAuth()
-        internal
-        view
-        returns (address __msgSender, uint256 _id)
-    {
-        address msgSender_ = _msgSender();
-        uint256 uid = isMember(msgSender_);
-        return (msgSender_, uid);
-    }
 
     /**
      * @notice  public view function to check whether msg.sender has marriage struct Wave with proxy contract..
@@ -576,28 +590,41 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      */
   
 
-    function checkMarriageStatus() external view returns (Wave memory) {
-        // Get the tokenId of the user's character NFT
-        (address msgSender_, uint256 _id) = checkAuth();
-        // If the user has a tokenId in the map, return their character.
-        if (_id > 0 && _id < 1e9) {
-            return proposalAttributes[_id];
+    function checkMarriageStatus(uint _pagenumber) external view returns (ReturnAccounts [] memory) {
+
+        uint length = accountIDJournal[msg.sender].length;
+        uint page = length / 30;
+        uint size = 0;
+        uint start = 0;
+        if (_pagenumber * 30 > length) {
+            size = length % 30;
+            if (size == 0 && page != 0) {
+                size = 30;
+                page -= 1;
+            }
+            start = page * 30 + 1;
+        } else if (_pagenumber * 30 <= length) {
+            size = 30;
+            start = (_pagenumber - 1) * 30 + 1;
         }
 
-        if (_id == 1e9) {
-            return
-                Wave({
-                    id: _id,
-                    stake: 0,
-                    proposer: msgSender_,
-                    proposed: msgSender_,
-                    ProposalStatus: Status.WaitingConfirmation,
-                    marriageContract: 0x0000000000000000000000000000000000000000
-                });
-        }
+       ReturnAccounts[]
+            memory returnAccounts = new ReturnAccounts[](size);
 
-        Wave memory emptyStruct;
-        return emptyStruct;
+        for (uint24 i = 0; i < size; i++) {
+            Wave storage waver =  proposalAttributes[start + i];
+            returnAccounts[i] = ReturnAccounts({
+             id: waver.id,
+             stake: waver.stake,
+             proposer: waver.proposer,
+             proposed: waver.proposed,
+             ProposalStatus: waver.ProposalStatus,
+             marriageContract: waver.marriageContract,
+             hasRole: waver.hasRole[msg.sender]
+            });
+        }
+        return returnAccounts;
+
     }
 
     /**
@@ -631,18 +658,10 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      * @param _exchangeRate uint is set how much Love Tokens can be bought for 1 Ether.
      */
 
-    function changeTokenPolicy(uint256 _saleCap, uint256 _exchangeRate, uint256 _promoDays) external onlyOwner {
+    function changeTokenPolicy(uint256 _saleCap, uint256 _exchangeRate, uint256 _promoAmount) external onlyOwner {
         saleCap = _saleCap;
         exchangeRate = _exchangeRate;
-        promoDays = _promoDays;
-    }
-
-    /**
-     * @notice A fee that is paid by users for incoming and outgoing transactions.
-     * @param _cmFee uint is set in Wei.*/
-     
-    function changeFee(uint256 _cmFee) external onlyOwner {
-       cmFee = _cmFee;
+        promoAmount = _promoAmount;
     }
 
     /**
@@ -675,24 +694,22 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      * @dev can be called only by the Partnership contract 
      * @param _partner an Address to be changed.
      * @param _newAddress an address to be changed to.
-     * @param id_ Address of the partnership.
+     * @param _id Address of the partnership.
      */
 
-    function changePartnerAddress(address _partner, address _newAddress, uint id_) 
+    function changePartnerAddress(address _partner, address _newAddress, uint _id) 
         external
     {
-         Wave storage waver = proposalAttributes[id_];
+         Wave storage waver = proposalAttributes[_id];
          if (msg.sender != waver.marriageContract) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
-         if (proposers[_partner] > 0) {
-            proposers[_partner] = 0;
-            proposers[_newAddress] = id_;
-            waver.proposer =  _newAddress;
-        } else if (proposedto[_partner] > 0) {
-            proposedto[_partner] = 0;
-            proposedto[_newAddress] = id_; 
-            waver.proposed = _newAddress;
-        } 
-    emit NewWave(id_, _newAddress, msg.sender, Status.PartnerAddressChanged);
+
+         removeUser(_partner, _id, waver);
+
+        accountIDJournal[_partner].push(_id);
+        idPosition[_partner][_id] = accountIDJournal[_partner].length-1;
+        waver.hasRole[_partner] = 4;     
+
+    emit NewWave(_id, _newAddress, msg.sender, Status.PartnerAddressChanged);
     }
 
     /**
@@ -700,10 +717,12 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      * @dev A user will not be able to access proxy contracts if triggered from the CM FrontEnd
      */
 
-    function forgetMe() external {
-        proposers[msg.sender] = 0;
-        proposedto[msg.sender] = 0;
-        member[msg.sender][1] = 0;
+    function forgetMe(uint _id) external {
+        address msgSender_ = _msgSender();
+        Wave storage waver = proposalAttributes[_id];
+        if (waver.hasRole[msgSender_] == 0) {revert HAS_NO_ACCESS(msgSender_);}
+        removeUser(msgSender_, _id, waver);
+
     }
     error ACCOUNT_PAUSED(address sender);
     /**
@@ -735,7 +754,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      * @notice A method to pause withdrawals from the this and proxy contracts if threat is detected.
      * @param pauseData an List of addresses to be paused/unpaused
      */
-    function pause(Pause[] calldata pauseData) external {
+    function pause(AddressList[] calldata pauseData) external {
         if (msg.sender != withdrawaddress) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
         for (uint i; i<pauseData.length; i++) {
             pauseAddresses[pauseData[i].ContractAddress] = pauseData[i].Status;
@@ -743,14 +762,27 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     }
 
      /**
-     * @notice A method to mint LOVE tokens who participated in Reward Program
+     * @notice A method to enter LOVE tokens who participated in Reward Program
      * @param mintData an List of addresses to be rewarded
      */
-    function reward(Pause[] calldata mintData) external onlyOwner{
+    function reward(AddressList[] calldata mintData) external onlyOwner{
         for (uint i; i<mintData.length; i++) {
             rewardAddresses[mintData[i].ContractAddress] = mintData[i].Status;
         }   
     }
+      /**
+     * @notice A method to add whitelisted addresses for facets
+     * @param addressData an List of addresses to be rewarded
+     */
+    function whiteListAddr(AddressList[] calldata addressData) external onlyOwner{
+        for (uint i; i<addressData.length; i++) {
+            whiteListedAddresses[addressData[i].ContractAddress] = addressData[i].Status;
+        }   
+    }
+
+    /**
+     * @notice A method to claim LOVE tokens who participated in the Reward program.
+     */
     error REWARD_NOT_FOUND(address claimer);
     function claimReward() external {
         if (rewardAddresses[msg.sender] == 0) {revert REWARD_NOT_FOUND(msg.sender);}
