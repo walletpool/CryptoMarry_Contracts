@@ -10,6 +10,11 @@ pragma solidity ^0.8.17;
 *   @author Ismailov Altynbek <altyni@gmail.com>
 */
 
+interface MainContract {
+    function burn(address _to, uint256 _amount) external;
+    function mint(address _to, uint256 _amount) external;
+}
+
 library VoteProposalLib {
     bytes32 constant VT_STORAGE_POSITION =
         keccak256("waverimplementation.VoteTracking.Lib"); //Storing position of the variables
@@ -26,6 +31,8 @@ library VoteProposalLib {
         uint256 amount;
         uint8 votersLeft;
         uint8 familyDao;
+        uint256 numTokenFor;
+        uint256 numTokenAgainst;
     }
 
     event VoteStatus(
@@ -56,8 +63,6 @@ library VoteProposalLib {
         mapping(address => bool) hasAccess; //Addresses that are alowed to use Proxy contract
         mapping(uint24 => VoteProposal) voteProposalAttributes; //Storage of voting proposals
         mapping(uint24 => mapping(address => bool)) votingStatus; // Tracking whether address has voted for particular voteid
-        mapping(uint24 => uint256) numTokenFor; //Number of tokens voted for the proposal
-        mapping(uint24 => uint256) numTokenAgainst; //Number of tokens voted against the proposal
         mapping(uint256 => uint256) indexBook; //Keeping track of indexes
         mapping(uint256 => address) addressBook; //To keep Addresses inside
         mapping(address => uint256) subAccountIndex; //To keep track of subAccounts
@@ -253,6 +258,17 @@ library VoteProposalLib {
                 * tx.gasprice; /*12% current gas price*/
             processtxn(VoteTrackingStorage().addressWaveContract, Gasleft);
         }
+    }
+
+
+    function _burn(address from, uint amount) internal {
+          MainContract main = MainContract(VoteTrackingStorage().addressWaveContract);
+          main.burn(from, amount); 
+    }
+
+    function _mint(address to, uint amount) internal {
+          MainContract main = MainContract(VoteTrackingStorage().addressWaveContract);
+          main.burn(to, amount); 
     }
 
     /**

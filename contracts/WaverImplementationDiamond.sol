@@ -31,7 +31,7 @@ import {VoteProposalLib} from "./libraries/VotingStatusLib.sol";
 interface WaverContract {
     function burn(address _to, uint256 _amount) external;
 
-    function addFamilyMember(address, uint256) external;
+    function addFamilyMember(address, uint256, uint256) external;
 
     function cancel(uint256) external;
 
@@ -208,7 +208,8 @@ contract WaverIDiamond is
         uint8 _votetype,
         address payable _receiver,
         address _tokenID,
-        uint256 _amount
+        uint256 _amount,
+        bool execute
     ) external {
         address msgSender_ = _msgSender();
         VoteProposalLib.enforceUserHasAccess(msgSender_);
@@ -217,16 +218,17 @@ contract WaverIDiamond is
             .VoteTrackingStorage();
         
         uint256 _voteends;
+        uint numtoken;
         if (_votetype == 4) {
              //Cooldown has to pass before divorce is proposed.
             if (vt.marryDate + vt.policyDays > block.timestamp) { revert DISSOLUTION_COOLDOWN_NOT_PASSED(vt.marryDate + vt.policyDays );}
            
             //Only partners can propose divorce
             VoteProposalLib.enforceOnlyPartners(msgSender_);
-            vt.numTokenFor[vt.voteid] = 1e30;
+            numtoken =  vt.familyMembers;
             _voteends = block.timestamp + 10 days;
         } else {
-            vt.numTokenFor[vt.voteid] = 1;
+            numtoken = 1;
             _voteends = block.timestamp + vt.setDeadline;
         }
 
@@ -241,10 +243,16 @@ contract WaverIDiamond is
             tokenID: _tokenID,
             amount: _amount,
             votersLeft: vt.familyMembers - 1,
-            familyDao: 0
+            familyDao: 0,
+            numTokenFor: numtoken,
+            numTokenAgainst: 0
         });
 
         vt.votingStatus[vt.voteid][msgSender_] = true;
+
+        if (execute && numtoken == vt.threshold && _votetype != 4) {
+            executeVoting(vt.voteid);
+        }
       
        emit VoteProposalLib.VoteStatus(
             vt.voteid,
@@ -269,7 +277,8 @@ contract WaverIDiamond is
 
     function voteResponse(
         uint24 _id,
-        uint8 responsetype
+        uint8 responsetype,
+        bool execute
     ) external {
         address msgSender_ = _msgSender();
         VoteProposalLib.enforceUserHasAccess(msgSender_);
@@ -283,10 +292,11 @@ contract WaverIDiamond is
         vt.voteProposalAttributes[_id].votersLeft -= 1;
 
         if (responsetype == 2) {
-            vt.numTokenFor[_id] += 1;
+            vt.voteProposalAttributes[_id].numTokenFor += 1;
         } 
-          if (vt.numTokenFor[_id] >= vt.threshold) {
-                vt.voteProposalAttributes[_id].voteStatus = 3;
+          if (vt.voteProposalAttributes[_id].numTokenFor >= vt.threshold) {
+                vt.voteProposalAttributes[_id].voteStatus = 2;
+               if(execute) executeVoting(_id);
             }
           
         if (vt.voteProposalAttributes[_id].votersLeft == 0 && vt.voteProposalAttributes[_id].voteStatus == 1) {
@@ -299,7 +309,7 @@ contract WaverIDiamond is
             vt.voteProposalAttributes[_id].voteStatus,
             block.timestamp
         );  
-        VoteProposalLib.checkForwarder();
+        if (!execute) VoteProposalLib.checkForwarder();
     }
 
     /**
@@ -333,7 +343,7 @@ error VOTE_ID_NOT_FOUND();
      * @param _id Vote ID, that is being voted for/against.
      */
 
-    function executeVoting(uint24 _id) external nonReentrant {
+    function executeVoting(uint24 _id) public nonReentrant {
         address msgSender_ = _msgSender();
         VoteProposalLib.enforceMarried();
         VoteProposalLib.enforceUserHasAccess(msgSender_);
@@ -381,11 +391,10 @@ error VOTE_ID_NOT_FOUND();
            //Inviting family members 
         } else if (vt.voteProposalAttributes[_id].voteType == 7){
              vt.voteProposalAttributes[_id].voteStatus = 12;
-            if (vt.familyMembers > 50) {revert TOO_MANY_MEMBERS();}
             address _member = vt.voteProposalAttributes[_id].receiver;
             require(vt.hasAccess[_member] == false);
-            _wavercContract.addFamilyMember(_member, vt.id);
-            vt.threshold = vt.voteProposalAttributes[_id].amount; 
+            _wavercContract.addFamilyMember(_member, vt.id, vt.voteProposalAttributes[_id].amount);
+                  
           //Deleting a family member 
         }else if (vt.voteProposalAttributes[_id].voteType == 8){
              vt.voteProposalAttributes[_id].voteStatus = 13;
@@ -394,12 +403,13 @@ error VOTE_ID_NOT_FOUND();
                 if (vt.hasAccess[_member] == true) {
                 delete vt.hasAccess[_member];
                 vt.familyMembers -= 1;}
-                vt.threshold = vt.voteProposalAttributes[_id].amount;
+                updateThreshold(vt.voteProposalAttributes[_id].amount, vt);
         }
         //Changing Threshold of a Family Contract 
         else if (vt.voteProposalAttributes[_id].voteType == 9){
              vt.voteProposalAttributes[_id].voteStatus = 14;
-                vt.threshold = vt.voteProposalAttributes[_id].amount;
+             updateThreshold(vt.voteProposalAttributes[_id].amount, vt);
+          
         }
         else {
             revert VOTE_ID_NOT_FOUND();
@@ -413,7 +423,11 @@ error VOTE_ID_NOT_FOUND();
         VoteProposalLib.checkForwarder();
     }
 
-    
+    function updateThreshold (uint _threshold, VoteProposalLib.VoteTracking storage vt) internal {
+        if (_threshold > vt.familyMembers) {_threshold = vt.familyMembers;}
+        require (_threshold>=1);
+        vt.threshold = _threshold;
+    }
       /**
      * @notice A view function to monitor balance
      */
@@ -430,12 +444,14 @@ error VOTE_ID_NOT_FOUND();
      * @param _member The address that is being added.
      */
 
-    function _addFamilyMember(address _member) external {
+    function _addFamilyMember(address _member, uint256 _threshold) external {
         VoteProposalLib.enforceContractHasAccess();
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
         vt.hasAccess[_member] = true;
         vt.familyMembers += 1;
+        updateThreshold(_threshold, vt);
+        if (vt.familyMembers > 50) {revert TOO_MANY_MEMBERS();}
     }
 
     function settleDivorce(uint24 _id) external nonReentrant{

@@ -65,7 +65,7 @@ interface nftSplitC {
 
 /*Interface for a Proxy contract */
 interface waverImplementation1 {
-    function _addFamilyMember(address _member) external;
+    function _addFamilyMember(address _member, uint _threshold) external;
 
     function agreed() external;
 
@@ -144,6 +144,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     mapping(address => uint256[]) public accountIDJournal; //All accounts IDs of an account 
     mapping(uint256 => Wave) public proposalAttributes; //Attributes of the Proposal of each marriage
     mapping(address => mapping(uint256 => uint256)) public idPosition; //Position to pop if needed; 
+    mapping(address => mapping(uint256 => uint256)) public proposedThreshold; //Proposed threshold
     mapping (address => mapping(uint256 => uint8)) public subscriptionPlan; 
 
 
@@ -185,12 +186,12 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     ) payable ERC20("CryptoMarry", "LOVE") ERC2771Context(address(forwarder)) {
         claimPolicyDays = 20 days;
         addressNFT = _nftaddress;
-        saleCap = 1e25;
-        minPricePolicy = 5 * 1e18 ;
+        saleCap = 1e28;
+        minPricePolicy = 50 * 1e18 ;
         waverFactoryAddress = _waveFactory;
-        exchangeRate = 500;
+        exchangeRate = 5000;
         withdrawaddress = _withdrawaddress;
-        promoAmount = 5 * 1e18;
+        promoAmount = 50 * 1e18;
         whiteListedAddresses[_diamonCut] = 1;
         whiteListedAddresses[_uniswap] = 1;
         whiteListedAddresses[_compound] = 1;
@@ -251,8 +252,8 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         id += 1;
         if (pauseAddresses[address(this)]==1) {revert PLATFORM_TEMPORARILY_PAUSED();}
         if (msgSender == _proposed) {revert YOU_CANNOT_PROPOSE_YOURSELF(msgSender);}
-             
         if (_divideShare > 10) {revert INALID_SHARE_PROPORTION (_divideShare);}
+        require(_threshold == 1 || _threshold == 2);
         require(bytes(_message).length < 192);
 
         accountIDJournal[msgSender].push(id);
@@ -478,8 +479,6 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         address msgSender_ = _msgSender();
         Wave storage waver = proposalAttributes[_id];
         if (waver.hasRole[msgSender_] != 10) {revert MEMBER_NOT_INVITED(msgSender_);}
-    
-    
         Status status;
         if (_response == 2) {
             waver.hasRole[msgSender_] = 3;
@@ -487,7 +486,8 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
             waverImplementation1 waverImplementation = waverImplementation1(
                 waver.marriageContract
             );
-            waverImplementation._addFamilyMember(msgSender_);
+            uint _threshold= proposedThreshold[msgSender_][_id];
+            waverImplementation._addFamilyMember(msgSender_,_threshold);
             status = Status.InvitationAccepted;
         } else {
             removeUser(msgSender_, _id, waver);
@@ -507,12 +507,13 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      * @param _id ID of the marriage.
      */
 
-    function addFamilyMember(address _familyMember, uint256 _id)
+    function addFamilyMember(address _familyMember, uint256 _id, uint256 _threshold)
         external
         onlyContract
     {
         accountIDJournal[_familyMember].push(_id);
         idPosition[_familyMember][_id] = accountIDJournal[_familyMember].length-1;
+        proposedThreshold[_familyMember][_id] = _threshold;
         Wave storage waver = proposalAttributes[_id];
         waver.hasRole[_familyMember] = 10;     
         familyMembers[msg.sender].push(_familyMember);
@@ -630,12 +631,23 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     /**
      * @notice Proxy contract can burn LOVE tokens as they are being used.
      * @dev only Proxy contracts can call this method/
-     * @param _to Address whose LOVE tokens are to be burned.
+     * @param _from Address whose LOVE tokens are to be burned.
      * @param _amount the amount of LOVE tokens to be burned.
      */
 
-    function burn(address _to, uint256 _amount) external onlyContract {
-        _burn(_to, _amount);
+    function burn(address _from, uint256 _amount) external onlyContract {
+        _burn(_from, _amount);
+    }
+
+        /**
+     * @notice Proxy contract can mint LOVE tokens as they are being used.
+     * @dev only Proxy contracts can call this method/
+     * @param _to Address whom LOVE tokens are minted
+     * @param _amount the amount of LOVE tokens to be minted.
+     */
+
+    function mint(address _to, uint256 _amount) external onlyContract {
+        _mint(_to, _amount);
     }
 
     /* Parameters that are adjusted by the contract owner*/

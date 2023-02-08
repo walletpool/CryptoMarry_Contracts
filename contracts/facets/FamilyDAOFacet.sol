@@ -9,20 +9,6 @@ import "@gnus.ai/contracts-upgradeable-diamond/metatx/ERC2771ContextUpgradeable.
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 /*Interface for the Main Contract*/
-interface WaverContract {
-    function burn(address _to, uint256 _amount) external;
-
-    function addFamilyMember(address, uint256) external;
-
-    function cancel(uint256) external;
-
-    function deleteFamilyMember(address, uint) external;
-
-    function divorceUpdate(uint256 _id) external;
-
-    function addressNFTSplit() external returns (address);
-}
-
 
 
 contract FamilyDAOFacet is ERC2771ContextUpgradeable{
@@ -32,7 +18,6 @@ contract FamilyDAOFacet is ERC2771ContextUpgradeable{
     constructor(MinimalForwarderUpgradeable forwarder)
         ERC2771ContextUpgradeable(address(forwarder))
         {}
-
      /**
      * @notice Through this method proposals for voting is created. 
      * @dev All params are required. tokenID for the native currency is 0x0 address. To create proposals it is necessary to 
@@ -62,10 +47,8 @@ contract FamilyDAOFacet is ERC2771ContextUpgradeable{
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
 
-        WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
-          
-   
-        vt.numTokenFor[vt.voteid] = _numTokens;
+      
+        
         if (_voteends < block.timestamp + vt.setDeadline) {_voteends = block.timestamp + vt.setDeadline; } //Checking for too short notice
         
         vt.voteProposalAttributes[vt.voteid] = VoteProposalLib.VoteProposal({
@@ -79,11 +62,12 @@ contract FamilyDAOFacet is ERC2771ContextUpgradeable{
             tokenID: _tokenID,
             amount: _amount,
             votersLeft: vt.familyMembers - 1,
-            familyDao: 1
+            familyDao: 1,
+            numTokenFor: _numTokens,
+            numTokenAgainst: 0
         });
-
         vt.votingStatus[vt.voteid][msgSender_] = true;
-       if (_numTokens>0) {_wavercContract.burn(msgSender_, _numTokens);}
+       if (_numTokens>0) {VoteProposalLib._burn(msgSender_, _numTokens);}
 
        emit VoteProposalLib.VoteStatus(
             vt.voteid,
@@ -120,26 +104,25 @@ contract FamilyDAOFacet is ERC2771ContextUpgradeable{
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
 
-        WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
-
+      
         vt.votingStatus[_id][msgSender_] = true;
         vt.voteProposalAttributes[_id].votersLeft -= 1;
 
         if (responsetype == 2) {
-            vt.numTokenFor[_id] += _numTokens;
+            vt.voteProposalAttributes[_id].numTokenFor += _numTokens;
         } else {
-            vt.numTokenAgainst[_id] += _numTokens;
+            vt.voteProposalAttributes[_id].numTokenAgainst += _numTokens;
         }
 
           if (vt.voteProposalAttributes[_id].votersLeft == 0) {
-            if (vt.numTokenFor[_id] >= vt.numTokenAgainst[_id]) {
-                vt.voteProposalAttributes[_id].voteStatus = 3;
-            } else {
+            if (vt.voteProposalAttributes[_id].numTokenFor >= vt.voteProposalAttributes[_id].numTokenAgainst ) {
                 vt.voteProposalAttributes[_id].voteStatus = 2;
+            } else {
+                vt.voteProposalAttributes[_id].voteStatus = 3;
             }
         }
 
-        if (_numTokens>0) {_wavercContract.burn(msgSender_, _numTokens);}
+        if (_numTokens>0) {VoteProposalLib._burn(msgSender_, _numTokens);}
          emit VoteProposalLib.VoteStatus(
             _id,
             msgSender_,
@@ -148,7 +131,6 @@ contract FamilyDAOFacet is ERC2771ContextUpgradeable{
         );  
         VoteProposalLib.checkForwarder();
     }
-
 
      /**
      * @notice The vote can be processed if deadline has been passed.
@@ -166,10 +148,10 @@ contract FamilyDAOFacet is ERC2771ContextUpgradeable{
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
 
-        if (vt.numTokenFor[_id] < vt.numTokenAgainst[_id]) {
-            vt.voteProposalAttributes[_id].voteStatus = 3;
-        } else {
+        if (vt.voteProposalAttributes[_id].numTokenFor >= vt.voteProposalAttributes[_id].numTokenAgainst ) {
             vt.voteProposalAttributes[_id].voteStatus = 7;
+        } else {
+            vt.voteProposalAttributes[_id].voteStatus = 3;
         }
 
       emit VoteProposalLib.VoteStatus(
@@ -180,7 +162,5 @@ contract FamilyDAOFacet is ERC2771ContextUpgradeable{
         ); 
         VoteProposalLib.checkForwarder();
     }
-
-
 
 }
