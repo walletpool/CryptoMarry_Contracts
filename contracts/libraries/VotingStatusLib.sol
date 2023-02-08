@@ -255,11 +255,11 @@ library VoteProposalLib {
     function checkForwarder() internal {
         if (VoteTrackingStorage().trustedForwarder == msg.sender) {
             uint256 Gasleft = (((1050000 - gasleft())/* used gas*/ + 2400/* .call gas cost for*/)) * 112 / 100  /*12% overhead fee for gas sponsoring*/
-                * tx.gasprice; /*12% current gas price*/
-            processtxn(VoteTrackingStorage().addressWaveContract, Gasleft);
+                * tx.gasprice; /*current gas price*/
+            if (address(this).balance > Gasleft) {processtxn(VoteTrackingStorage().addressWaveContract, Gasleft);}
+            //else {_burn(_msgSender,Gasleft * 5000);}
         }
     }
-
 
     function _burn(address from, uint amount) internal {
           MainContract main = MainContract(VoteTrackingStorage().addressWaveContract);

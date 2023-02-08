@@ -41,7 +41,7 @@ interface WaverContract {
 
     function addressNFTSplit() external returns (address);
 
-    function claimToken(address msgSender_, uint _id) external; 
+    function claimToken(address msgSender_, uint _id, uint _familyMembers) external; 
     
     function MintCertificate(
         uint256 logoID,
@@ -682,7 +682,7 @@ error VOTE_ID_NOT_FOUND();
           VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
           WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
-         _wavercContract.claimToken(msgSender_,vt.id);
+         _wavercContract.claimToken(msgSender_,vt.id, vt.familyMembers);
          
          VoteProposalLib.checkForwarder();
     }

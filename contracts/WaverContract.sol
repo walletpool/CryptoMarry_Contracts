@@ -145,17 +145,12 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     mapping(uint256 => Wave) public proposalAttributes; //Attributes of the Proposal of each marriage
     mapping(address => mapping(uint256 => uint256)) public idPosition; //Position to pop if needed; 
     mapping(address => mapping(uint256 => uint256)) public proposedThreshold; //Proposed threshold
-    mapping (address => mapping(uint256 => uint8)) public subscriptionPlan; 
-
 
     mapping(address => address[]) internal familyMembers; // List of family members addresses
     mapping(address => string) public messages; //stores messages of CM users
 
-  
-
     mapping(address => uint8) internal hasensName; //Whether a partner wants to display ENS address within the NFT
     
-   
     mapping(address => uint8) internal authrizedAddresses; //Tracks whether a proxy contract addresses is authorized to interact with this contract.
   
     mapping(address => mapping (uint256 => uint256)) public claimtimer; //maps addresses to when the last time LOVE tokens were claimed.
@@ -376,36 +371,22 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      * @dev LOVE tokens are distributed once within policyDays defined by the owner.
      */
 
-    function claimToken(address msgSender_, uint _id) external onlyContract{
+     /// # of users # balance #claim amount 
+
+    function claimToken(address msgSender_, uint _id, uint _familyMembers) external onlyContract{
         if (claimtimer[msgSender_][_id] + claimPolicyDays > block.timestamp) {revert CLAIM_TIMOUT_NOT_PASSED();}
         claimtimer[msgSender_][_id] = block.timestamp;
         uint amount  = promoAmount;
-        uint8 plan = subscriptionPlan[msgSender_][_id];
-        if (plan == 1) {
-            amount = promoAmount * 10;
-        } else if ( plan == 2) {
-            amount = promoAmount * 50;
-        } else if ( plan == 3) {
-            amount = promoAmount * 100;
+        if ( msg.sender.balance > 1e20) {
+            amount = promoAmount * 100/_familyMembers;}
+        else if (msg.sender.balance > 1e19) {
+            amount = promoAmount * 10/_familyMembers;
+        }  else if ( msg.sender.balance > 1e19) {
+            amount = promoAmount * 50/_familyMembers;
         }
         _mint(msgSender_, amount);
     }
 
-    function updateSubscription(uint _id) external payable{
-        Wave storage waver = proposalAttributes[_id];
-        if (waver.hasRole[msg.sender] == 0 && waver.hasRole[msg.sender] < 6 ) {revert HAS_NO_ACCESS(msg.sender);}
-        if (waver.ProposalStatus != Status.Processed) {revert PROPOSAL_STATUS_CHANGED();}
-        uint8 plan;
-
-        if (msg.value == exchangeRate * 1e18 /1000) {
-            plan = 1;
-        } else if (msg.value == exchangeRate * 1e18 /200) {
-            plan = 2;
-        } else if (msg.value == 2 * exchangeRate){
-            plan = 3;
-        }
-       subscriptionPlan[msg.sender][_id] = plan;
-    }
 
     /**
      * @notice Users can buy LOVE tokens depending on the exchange rate. There is a cap for the Sales of the tokens.
