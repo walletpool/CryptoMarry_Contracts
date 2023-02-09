@@ -133,6 +133,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         Status ProposalStatus;
         address marriageContract;
         uint8 hasRole;
+        bytes readKey;
     }
 
 
@@ -145,6 +146,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     mapping(uint256 => Wave) public proposalAttributes; //Attributes of the Proposal of each marriage
     mapping(address => mapping(uint256 => uint256)) public idPosition; //Position to pop if needed; 
     mapping(address => mapping(uint256 => uint256)) public proposedThreshold; //Proposed threshold
+    mapping(address => mapping (uint256 => bytes)) public readKey;
 
     mapping(address => address[]) internal familyMembers; // List of family members addresses
     mapping(address => string) public messages; //stores messages of CM users
@@ -184,14 +186,13 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         saleCap = 1e28;
         minPricePolicy = 50 * 1e18 ;
         waverFactoryAddress = _waveFactory;
-        exchangeRate = 5000;
+        exchangeRate = 2000;
         withdrawaddress = _withdrawaddress;
         promoAmount = 50 * 1e18;
         whiteListedAddresses[_diamonCut] = 1;
         whiteListedAddresses[_uniswap] = 1;
         whiteListedAddresses[_compound] = 1;
-        whiteListedAddresses[_familyDAO] = 1;
-        
+        whiteListedAddresses[_familyDAO] = 1;   
     }
 
     error CONTRACT_NOT_AUTHORIZED(address contractAddress);
@@ -241,7 +242,9 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         uint _policyDays,
         uint _minimumDeadline,
         uint _divideShare,
-        uint _threshold
+        uint _threshold,
+        bytes memory _readKeyProposer,
+        bytes memory _readKeyProposed
     ) public payable {
         address msgSender = _msgSender();
         id += 1;
@@ -356,10 +359,10 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     function cancel(uint256 _id) external onlyContract {
         Wave storage waver = proposalAttributes[_id];
         require(waver.ProposalStatus != Status.Cancelled);
+        if (waver.ProposalStatus != Status.Declined) {removeUser(waver.proposed, _id, waver);}
         waver.ProposalStatus = Status.Cancelled;
 
         removeUser(waver.proposer, _id, waver);
-        removeUser(waver.proposed, _id, waver);
            
     emit NewWave(_id, tx.origin, msg.sender, Status.Cancelled);
     }
@@ -380,9 +383,9 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         if ( msg.sender.balance > 1e20) {
             amount = promoAmount * 100/_familyMembers;}
         else if (msg.sender.balance > 1e19) {
-            amount = promoAmount * 10/_familyMembers;
-        }  else if ( msg.sender.balance > 1e19) {
             amount = promoAmount * 50/_familyMembers;
+        }  else if ( msg.sender.balance > 1e18) {
+            amount = promoAmount * 10/_familyMembers;
         }
         _mint(msgSender_, amount);
     }

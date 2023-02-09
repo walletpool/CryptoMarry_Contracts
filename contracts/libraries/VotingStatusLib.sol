@@ -53,7 +53,6 @@ library VoteProposalLib {
         uint256 nonce;
         uint256 threshold;
         uint256 id;
-        uint256 cmFee;
         uint256 marryDate;
         uint256 policyDays;
         uint256 setDeadline;

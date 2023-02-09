@@ -46,14 +46,10 @@ ERC2771ContextUpgradeable(address(forwarder))
         swapRouter = _swapRouter;
 
         //A small fee for the protocol is deducted here
-        uint256 _amount = (vt.voteProposalAttributes[_id].amount *
-            (10000 - vt.cmFee)) / 10000;
-        uint256 _cmfees = vt.voteProposalAttributes[_id].amount - _amount;
+        uint256 _amount = vt.voteProposalAttributes[_id].amount;
 
         if (vt.voteProposalAttributes[_id].voteType == 101){
             vt.voteProposalAttributes[_id].voteStatus = 101;
-
-       VoteProposalLib.processtxn(vt.addressWaveContract, _cmfees);
 
             ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
                 .ExactInputSingleParams({
@@ -74,14 +70,7 @@ ERC2771ContextUpgradeable(address(forwarder))
             
             } else if (vt.voteProposalAttributes[_id].voteType == 102) {
                  vt.voteProposalAttributes[_id].voteStatus = 102;
-                
-                 TransferHelper.safeTransfer(
-                    vt.voteProposalAttributes[_id].tokenID,
-                    vt.addressWaveContract,
-                    _cmfees
-                );
-            
-            
+                     
             TransferHelper.safeApprove(
                 vt.voteProposalAttributes[_id].tokenID,
                 address(_swapRouter),
@@ -106,13 +95,6 @@ ERC2771ContextUpgradeable(address(forwarder))
                 
             } else if (vt.voteProposalAttributes[_id].voteType == 103) {
                  vt.voteProposalAttributes[_id].voteStatus = 103;  
-                
-                 TransferHelper.safeTransfer(
-                    vt.voteProposalAttributes[_id].tokenID,
-                    vt.addressWaveContract,
-                    _cmfees
-                );
-            
             
             TransferHelper.safeApprove(
                 vt.voteProposalAttributes[_id].tokenID,

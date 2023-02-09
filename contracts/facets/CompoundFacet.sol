@@ -41,13 +41,10 @@ contract CompoundFacet is ERC2771ContextUpgradeable{
 
 
         //A small fee for the protocol is deducted here
-        uint256 _amount = (vt.voteProposalAttributes[_id].amount *
-            (10000 - vt.cmFee)) / 10000;
-        uint256 _cmfees = vt.voteProposalAttributes[_id].amount - _amount;
+        uint256 _amount = vt.voteProposalAttributes[_id].amount;
          
         if (vt.voteProposalAttributes[_id].voteType == 203) {
             vt.voteProposalAttributes[_id].voteStatus = 203;
-       VoteProposalLib.processtxn(vt.addressWaveContract, _cmfees);
 
             CEth cToken = CEth(vt.voteProposalAttributes[_id].receiver);
             cToken.mint{value: _amount}();
@@ -56,12 +53,7 @@ contract CompoundFacet is ERC2771ContextUpgradeable{
     
     else if (vt.voteProposalAttributes[_id].voteType == 204){
         vt.voteProposalAttributes[_id].voteStatus =204;
-         TransferHelper.safeTransfer(
-                    vt.voteProposalAttributes[_id].tokenID,
-                    vt.addressWaveContract,
-                    _cmfees
-                );
-
+     
             CErc20 cToken = CErc20(vt.voteProposalAttributes[_id].receiver);
 
             TransferHelper.safeApprove(
@@ -74,12 +66,7 @@ contract CompoundFacet is ERC2771ContextUpgradeable{
 
      else if (vt.voteProposalAttributes[_id].voteType == 205) {
            vt.voteProposalAttributes[_id].voteStatus = 205;
-           TransferHelper.safeTransfer(
-                    vt.voteProposalAttributes[_id].tokenID,
-                    vt.addressWaveContract,
-                    _cmfees
-                );
-
+  
             CEth cEther = CEth(vt.voteProposalAttributes[_id].tokenID);
 
             cEther.redeem(_amount);
@@ -88,11 +75,6 @@ contract CompoundFacet is ERC2771ContextUpgradeable{
         // Redeeming cToken for corresponding ERC20 token.
         else if (vt.voteProposalAttributes[_id].voteType == 206) {
              vt.voteProposalAttributes[_id].voteStatus = 206;
-           TransferHelper.safeTransfer(
-                    vt.voteProposalAttributes[_id].tokenID,
-                    vt.addressWaveContract,
-                    _cmfees
-                );
 
             CErc20 cToken = CErc20(vt.voteProposalAttributes[_id].tokenID);
             cToken.redeem(_amount);

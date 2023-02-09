@@ -10,7 +10,6 @@ import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 /*Interface for the Main Contract*/
 
-
 contract FamilyDAOFacet is ERC2771ContextUpgradeable{
     
     error COULD_NOT_PROCESS();
