@@ -13,7 +13,7 @@ import "@openzeppelin/contracts/utils/Base64.sol";
 
 /* This function is to retreive the messages that are to be included in the NFT*/
 abstract contract WaverContractM {
-    function messages(address) external view virtual returns (string memory);
+    function messages(address) external view virtual returns (bytes memory);
 }
 
 /* This function is to retreive ENS names onchain*/
@@ -333,7 +333,7 @@ contract nftview {
                     )
                 ),
                 '", "attributes":[',
-                Messagetext,
+                string(Messagetext),
                 ' {"trait_type": "Status", "value": "',
                 charAttributes.Status==1? "Established": "Terminated",
                 '"}]}'

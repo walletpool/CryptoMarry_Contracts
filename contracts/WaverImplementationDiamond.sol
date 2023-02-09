@@ -31,13 +31,15 @@ import {VoteProposalLib} from "./libraries/VotingStatusLib.sol";
 interface WaverContract {
     function burn(address _to, uint256 _amount) external;
 
-    function addFamilyMember(address, uint256, uint256) external;
+    function addFamilyMember(address, uint256, uint256, bytes memory) external;
 
-    function cancel(uint256) external;
+    function cancel(uint256 , address _proposed, address _proposer ) external;
 
     function deleteFamilyMember(address, uint) external;
 
     function divorceUpdate(uint256 _id) external;
+
+    function isMember(address _member, uint _contractID ) external view returns (uint8 status);
 
     function addressNFTSplit() external returns (address);
 
@@ -49,7 +51,8 @@ interface WaverContract {
         uint256 MainID,
         uint256 _id,
         uint256 value,
-        address msgSender_
+        address proposer,
+        address proposed
     ) external;
 
     function updateSubscription(address msgSender_, uint _id, uint8 plan , uint value) external;
@@ -103,7 +106,6 @@ contract WaverIDiamond is
         address _proposer,
         address _proposed,
         uint256 _policyDays,
-        uint256 _minimumDeadline,
         uint256 _divideShare,
         uint256 _threshold
     ) public initializer {
@@ -119,7 +121,7 @@ contract WaverIDiamond is
         vt.proposer = _proposer;
         vt.proposed = _proposed;
         vt.policyDays = _policyDays;
-        vt.setDeadline = _minimumDeadline;
+        vt.setDeadline = 1 days;
         vt.divideShare = _divideShare;
         vt.trustedForwarder = _trustedForwarder;
         vt.threshold = _threshold;
@@ -158,7 +160,7 @@ contract WaverIDiamond is
             .VoteTrackingStorage();
         vt.marriageStatus = VoteProposalLib.MarriageStatus.Cancelled;
         WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
-        _wavercContract.cancel(vt.id);
+        _wavercContract.cancel(vt.id,vt.proposed, vt.proposer);
 
         VoteProposalLib.processtxn(payable(vt.proposer), address(this).balance);
     }
@@ -196,7 +198,7 @@ contract WaverIDiamond is
      * @notice Through this method proposals for voting is created. 
      * @dev All params are required. tokenID for the native currency is 0x0 address. To create proposals it is necessary to 
      have LOVE tokens as it will be used as backing of the proposal. 
-     * @param _message String text on details of the proposal. 
+     * @param _message Bytes text on details of the proposal. 
      * @param _votetype Type of the proposal as it was listed in enum above. 
      * @param _receiver Address of the receiver who will be receiving indicated amounts. 
      * @param _tokenID Address of the ERC20, ERC721 or other tokens. 
@@ -204,7 +206,7 @@ contract WaverIDiamond is
      */
 
     function createProposal(
-        string calldata _message,
+        bytes calldata _message,
         uint8 _votetype,
         address payable _receiver,
         address _tokenID,
@@ -230,6 +232,14 @@ contract WaverIDiamond is
         } else {
             numtoken = 1;
             _voteends = block.timestamp + vt.setDeadline;
+            if (_votetype == 7){
+            require(vt.hasAccess[_receiver] == false);}
+
+            if (_votetype == 8){
+            WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
+            require (_wavercContract.isMember(_receiver,vt.id)>0);
+            VoteProposalLib.enforceNotPartnerAddr(_receiver);
+            }
         }
 
         vt.voteProposalAttributes[vt.voteid] = VoteProposalLib.VoteProposal({
@@ -250,7 +260,8 @@ contract WaverIDiamond is
 
         vt.votingStatus[vt.voteid][msgSender_] = true;
 
-        if (execute && numtoken == vt.threshold && _votetype != 4) {
+        if (execute && numtoken == vt.threshold && _votetype != 4 && _votetype != 1 ) {
+            vt.voteProposalAttributes[vt.voteid].voteStatus = 2;
             executeVoting(vt.voteid);
         }
       
@@ -293,10 +304,14 @@ contract WaverIDiamond is
 
         if (responsetype == 2) {
             vt.voteProposalAttributes[_id].numTokenFor += 1;
-        } 
+        } else {
+            vt.voteProposalAttributes[_id].numTokenAgainst += 1;
+        }
           if (vt.voteProposalAttributes[_id].numTokenFor >= vt.threshold) {
                 vt.voteProposalAttributes[_id].voteStatus = 2;
-               if(execute) executeVoting(_id);
+            
+            if(execute && vt.voteProposalAttributes[_id].voteType != 4 && vt.voteProposalAttributes[_id].voteType != 1) 
+               executeVoting(_id);
             }
           
         if (vt.voteProposalAttributes[_id].votersLeft == 0 && vt.voteProposalAttributes[_id].voteStatus == 1) {
@@ -392,8 +407,8 @@ error VOTE_ID_NOT_FOUND();
         } else if (vt.voteProposalAttributes[_id].voteType == 7){
              vt.voteProposalAttributes[_id].voteStatus = 12;
             address _member = vt.voteProposalAttributes[_id].receiver;
-            require(vt.hasAccess[_member] == false);
-            _wavercContract.addFamilyMember(_member, vt.id, vt.voteProposalAttributes[_id].amount);
+            _wavercContract.addFamilyMember(_member, vt.id, vt.voteProposalAttributes[_id].amount, 
+            vt.voteProposalAttributes[_id].voteProposalText );
                   
           //Deleting a family member 
         }else if (vt.voteProposalAttributes[_id].voteType == 8){
@@ -640,14 +655,17 @@ error VOTE_ID_NOT_FOUND();
       /* Getter of cooldown before divorce*/
 
     function getPolicies() external view 
-    returns (uint policyDays, uint marryDate, uint divideShare, uint setDeadline) 
+    returns (uint policyDays, uint marryDate, uint divideShare, uint setDeadline, address proposer, address proposed, uint threshold) 
     {
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
         return (vt.policyDays,
                 vt.marryDate,
                 vt.divideShare,
-                vt.setDeadline
+                vt.setDeadline,
+                vt.proposer,
+                vt.proposed,
+                vt.threshold 
                 );
     }
 
@@ -670,8 +688,10 @@ error VOTE_ID_NOT_FOUND();
              MainID,
              vt.id,
              value,
-             msgSender_
+             vt.proposer,
+             vt.proposed
           );
+          VoteProposalLib._burn(msgSender_, value);
          VoteProposalLib.checkForwarder();
     }
 

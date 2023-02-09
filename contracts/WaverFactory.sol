@@ -65,7 +65,6 @@ contract WaverFactory is Ownable {
         address _waver,
         address _proposed,
         uint256 _policyDays,
-        uint256 _minimumDeadline,
         uint256 _divideShare,
         uint256 _threshold
     ) public returns (address) {
@@ -77,7 +76,6 @@ contract WaverFactory is Ownable {
             _waver,
             _proposed,
             _policyDays,
-            _minimumDeadline,
             _divideShare,
             _threshold
         );

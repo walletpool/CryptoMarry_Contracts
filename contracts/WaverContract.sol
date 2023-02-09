@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import "@openzeppelin/contracts/metatx/MinimalForwarder.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "hardhat/console.sol";
 
 /**
 [BSL License]
@@ -25,7 +26,6 @@ interface WaverFactoryC {
         address _waver,
         address _proposed,
         uint256 policyDays,
-        uint256 _minimumDeadline,
         uint256 _divideShare,
         uint256 _threshold
     ) external returns (address);
@@ -117,9 +117,6 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
     struct Wave {
         uint256 id;
-        uint256 stake;
-        address proposer;
-        address proposed;
         Status ProposalStatus;
         address marriageContract;
         mapping (address => uint8) hasRole;
@@ -127,9 +124,6 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
     struct ReturnAccounts {
         uint256 id;
-        uint256 stake;
-        address proposer;
-        address proposed;
         Status ProposalStatus;
         address marriageContract;
         uint8 hasRole;
@@ -149,7 +143,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     mapping(address => mapping (uint256 => bytes)) public readKey;
 
     mapping(address => address[]) internal familyMembers; // List of family members addresses
-    mapping(address => string) public messages; //stores messages of CM users
+    mapping(address => bytes) public messages; //stores messages of CM users
 
     mapping(address => uint8) internal hasensName; //Whether a partner wants to display ENS address within the NFT
     
@@ -181,9 +175,9 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         address _compound,
         address _familyDAO
     ) payable ERC20("CryptoMarry", "LOVE") ERC2771Context(address(forwarder)) {
-        claimPolicyDays = 20 days;
+        claimPolicyDays = 1 days;
         addressNFT = _nftaddress;
-        saleCap = 1e28;
+        saleCap = 1e24;
         minPricePolicy = 50 * 1e18 ;
         waverFactoryAddress = _waveFactory;
         exchangeRate = 2000;
@@ -237,10 +231,9 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
 
     function propose(
         address _proposed,
-        string memory _message,
+        bytes memory _message,
         uint8 _hasensWaver,
         uint _policyDays,
-        uint _minimumDeadline,
         uint _divideShare,
         uint _threshold,
         bytes memory _readKeyProposer,
@@ -250,14 +243,18 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         id += 1;
         if (pauseAddresses[address(this)]==1) {revert PLATFORM_TEMPORARILY_PAUSED();}
         if (msgSender == _proposed) {revert YOU_CANNOT_PROPOSE_YOURSELF(msgSender);}
-        if (_divideShare > 10) {revert INALID_SHARE_PROPORTION (_divideShare);}
+        if (_divideShare > 10 && _divideShare < 0) {revert INALID_SHARE_PROPORTION (_divideShare);}
         require(_threshold == 1 || _threshold == 2);
-        require(bytes(_message).length < 192);
+        require(_message.length < 192);
 
         accountIDJournal[msgSender].push(id);
         accountIDJournal[_proposed].push(id);
+       
         idPosition[msgSender][id] = accountIDJournal[msgSender].length-1;
         idPosition[_proposed][id] = accountIDJournal[_proposed].length-1;
+
+        readKey[msgSender][id] = _readKeyProposer;
+        readKey[_proposed][id] = _readKeyProposed;
 
         hasensName[msgSender] = _hasensWaver;
         
@@ -272,7 +269,6 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
             msgSender,
             _proposed,
             _policyDays,
-            _minimumDeadline,
             _divideShare,
             _threshold
         );
@@ -280,6 +276,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     
         nftSplitC nftsplit = nftSplitC(addressNFTSplit);
         nftsplit.addAddresses(_newMarriageAddress);
+       
         messages[_newMarriageAddress] = _message;
 
         authrizedAddresses[_newMarriageAddress] = 1;
@@ -287,15 +284,13 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         Wave storage proposal = proposalAttributes[id];
 
         proposal.id = id;
-        proposal.stake = msg.value;
-        proposal.proposer = msgSender;
-        proposal.proposed = _proposed;
         proposal.ProposalStatus= Status.Proposed;
         proposal.marriageContract=_newMarriageAddress;
         proposal.hasRole[msgSender]=1;
         proposal.hasRole[_proposed]=11;
    
         if (msg.value>0) {processtxn(payable(_newMarriageAddress), msg.value);}
+
 
         emit NewWave(id, msgSender,_newMarriageAddress, Status.Proposed);
     }
@@ -342,12 +337,13 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     }
 
     function removeUser (address msgSender_, uint _id, Wave storage waver) internal{
-        uint lastID = accountIDJournal[msgSender_][accountIDJournal[msgSender_].length - 1];
+        uint lastID = accountIDJournal[msgSender_][accountIDJournal[msgSender_].length-1]; 
         uint toBeRemoved = idPosition[msgSender_][_id]; 
-            accountIDJournal[msgSender_][toBeRemoved]=lastID;           
+            accountIDJournal[msgSender_][toBeRemoved]=lastID;              
             accountIDJournal[msgSender_].pop();
             idPosition[msgSender_][lastID] = toBeRemoved;
             waver.hasRole[msgSender_]=0;
+            readKey[msgSender_][_id]='';
     }
 
     /**
@@ -356,13 +352,13 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      * @param _id The id of the partnership recorded within the main contract.
      */
 
-    function cancel(uint256 _id) external onlyContract {
+    function cancel(uint256 _id, address _proposed, address _proposer  ) external onlyContract {
         Wave storage waver = proposalAttributes[_id];
         require(waver.ProposalStatus != Status.Cancelled);
-        if (waver.ProposalStatus != Status.Declined) {removeUser(waver.proposed, _id, waver);}
+        if (waver.ProposalStatus != Status.Declined) {removeUser(_proposed, _id, waver);}
         waver.ProposalStatus = Status.Cancelled;
 
-        removeUser(waver.proposer, _id, waver);
+        removeUser(_proposer, _id, waver);
            
     emit NewWave(_id, tx.origin, msg.sender, Status.Cancelled);
     }
@@ -418,34 +414,30 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         uint256 MainID,
         uint256 _id,
         uint256 value,
-        address msgSender_
+        address proposer,
+        address proposed
     ) external onlyContract{
         //getting price and NFT address
         if (value < minPricePolicy) {revert PAYMENT_NOT_SUFFICIENT(minPricePolicy);}
-        Wave storage waver = proposalAttributes[_id];
-      if (waver.ProposalStatus != Status.Processed) {revert FAMILY_ACCOUNT_NOT_ESTABLISHED();}
-       
-        NFTContract NFTmint = NFTContract(addressNFT);
-
         if (BackgroundID >= 1000) {
             if (value < minPricePolicy * 100) {revert PAYMENT_NOT_SUFFICIENT(minPricePolicy * 100);}
         } else if (logoID >= 100) {
             if (value < minPricePolicy * 10) {revert PAYMENT_NOT_SUFFICIENT(minPricePolicy * 10);}
         }
+        
+         NFTContract NFTmint = NFTContract(addressNFT);
 
         NFTmint.mintCertificate(
-            waver.proposer,
-            hasensName[waver.proposer],
-            waver.proposed,
-            hasensName[waver.proposed],
-            waver.marriageContract,
-            waver.id,
+            proposer,
+            hasensName[proposer],
+            proposed,
+            hasensName[proposed],
+            msg.sender,
+            _id,
             logoID,
             BackgroundID,
             MainID
         );
-
-        _burn(msgSender_, value);
     }
 
     /* Adding Family Members*/
@@ -491,7 +483,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      * @param _id ID of the marriage.
      */
 
-    function addFamilyMember(address _familyMember, uint256 _id, uint256 _threshold)
+    function addFamilyMember(address _familyMember, uint256 _id, uint256 _threshold, bytes memory _readKey)
         external
         onlyContract
     {
@@ -501,6 +493,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         Wave storage waver = proposalAttributes[_id];
         waver.hasRole[_familyMember] = 10;     
         familyMembers[msg.sender].push(_familyMember);
+        readKey[_familyMember][_id] = _readKey;
 
         emit NewWave(_id, _familyMember,msg.sender,Status.MemberInvited);
     }
@@ -587,29 +580,33 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
                 size = 30;
                 page -= 1;
             }
-            start = page * 30 + 1;
+            start = page * 30;
         } else if (_pagenumber * 30 <= length) {
             size = 30;
-            start = (_pagenumber - 1) * 30 + 1;
+            start = (_pagenumber - 1) * 30;
         }
 
        ReturnAccounts[]
             memory returnAccounts = new ReturnAccounts[](size);
 
         for (uint24 i = 0; i < size; i++) {
-            Wave storage waver =  proposalAttributes[start + i];
+            uint IDs = accountIDJournal[msg.sender][start + i];
+            Wave storage waver =  proposalAttributes[IDs];
             returnAccounts[i] = ReturnAccounts({
              id: waver.id,
-             stake: waver.stake,
-             proposer: waver.proposer,
-             proposed: waver.proposed,
              ProposalStatus: waver.ProposalStatus,
              marriageContract: waver.marriageContract,
-             hasRole: waver.hasRole[msg.sender]
+             hasRole: waver.hasRole[msg.sender],
+             readKey: readKey[msg.sender][waver.id]
             });
         }
         return returnAccounts;
 
+    }
+
+     function isMember(address _member, uint _contractID ) external view returns (uint8 status) {
+        Wave storage waver =  proposalAttributes[_contractID];
+        return waver.hasRole[_member];
     }
 
     /**
@@ -795,6 +792,8 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     function balance() external view returns (uint ETHBalance) {
        return address(this).balance;
     }
+
+   
 
     receive() external payable {
         if (pauseAddresses[msg.sender] == 1){revert ACCOUNT_PAUSED(msg.sender);}

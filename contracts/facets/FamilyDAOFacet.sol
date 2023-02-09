@@ -31,7 +31,7 @@ contract FamilyDAOFacet is ERC2771ContextUpgradeable{
      */
 
     function createProposal(
-        string calldata _message,
+        bytes calldata _message,
         uint8 _votetype,
         uint256 _voteends,
         uint256 _numTokens,

@@ -23,7 +23,7 @@ library VoteProposalLib {
         uint24 id;
         address proposer;
         uint8 voteType;
-        string voteProposalText;
+        bytes voteProposalText;
         uint8 voteStatus;
         uint256 voteends;
         address receiver;
@@ -134,7 +134,7 @@ library VoteProposalLib {
         view
     {
         if (
-            VoteTrackingStorage().voteProposalAttributes[_voteid].familyDao ==
+            VoteTrackingStorage().voteProposalAttributes[_voteid].familyDao !=
             _familyDao
         ) {
             revert NOT_DAO_VOTE();
