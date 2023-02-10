@@ -315,7 +315,7 @@ contract WaverIDiamond is
             }
           
         if (vt.voteProposalAttributes[_id].votersLeft == 0 && vt.voteProposalAttributes[_id].voteStatus == 1) {
-                vt.voteProposalAttributes[_id].voteStatus = 2;  
+                vt.voteProposalAttributes[_id].voteStatus = 3;  
         }
 
          emit VoteProposalLib.VoteStatus(
@@ -478,9 +478,12 @@ error VOTE_ID_NOT_FOUND();
 
         WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
 
-        require (vt.voteProposalAttributes[_id].voteType == 4 && vt.voteProposalAttributes[_id].voteends< block.timestamp);
+        require (vt.voteProposalAttributes[_id].voteType == 4);
 
-            vt.marriageStatus = VoteProposalLib.MarriageStatus.Divorced;
+        if (vt.voteProposalAttributes[_id].voteends>block.timestamp) {
+            VoteProposalLib.enforceAcceptedStatus(_id);
+        } 
+
             vt.voteProposalAttributes[_id].voteStatus = 6;
 
             uint256 shareProposer = address(this).balance * vt.divideShare/10;
