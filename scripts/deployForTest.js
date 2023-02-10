@@ -16,6 +16,7 @@ module.exports = {deployTest: async function deployTest(){
  //Deploying Cuts etc... 
 
  const DiamondCutFacet = await deploy('DiamondCutFacet',forwarder.address);
+ const diamondLoupeFacet = await deploy('DiamondLoupeFacet',forwarder.address);
  const CompoundFacet = await deploy('CompoundFacet',forwarder.address);
 WhiteListAddr.push({
   ContractAddress: CompoundFacet.address,
@@ -33,7 +34,12 @@ WhiteListAddr.push({
   ContractAddress:familyDao.address,
   Status: 1
 })
- //const diamondInit = await deploy('DiamondInit');
+ const diamondInit = await deploy('DiamondInit');
+
+ WhiteListAddr.push({
+  ContractAddress: diamondInit.address,
+  Status: 1
+})
  const nftViewContract = await deploy(
    "nftview",
    "0x333Fc8f550043f239a2CF79aEd5e9cF4A20Eb41e"
@@ -94,7 +100,7 @@ WhiteListAddr.push({
  );
  console.log("Construction completed!");
 
-  return { WavePortal7, WaverImplementation,nftContract, accounts,nftSplit};
+  return { WavePortal7, WaverImplementation,nftContract, accounts,nftSplit, diamondInit, diamondLoupeFacet, DiamondCutFacet , CompoundFacet, };
 }
 
 }

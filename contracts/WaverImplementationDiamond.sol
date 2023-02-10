@@ -22,7 +22,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./handlers/SecuredTokenTransfer.sol";
 import "./handlers/DefaultCallbackHandler.sol";
-
+//import "hardhat/console.sol";
 import {LibDiamond} from "./libraries/LibDiamond.sol";
 import {IDiamondCut} from "./interfaces/IDiamondCut.sol";
 import {VoteProposalLib} from "./libraries/VotingStatusLib.sol";
@@ -220,17 +220,15 @@ contract WaverIDiamond is
             .VoteTrackingStorage();
         
         uint256 _voteends;
-        uint numtoken;
         if (_votetype == 4) {
              //Cooldown has to pass before divorce is proposed.
             if (vt.marryDate + vt.policyDays > block.timestamp) { revert DISSOLUTION_COOLDOWN_NOT_PASSED(vt.marryDate + vt.policyDays );}
            
             //Only partners can propose divorce
             VoteProposalLib.enforceOnlyPartners(msgSender_);
-            numtoken =  vt.familyMembers;
+       
             _voteends = block.timestamp + 10 days;
         } else {
-            numtoken = 1;
             _voteends = block.timestamp + vt.setDeadline;
             if (_votetype == 7){
             require(vt.hasAccess[_receiver] == false);}
@@ -254,13 +252,13 @@ contract WaverIDiamond is
             amount: _amount,
             votersLeft: vt.familyMembers - 1,
             familyDao: 0,
-            numTokenFor: numtoken,
+            numTokenFor: 1,
             numTokenAgainst: 0
         });
 
         vt.votingStatus[vt.voteid][msgSender_] = true;
 
-        if (execute && numtoken == vt.threshold && _votetype != 4 && _votetype != 1 ) {
+        if (execute && vt.threshold == 1 && _votetype != 4 && _votetype != 1 ) {
             vt.voteProposalAttributes[vt.voteid].voteStatus = 2;
             executeVoting(vt.voteid);
         }
@@ -480,11 +478,11 @@ error VOTE_ID_NOT_FOUND();
 
         require (vt.voteProposalAttributes[_id].voteType == 4);
 
-        if (vt.voteProposalAttributes[_id].voteends>block.timestamp) {
+        if (vt.voteProposalAttributes[_id].voteends > block.timestamp) {
             VoteProposalLib.enforceAcceptedStatus(_id);
         } 
-
-            vt.voteProposalAttributes[_id].voteStatus = 6;
+        vt.marriageStatus = VoteProposalLib.MarriageStatus.Divorced;
+        vt.voteProposalAttributes[_id].voteStatus = 6;
 
             uint256 shareProposer = address(this).balance * vt.divideShare/10;
             uint256 shareProposed = address(this).balance - shareProposer;

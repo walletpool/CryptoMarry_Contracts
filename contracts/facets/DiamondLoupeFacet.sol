@@ -13,6 +13,9 @@ import { IDiamondLoupe } from "../interfaces/IDiamondLoupe.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 contract DiamondLoupeFacet is IDiamondLoupe, IERC165 {
+ constructor(address forwarder)
+        {}
+        
     // Diamond Loupe Functions
     ////////////////////////////////////////////////////////////////////
     /// These functions are expected to be called frequently by tools.
