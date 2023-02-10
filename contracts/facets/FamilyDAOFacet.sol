@@ -46,8 +46,7 @@ contract FamilyDAOFacet is ERC2771ContextUpgradeable{
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
 
-      
-        
+    
         if (_voteends < block.timestamp + vt.setDeadline) {_voteends = block.timestamp + vt.setDeadline; } //Checking for too short notice
         
         vt.voteProposalAttributes[vt.voteid] = VoteProposalLib.VoteProposal({
