@@ -30,7 +30,7 @@ contract FamilyDAOFacet is ERC2771ContextUpgradeable{
      * @param _amount The amount of token that is being sent. Alternatively can be used as NFT ID. 
      */
 
-    function createProposal(
+    function createProposalDao(
         bytes calldata _message,
         uint8 _votetype,
         uint256 _voteends,
@@ -89,7 +89,7 @@ contract FamilyDAOFacet is ERC2771ContextUpgradeable{
      * @param responsetype Voting response for/against
      */
 
-    function voteResponse(
+    function voteResponseDao(
         uint24 _id,
         uint256 _numTokens,
         uint8 responsetype

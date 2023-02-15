@@ -13,6 +13,13 @@ describe("Testing before marriage interactions", function () {
     return { WavePortal7, WaverImplementation, accounts };
   }
 
+  it("Can query empty struct", async function () {
+    const { WavePortal7, accounts } = await loadFixture(deployTokenFixture);
+
+    const txn = await WavePortal7.checkMarriageStatus(1);
+    expect (txn.length).to.equal(0);
+  });
+
   it("Should not be able to propose itself", async function () {
     const { WavePortal7, accounts } = await loadFixture(deployTokenFixture);
 
@@ -24,8 +31,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       })
@@ -45,8 +51,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -75,8 +80,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
     );
     txn = await WavePortal7.checkMarriageStatus(1);
     const instance = await WaverImplementation.attach(txn[0].marriageContract);
@@ -103,8 +107,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -130,8 +133,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -174,8 +176,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -205,8 +206,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -257,8 +257,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -307,8 +306,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -354,8 +352,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -389,8 +386,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -402,8 +398,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -417,8 +412,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -436,8 +430,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -450,8 +443,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -464,8 +456,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -485,8 +476,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -519,8 +509,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -556,8 +545,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -582,8 +570,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -606,8 +593,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -632,8 +618,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -670,8 +655,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -683,8 +667,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -696,8 +679,7 @@ describe("Testing before marriage interactions", function () {
       86400,
       5,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }

@@ -21,8 +21,7 @@ describe("Divorce Settlement Functions Assymetric - Proposer - 90%, Proposed - 1
       86400,
       9,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }

@@ -24,7 +24,6 @@ async function main() {
    forwarder.address,
    forwarder.deployTransaction.gasLimit
  );
- sleep(1000);
 
   let WhiteListAddr = [];
 
@@ -120,7 +119,7 @@ sleep(1000);
   WaverFactory.address,
   WaverFactory.deployTransaction.gasLimit
 );
-sleep(10000);
+sleep(1000);
  const WavePortal7 = await deploy(
    "WavePortal7",
    forwarder.address,
@@ -148,7 +147,7 @@ sleep(10000);
 );
 
  writeFileSync(
-  "deploytest-goerli.json",
+  "deploytest-goerli-latest.json",
   JSON.stringify(
     { 
       DiamondCutFacet: DiamondCutFacet.address,

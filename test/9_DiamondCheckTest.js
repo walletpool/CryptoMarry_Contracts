@@ -34,8 +34,7 @@ describe("Testing Diamond Facets", function () {
       86400,
       9,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }
@@ -48,8 +47,7 @@ describe("Testing Diamond Facets", function () {
       86400,
       9,
       1,
-      "0x49206c6f766520796f7520736f206d75636821", 
-      "0x49206c6f766520796f7520736f206d75636821", 
+       
       {
         value: hre.ethers.utils.parseEther("10"),
       }

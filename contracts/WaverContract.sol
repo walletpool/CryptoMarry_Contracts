@@ -127,7 +127,6 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         Status ProposalStatus;
         address marriageContract;
         uint8 hasRole;
-        bytes readKey;
     }
 
 
@@ -140,7 +139,6 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     mapping(uint256 => Wave) public proposalAttributes; //Attributes of the Proposal of each marriage
     mapping(address => mapping(uint256 => uint256)) public idPosition; //Position to pop if needed; 
     mapping(address => mapping(uint256 => uint256)) public proposedThreshold; //Proposed threshold
-    mapping(address => mapping (uint256 => bytes)) public readKey;
 
     mapping(address => address[]) internal familyMembers; // List of family members addresses
     mapping(address => bytes) public messages; //stores messages of CM users
@@ -175,7 +173,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         address _compound,
         address _familyDAO
     ) payable ERC20("CryptoMarry", "LOVE") ERC2771Context(address(forwarder)) {
-        claimPolicyDays = 1 days;
+        claimPolicyDays = 1 hours;
         addressNFT = _nftaddress;
         saleCap = 1e24;
         minPricePolicy = 50 * 1e18 ;
@@ -235,9 +233,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         uint8 _hasensWaver,
         uint _policyDays,
         uint _divideShare,
-        uint _threshold,
-        bytes memory _readKeyProposer,
-        bytes memory _readKeyProposed
+        uint _threshold
     ) public payable {
         address msgSender = _msgSender();
         id += 1;
@@ -252,9 +248,6 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
        
         idPosition[msgSender][id] = accountIDJournal[msgSender].length-1;
         idPosition[_proposed][id] = accountIDJournal[_proposed].length-1;
-
-        readKey[msgSender][id] = _readKeyProposer;
-        readKey[_proposed][id] = _readKeyProposed;
 
         hasensName[msgSender] = _hasensWaver;
         
@@ -343,7 +336,6 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
             accountIDJournal[msgSender_].pop();
             idPosition[msgSender_][lastID] = toBeRemoved;
             waver.hasRole[msgSender_]=0;
-            readKey[msgSender_][_id]='';
     }
 
     /**
@@ -483,7 +475,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      * @param _id ID of the marriage.
      */
 
-    function addFamilyMember(address _familyMember, uint256 _id, uint256 _threshold, bytes memory _readKey)
+    function addFamilyMember(address _familyMember, uint256 _id, uint256 _threshold)
         external
         onlyContract
     {
@@ -493,7 +485,6 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         Wave storage waver = proposalAttributes[_id];
         waver.hasRole[_familyMember] = 10;     
         familyMembers[msg.sender].push(_familyMember);
-        readKey[_familyMember][_id] = _readKey;
 
         emit NewWave(_id, _familyMember,msg.sender,Status.MemberInvited);
     }
@@ -596,8 +587,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
              id: waver.id,
              ProposalStatus: waver.ProposalStatus,
              marriageContract: waver.marriageContract,
-             hasRole: waver.hasRole[msg.sender],
-             readKey: readKey[msg.sender][waver.id]
+             hasRole: waver.hasRole[msg.sender]
             });
         }
         return returnAccounts;
@@ -793,7 +783,6 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
        return address(this).balance;
     }
 
-   
 
     receive() external payable {
         if (pauseAddresses[msg.sender] == 1){revert ACCOUNT_PAUSED(msg.sender);}

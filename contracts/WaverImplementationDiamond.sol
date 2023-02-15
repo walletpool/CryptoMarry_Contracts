@@ -22,16 +22,13 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./handlers/SecuredTokenTransfer.sol";
 import "./handlers/DefaultCallbackHandler.sol";
-//import "hardhat/console.sol";
 import {LibDiamond} from "./libraries/LibDiamond.sol";
 import {IDiamondCut} from "./interfaces/IDiamondCut.sol";
 import {VoteProposalLib} from "./libraries/VotingStatusLib.sol";
 
 /*Interface for the Main Contract*/
 interface WaverContract {
-    function burn(address _to, uint256 _amount) external;
-
-    function addFamilyMember(address, uint256, uint256, bytes memory) external;
+    function addFamilyMember(address, uint256, uint256) external;
 
     function cancel(uint256 , address _proposed, address _proposer ) external;
 
@@ -54,8 +51,6 @@ interface WaverContract {
         address proposer,
         address proposed
     ) external;
-
-    function updateSubscription(address msgSender_, uint _id, uint8 plan , uint value) external;
 }
 
 /*Interface for the NFT Split Contract*/
@@ -405,8 +400,7 @@ error VOTE_ID_NOT_FOUND();
         } else if (vt.voteProposalAttributes[_id].voteType == 7){
              vt.voteProposalAttributes[_id].voteStatus = 12;
             address _member = vt.voteProposalAttributes[_id].receiver;
-            _wavercContract.addFamilyMember(_member, vt.id, vt.voteProposalAttributes[_id].amount, 
-            vt.voteProposalAttributes[_id].voteProposalText );
+            _wavercContract.addFamilyMember(_member, vt.id, vt.voteProposalAttributes[_id].amount);
                   
           //Deleting a family member 
         }else if (vt.voteProposalAttributes[_id].voteType == 8){
