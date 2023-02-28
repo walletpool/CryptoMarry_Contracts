@@ -24,10 +24,12 @@ library LibDiamond {
     struct DiamondStorage {
         address waveAddress;
         // function selector => facet address and selector position in selectors array
-        mapping(bytes4 => FacetAddressAndSelectorPosition) facetAddressAndSelectorPosition;
         bytes4[] selectors;
+        address [] allConnectedApps;
+        mapping(bytes4 => FacetAddressAndSelectorPosition) facetAddressAndSelectorPosition;
         mapping(bytes4 => bool) supportedInterfaces;
         mapping(address => bool) connectedApps;
+        mapping(address => uint256) appPosition;
     }
 
     function diamondStorage() internal pure returns (DiamondStorage storage ds) {
@@ -48,10 +50,15 @@ library LibDiamond {
             DiamondStorage storage ds = diamondStorage();
             IDiamondCut.FacetCutAction action = _diamondCut[facetIndex].action;
             if (action == IDiamondCut.FacetCutAction.Add) {
-                addFunctions(_diamondCut[facetIndex].facetAddress, _diamondCut[facetIndex].functionSelectors);
-                ds.connectedApps[_diamondCut[facetIndex].facetAddress] = true;
+                address _addr = _diamondCut[facetIndex].facetAddress;
+                addFunctions(_addr, _diamondCut[facetIndex].functionSelectors);
+                ds.connectedApps[_addr] = true;
+                ds.allConnectedApps.push(_addr);
+                ds.appPosition[_addr] = ds.allConnectedApps.length-1;
             } else if (action == IDiamondCut.FacetCutAction.Remove) {
-                ds.connectedApps[ds.facetAddressAndSelectorPosition[_diamondCut[facetIndex].functionSelectors[0]].facetAddress] = false;
+                address _addr = ds.facetAddressAndSelectorPosition[_diamondCut[facetIndex].functionSelectors[0]].facetAddress;
+                _removeAddess(_addr);
+                ds.connectedApps[_addr] = false;
                 removeFunctions(_diamondCut[facetIndex].facetAddress, _diamondCut[facetIndex].functionSelectors);
             } else {
                 revert DIAMOND_ACTION_NOT_FOUND();
@@ -60,6 +67,17 @@ library LibDiamond {
         //emit DiamondCut(_diamondCut, _init, _calldata);
         initializeDiamondCut(_init, _calldata);
     }
+
+    function _removeAddess(address App) internal {
+        DiamondStorage storage ds = diamondStorage();
+        address lastID = ds.allConnectedApps[ds.allConnectedApps.length-1]; 
+        uint toBeRemoved = ds.appPosition[App]; 
+        ds.allConnectedApps[toBeRemoved] = lastID;
+        ds.allConnectedApps.pop();
+        ds.appPosition[lastID] = toBeRemoved;
+    }
+
+
     error FUNCTION_SELECTORS_CANNOT_BE_EMPTY();
     error FACET_ADDRESS_CANNOT_BE_EMPTY();
     error FACET_ALREADY_EXISTS();

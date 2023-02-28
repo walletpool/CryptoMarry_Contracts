@@ -53,6 +53,17 @@ WhiteListAddr.push({
   Status: 1
 })
 
+const YearnFacet = await deploy('YearnFacet',forwarder.address);
+console.log(
+ "YearnFacet deployed:",
+ YearnFacet.address,
+ YearnFacet.deployTransaction.gasLimit
+);
+WhiteListAddr.push({
+ ContractAddress: YearnFacet.address,
+ Status: 1
+})
+
 
  const UniSwapFacet = await deploy('UniSwapFacet', "0xE592427A0AEce92De3Edee1F18E0157C05861564","0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",forwarder.address);
  //0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2 --> Mainnet weth9 address

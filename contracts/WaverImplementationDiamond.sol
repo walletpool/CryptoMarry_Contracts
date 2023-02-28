@@ -746,6 +746,16 @@ error VOTE_ID_NOT_FOUND();
         return ds.connectedApps[appAddress];
     }
 
+    /* Sends all connected modules*/
+    function getAllConnectedApps()
+        external
+        view
+        returns (address [] memory Apps)
+    {
+        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+        return ds.allConnectedApps;
+    }
+
     error FACET_DOES_NOT_EXIST(address facet);
     // Find facet for function that is called and execute the
     // function if a facet is found and return any value.
