@@ -416,7 +416,7 @@ error VOTE_ID_NOT_FOUND();
         else if (vt.voteProposalAttributes[_id].voteType == 9){
              vt.voteProposalAttributes[_id].voteStatus = 14;
              updateThreshold(vt.voteProposalAttributes[_id].amount, vt);
-          
+             
         }
         else {
             revert VOTE_ID_NOT_FOUND();

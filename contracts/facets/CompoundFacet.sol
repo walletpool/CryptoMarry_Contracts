@@ -39,8 +39,6 @@ contract CompoundFacet is ERC2771ContextUpgradeable{
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
 
-
-        //A small fee for the protocol is deducted here
         uint256 _amount = vt.voteProposalAttributes[_id].amount;
          
         if (vt.voteProposalAttributes[_id].voteType == 203) {
