@@ -70,7 +70,10 @@ await WavePortal7.changeaddressNFT(nftContract.address,nftSplit.address);
  
   console.log("*************************************")
       console.log("Balance of ETH :",await hre.ethers.provider.getBalance(accounts[0].address));
-  let txn;
+ 
+ 
+ 
+      let txn;
   //    Proposing
   txn = await WavePortal7.propose(
     accounts[1].address,

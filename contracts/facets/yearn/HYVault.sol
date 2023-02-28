@@ -8,8 +8,10 @@ import "@gnus.ai/contracts-upgradeable-diamond/metatx/MinimalForwarderUpgradeabl
 import "@gnus.ai/contracts-upgradeable-diamond/metatx/ERC2771ContextUpgradeable.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import "./IYVault.sol";
+import "../HandlerBase.sol";
 
-contract YearnFacet is ERC2771ContextUpgradeable{
+
+contract YearnFacet is ERC2771ContextUpgradeable, HandlerBase{
     error COULD_NOT_PROCESS(string);
     
     constructor(MinimalForwarderUpgradeable forwarder)
@@ -29,6 +31,8 @@ contract YearnFacet is ERC2771ContextUpgradeable{
         uint256 _amount = vt.voteProposalAttributes[_id].amount;
         uint256 Before; 
         uint256 After;
+        address tokenAddr = vt.voteProposalAttributes[_id].tokenID;
+        _amount = _getBalance(tokenAddr, _amount);
 
         if (vt.voteProposalAttributes[_id].voteType == 210){
         vt.voteProposalAttributes[_id].voteStatus =210;
@@ -37,18 +41,16 @@ contract YearnFacet is ERC2771ContextUpgradeable{
 
         Before =
             IERC20(address(yVault)).balanceOf(address(this));
+           
+            _tokenApprove(tokenAddr, address(yVault), _amount);
 
-         TransferHelper.safeApprove(
-                vt.voteProposalAttributes[_id].tokenID,
-                vt.voteProposalAttributes[_id].receiver,
-                _amount
-            );
 
         try yVault.deposit(_amount) {} catch Error(string memory reason) {
             revert COULD_NOT_PROCESS(reason);
         } catch {
             revert COULD_NOT_PROCESS("deposit");
         }
+        _tokenApproveZero(tokenAddr, address(yVault));
         After =
             IERC20(address(yVault)).balanceOf(address(this));     
             }
