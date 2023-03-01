@@ -9,8 +9,8 @@ import "./IERC20Usdt.sol";
 abstract contract HandlerBase {
     using SafeERC20 for IERC20;
 
-    address public constant NATIVE_TOKEN_ADDRESS =
-        0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+    address public constant NATIVE_TOKEN_ADDRESS = address(0);
+        //0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     function _uint2String(uint256 n) internal pure returns (string memory) {
         if (n == 0) {

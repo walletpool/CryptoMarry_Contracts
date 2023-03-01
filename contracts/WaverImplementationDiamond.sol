@@ -206,6 +206,7 @@ contract WaverIDiamond is
         address payable _receiver,
         address _tokenID,
         uint256 _amount,
+        uint256 _voteends,
         bool execute
     ) external {
         address msgSender_ = _msgSender();
@@ -214,7 +215,6 @@ contract WaverIDiamond is
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
         
-        uint256 _voteends;
         if (_votetype == 4) {
              //Cooldown has to pass before divorce is proposed.
             if (vt.marryDate + vt.policyDays > block.timestamp) { revert DISSOLUTION_COOLDOWN_NOT_PASSED(vt.marryDate + vt.policyDays );}
@@ -223,25 +223,22 @@ contract WaverIDiamond is
             VoteProposalLib.enforceOnlyPartners(msgSender_);
        
             _voteends = block.timestamp + 10 days;
-        } else {
-            _voteends = block.timestamp + vt.setDeadline;
-            if (_votetype == 7){
+        } else if (_votetype == 7){
             require(vt.hasAccess[_receiver] == false);}
 
-            if (_votetype == 8){
+          else if (_votetype == 8){
             WaverContract _wavercContract = WaverContract(vt.addressWaveContract);
             require (_wavercContract.isMember(_receiver,vt.id)>0);
             VoteProposalLib.enforceNotPartnerAddr(_receiver);
             }
-        }
-
+        
         vt.voteProposalAttributes[vt.voteid] = VoteProposalLib.VoteProposal({
             id: vt.voteid,
             proposer: msgSender_,
             voteType: _votetype,
             voteProposalText: _message,
             voteStatus: 1,
-            voteends: block.timestamp + 10 days,
+            voteends: _voteends,
             receiver: _receiver,
             tokenID: _tokenID,
             amount: _amount,

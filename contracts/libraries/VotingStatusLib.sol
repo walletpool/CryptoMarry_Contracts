@@ -20,19 +20,19 @@ library VoteProposalLib {
         keccak256("waverimplementation.VoteTracking.Lib"); //Storing position of the variables
 
     struct VoteProposal {
-        uint24 id;
-        address proposer;
-        uint8 voteType;
-        bytes voteProposalText;
-        uint8 voteStatus;
-        uint256 voteends;
-        address receiver;
-        address tokenID;
-        uint256 amount;
         uint8 votersLeft;
         uint8 familyDao;
+        uint8 voteType;
+        uint8 voteStatus;
+        uint24 id;
+        address proposer;
+        address receiver;
+        address tokenID;
+        uint256 voteends;
+        uint256 amount;
         uint256 numTokenFor;
         uint256 numTokenAgainst;
+        bytes voteProposalText;
     }
 
     event VoteStatus(

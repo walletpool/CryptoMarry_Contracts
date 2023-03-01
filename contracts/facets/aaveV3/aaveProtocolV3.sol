@@ -4,14 +4,16 @@ pragma solidity ^0.8.17;
 import {VoteProposalLib} from "../../libraries/VotingStatusLib.sol";
 import { IDiamondCut } from "../../interfaces/IDiamondCut.sol";
 import { LibDiamond } from "../../libraries/LibDiamond.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@gnus.ai/contracts-upgradeable-diamond/metatx/MinimalForwarderUpgradeable.sol";
 import "@gnus.ai/contracts-upgradeable-diamond/metatx/ERC2771ContextUpgradeable.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import "./IPool.sol";
 import "./IWrappedNativeToken.sol";
-import "../HandlerBase.sol";
+import "../handlerBase.sol";
 
 contract AaveV3Facet is ERC2771ContextUpgradeable, HandlerBase {
+    using SafeERC20 for IERC20;
     error COULD_NOT_PROCESS(string);
     
     address public immutable PROVIDER;

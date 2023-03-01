@@ -8,7 +8,7 @@ import "@gnus.ai/contracts-upgradeable-diamond/metatx/MinimalForwarderUpgradeabl
 import "@gnus.ai/contracts-upgradeable-diamond/metatx/ERC2771ContextUpgradeable.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import "./IYVault.sol";
-import "../HandlerBase.sol";
+import "../handlerBase.sol";
 
 
 contract YearnFacet is ERC2771ContextUpgradeable, HandlerBase{
