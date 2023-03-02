@@ -25,7 +25,7 @@ contract AaveV3Facet is ERC2771ContextUpgradeable, HandlerBase {
         {PROVIDER = _provider;
         wrappedNativeToken = wrappedNativeToken_;}
 
-    function executeYearn(
+    function executeAave(
         uint24 _id
     ) external {
        address msgSender_ = _msgSender();   
