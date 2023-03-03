@@ -508,4 +508,22 @@ contract UniSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
             revert COULD_NOT_PROCESS("Path size too small");
         return path.toAddress(path.length - ADDRESS_SIZE);
     }
+
+     function withdrawWeth(uint amount) external{
+        address msgSender_ = _msgSender();
+        VoteProposalLib.enforceMarried();
+        VoteProposalLib.enforceUserHasAccess(msgSender_);
+        wrappedNativeToken.withdraw(amount);
+        VoteProposalLib.checkForwarder();
+      } 
+
+    function depositETH(uint amount) external payable{
+        address msgSender_ = _msgSender();
+        VoteProposalLib.enforceMarried();
+        VoteProposalLib.enforceUserHasAccess(msgSender_);
+        wrappedNativeToken.deposit{value: amount}(); 
+     emit VoteProposalLib.AddStake(address(this), address(wrappedNativeToken), block.timestamp, amount); 
+     VoteProposalLib.checkForwarder();
+    
+      } 
 }

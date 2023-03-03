@@ -33,8 +33,8 @@ contract OneInchFacet is ERC2771ContextUpgradeable, HandlerBase {
 
         uint256 amount = vt.voteProposalAttributes[_id].amount;
 
-        if (vt.voteProposalAttributes[_id].voteType != 135 ) revert COULD_NOT_PROCESS("Not OneINCHtype");
-        vt.voteProposalAttributes[_id].voteStatus =135;
+        if (vt.voteProposalAttributes[_id].voteType != 137 ) revert COULD_NOT_PROCESS("Not OneINCHtype");
+        vt.voteProposalAttributes[_id].voteStatus =137;
 
          IERC20 srcToken = IERC20(vt.voteProposalAttributes[_id].tokenID);
          IERC20 dstToken = IERC20(vt.voteProposalAttributes[_id].receiver);

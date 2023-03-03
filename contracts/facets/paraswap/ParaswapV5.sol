@@ -35,7 +35,7 @@ contract ParaSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
 
         uint256 amount = vt.voteProposalAttributes[_id].amount;
 
-        if (vt.voteProposalAttributes[_id].voteType != 143 ) revert COULD_NOT_PROCESS("Not OneINCHtype");
+        if (vt.voteProposalAttributes[_id].voteType != 143 ) revert COULD_NOT_PROCESS("Not ParaSwaptype");
         vt.voteProposalAttributes[_id].voteStatus = 143;
 
          address srcToken = vt.voteProposalAttributes[_id].tokenID;

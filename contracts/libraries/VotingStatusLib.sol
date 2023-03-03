@@ -22,8 +22,8 @@ library VoteProposalLib {
     struct VoteProposal {
         uint8 votersLeft;
         uint8 familyDao;
-        uint8 voteType;
-        uint8 voteStatus;
+        uint16 voteType;
+        uint16 voteStatus;
         uint24 id;
         address proposer;
         address receiver;
@@ -38,7 +38,7 @@ library VoteProposalLib {
     event VoteStatus(
         uint24 indexed id,
         address sender,
-        uint8 voteStatus,
+        uint16 voteStatus,
         uint256 timestamp
     );
 

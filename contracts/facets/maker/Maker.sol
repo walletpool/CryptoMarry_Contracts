@@ -439,8 +439,8 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 134) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =134;
+        if (vt.voteProposalAttributes[_id].voteType != 135) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =135;
          
         uint256 wad = vt.voteProposalAttributes[_id].amount;
         address daiJoin = vt.voteProposalAttributes[_id].tokenID;
@@ -475,7 +475,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            133,
+            135,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -487,8 +487,8 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 134) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =134;
+        if (vt.voteProposalAttributes[_id].voteType != 136) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =136;
          
         address daiJoin = vt.voteProposalAttributes[_id].tokenID;
        
@@ -521,7 +521,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            133,
+            136,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
