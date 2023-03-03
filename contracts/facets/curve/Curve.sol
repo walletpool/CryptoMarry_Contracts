@@ -124,8 +124,8 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) returns (uint){
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 110) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =110;
+        if (vt.voteProposalAttributes[_id].voteType != 410) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =410;
         
         address tokenI = vt.voteProposalAttributes[_id].tokenID;
         address tokenJ = vt.voteProposalAttributes[_id].receiver;
@@ -150,7 +150,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            110,
+            410,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -170,8 +170,8 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
         
-        if (vt.voteProposalAttributes[_id].voteType != 111) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =111;
+        if (vt.voteProposalAttributes[_id].voteType != 411) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =411;
         
         address tokenI = vt.voteProposalAttributes[_id].tokenID;
         address tokenJ = vt.voteProposalAttributes[_id].receiver;
@@ -196,7 +196,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            111,
+            411,
             block.timestamp
         ); 
         
@@ -215,8 +215,8 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) returns (uint){
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 112) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus = 112;
+        if (vt.voteProposalAttributes[_id].voteType != 412) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus = 412;
         
         address tokenI = vt.voteProposalAttributes[_id].tokenID;
         address tokenJ = vt.voteProposalAttributes[_id].receiver;
@@ -242,7 +242,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            112,
+            412,
             block.timestamp
         ); 
        
@@ -261,8 +261,8 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) returns (uint){
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 113) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =113;
+        if (vt.voteProposalAttributes[_id].voteType != 413) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =413;
         
         address tokenI = vt.voteProposalAttributes[_id].tokenID;
         address tokenJ = vt.voteProposalAttributes[_id].receiver;
@@ -287,7 +287,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            113,
+            413,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -303,8 +303,8 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) returns (uint){
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 114) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =114;
+        if (vt.voteProposalAttributes[_id].voteType != 414) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =414;
         
         address tokenI = vt.voteProposalAttributes[_id].tokenID;
         address tokenJ = vt.voteProposalAttributes[_id].receiver;
@@ -331,7 +331,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            114,
+            414,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -347,8 +347,8 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) returns (uint){
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 115) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =115;
+        if (vt.voteProposalAttributes[_id].voteType != 415) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =415;
         
         address tokenI = vt.voteProposalAttributes[_id].tokenID;
         address tokenJ = vt.voteProposalAttributes[_id].receiver;
@@ -373,7 +373,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            115,
+            415,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -429,8 +429,8 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
         YearnStorage storage yt = YearnStorageTracking();
-        if (vt.voteProposalAttributes[_id].voteType != 116) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =116;
+        if (vt.voteProposalAttributes[_id].voteType != 416) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =416;
 
          address handler = vt.voteProposalAttributes[_id].tokenID;
          address pool = vt.voteProposalAttributes[_id].receiver;
@@ -525,7 +525,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            116,
+            416,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -540,8 +540,8 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
         YearnStorage storage yt = YearnStorageTracking();
-        if (vt.voteProposalAttributes[_id].voteType != 117) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =117;
+        if (vt.voteProposalAttributes[_id].voteType != 417) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =417;
 
          address handler = vt.voteProposalAttributes[_id].tokenID;
          address pool = vt.voteProposalAttributes[_id].receiver;
@@ -641,7 +641,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            117,
+            417,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -655,8 +655,8 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
         YearnStorage storage yt = YearnStorageTracking();
-        if (vt.voteProposalAttributes[_id].voteType != 118) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =118;
+        if (vt.voteProposalAttributes[_id].voteType != 418) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =418;
 
          address handler = vt.voteProposalAttributes[_id].tokenID;
          address pool = vt.voteProposalAttributes[_id].receiver;
@@ -743,7 +743,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            118,
+            418,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -811,8 +811,8 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) returns (uint){
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 119) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =119;
+        if (vt.voteProposalAttributes[_id].voteType != 419) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =419;
         
         address tokenI = vt.voteProposalAttributes[_id].tokenID;
         address pool = vt.voteProposalAttributes[_id].receiver;
@@ -837,7 +837,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            119,
+            419,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -853,8 +853,8 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) returns (uint){
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 120) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =120;
+        if (vt.voteProposalAttributes[_id].voteType != 420) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =420;
         
         address tokenI = vt.voteProposalAttributes[_id].tokenID;
         address pool = vt.voteProposalAttributes[_id].receiver;
@@ -879,7 +879,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            120,
+            420,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -895,8 +895,8 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) returns (uint){
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 121) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =121;
+        if (vt.voteProposalAttributes[_id].voteType != 421) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =421;
         
         address tokenI = vt.voteProposalAttributes[_id].tokenID;
         address pool = vt.voteProposalAttributes[_id].receiver;
@@ -922,7 +922,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            121,
+            421,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -938,8 +938,8 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) returns (uint){
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 122) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =122;
+        if (vt.voteProposalAttributes[_id].voteType != 422) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =422;
         
         address tokenI = vt.voteProposalAttributes[_id].tokenID;
         address pool = vt.voteProposalAttributes[_id].receiver;
@@ -965,7 +965,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            122,
+            422,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -981,8 +981,8 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) returns (uint){
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 123) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =123;
+        if (vt.voteProposalAttributes[_id].voteType != 423) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =423;
         
         address tokenI = vt.voteProposalAttributes[_id].tokenID;
         address pool = vt.voteProposalAttributes[_id].receiver;
@@ -1008,7 +1008,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            123,
+            423,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
