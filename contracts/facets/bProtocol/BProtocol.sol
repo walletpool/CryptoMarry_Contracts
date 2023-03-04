@@ -14,7 +14,7 @@ import "./IMaker.sol";
 
 ////Need to thoroughly test this integration. Need to write init function to handle build in Proxy Factory. 
 
-contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
+contract BProtocolFacet is ERC2771ContextUpgradeable, HandlerBase {
     using SafeERC20 for IERC20;
     error COULD_NOT_PROCESS(string);
 
@@ -34,28 +34,28 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
             PROXY_ACTIONS=_PROXY_ACTIONS;
         }
     
-    bytes32 constant MT_STORAGE_POSITION =
+    bytes32 constant BP_STORAGE_POSITION =
         keccak256("waverimplementation.MakerApp.CDPStorage"); //Storing position of the variables
 
 
-    struct MakerStorage {
+    struct BProtocolStorage {
         mapping(uint256 => uint256) CDP;
     }
 
-    function MakerStorageTracking()
+    function BProtocolStorageTracking()
         internal
         pure
-        returns (MakerStorage storage mt)
+        returns (BProtocolStorage storage bp)
     {
-        bytes32 position = MT_STORAGE_POSITION;
+        bytes32 position = BP_STORAGE_POSITION;
         assembly {
-            mt.slot := position
+            bp.slot := position
         }
     }
 
     function getCDP(uint index) public view returns (uint) {
-        MakerStorage storage mt = MakerStorageTracking();
-        return mt.CDP[index];
+        BProtocolStorage storage bp = BProtocolStorageTracking();
+        return bp.CDP[index];
     }
 
     function getMcdJug() public view returns (address) {
@@ -64,8 +64,8 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
 
     modifier cdpAllowed(uint256 index) {
         IMakerManager manager = IMakerManager(CDP_MANAGER);
-         MakerStorage storage mt = MakerStorageTracking();
-        uint256 cdp = mt.CDP[index];
+         BProtocolStorage storage bp = BProtocolStorageTracking();
+        uint256 cdp = bp.CDP[index];
         address owner = manager.owns(cdp);
         address sender = address(this);
         if (IDSProxyRegistry(PROXY_REGISTRY).proxies(sender) == owner || manager.cdpCan(owner, cdp, sender) == 1)
@@ -86,8 +86,8 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) payable returns (uint256 cdp){
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 130) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =130;
+        if (vt.voteProposalAttributes[_id].voteType != 700) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =700;
 
         uint256 value = vt.voteProposalAttributes[_id].amount;
         address ethJoin = vt.voteProposalAttributes[_id].tokenID;
@@ -118,8 +118,8 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
             )
         returns (bytes32 ret) {
             cdp = uint256(ret);
-            MakerStorage storage mt = MakerStorageTracking();
-            mt.CDP[1] = cdp;
+            BProtocolStorage storage bp = BProtocolStorageTracking();
+            bp.CDP[1] = cdp;
         } catch Error(string memory reason) {
             revert COULD_NOT_PROCESS(reason);
         } catch {
@@ -130,7 +130,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            130,
+            700,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -142,8 +142,8 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 131) {revert COULD_NOT_PROCESS('wrong type');}
-           vt.voteProposalAttributes[_id].voteStatus =131;
+        if (vt.voteProposalAttributes[_id].voteType != 701) {revert COULD_NOT_PROCESS('wrong type');}
+           vt.voteProposalAttributes[_id].voteStatus =701;
 
         address gemJoin = vt.voteProposalAttributes[_id].tokenID;
         address daiJoin = vt.voteProposalAttributes[_id].receiver;
@@ -176,8 +176,8 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
                 )
             )
         returns (bytes32 ret) {
-            MakerStorage storage mt = MakerStorageTracking();
-            mt.CDP[2] = uint256(ret);
+            BProtocolStorage storage bp = BProtocolStorageTracking();
+            bp.CDP[2] = uint256(ret);
         } catch Error(string memory reason) {
             revert COULD_NOT_PROCESS(reason);
         } catch {
@@ -189,7 +189,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            131,
+            701,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -202,15 +202,15 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 132) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =132;
+        if (vt.voteProposalAttributes[_id].voteType != 702) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =702;
          
         uint256 value = vt.voteProposalAttributes[_id].amount;
         address ethJoin = vt.voteProposalAttributes[_id].tokenID;
         address owner = _getProxy(address(this));
        
-        MakerStorage storage mt = MakerStorageTracking();
-        uint256 cdp = mt.CDP[index];
+        BProtocolStorage storage bp = BProtocolStorageTracking();
+        uint256 cdp = bp.CDP[index];
            
         IDSProxy proxy = IDSProxy(_getProxy(address(this)));
 
@@ -239,7 +239,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            132,
+            702,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -251,16 +251,16 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 133) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =133;
+        if (vt.voteProposalAttributes[_id].voteType != 703) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =703;
 
         uint256 wad = vt.voteProposalAttributes[_id].amount;
         address gemJoin = vt.voteProposalAttributes[_id].tokenID;
         address owner = _getProxy(address(this));
         address token = IMakerGemJoin(gemJoin).gem();
         
-        MakerStorage storage mt = MakerStorageTracking();
-        uint256 cdp = mt.CDP[index];
+        BProtocolStorage storage bp = BProtocolStorageTracking();
+        uint256 cdp = bp.CDP[index];
         
         IDSProxy proxy = IDSProxy(_getProxy(address(this)));
         // if amount == type(uint256).max return balance of Proxy
@@ -292,7 +292,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            133,
+            703,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -304,14 +304,14 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) cdpAllowed(index) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 134) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =134;
+        if (vt.voteProposalAttributes[_id].voteType != 704) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =704;
          
         uint256 wad = vt.voteProposalAttributes[_id].amount;
         address ethJoin = vt.voteProposalAttributes[_id].tokenID;
        
-        MakerStorage storage mt = MakerStorageTracking();
-        uint256 cdp = mt.CDP[index];
+        BProtocolStorage storage bp = BProtocolStorageTracking();
+        uint256 cdp = bp.CDP[index];
            
         IDSProxy proxy = IDSProxy(_getProxy(address(this)));
 
@@ -337,7 +337,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            134,
+            704,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -349,14 +349,14 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) cdpAllowed(index) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 135) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =135;
+        if (vt.voteProposalAttributes[_id].voteType != 705) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =705;
          
         uint256 wad = vt.voteProposalAttributes[_id].amount;
         address gemJoin = vt.voteProposalAttributes[_id].tokenID;
        
-        MakerStorage storage mt = MakerStorageTracking();
-        uint256 cdp = mt.CDP[index];
+        BProtocolStorage storage bp = BProtocolStorageTracking();
+        uint256 cdp = bp.CDP[index];
            
         IDSProxy proxy = IDSProxy(_getProxy(address(this)));
           try
@@ -381,7 +381,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            135,
+            705,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -393,14 +393,14 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) cdpAllowed(index) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 136) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =136;
+        if (vt.voteProposalAttributes[_id].voteType != 706) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =706;
          
         uint256 wad = vt.voteProposalAttributes[_id].amount;
         address daiJoin = vt.voteProposalAttributes[_id].tokenID;
        
-        MakerStorage storage mt = MakerStorageTracking();
-        uint256 cdp = mt.CDP[index];
+        BProtocolStorage storage bp = BProtocolStorageTracking();
+        uint256 cdp = bp.CDP[index];
            
         IDSProxy proxy = IDSProxy(_getProxy(address(this)));
           
@@ -427,7 +427,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            136,
+            706,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -439,14 +439,14 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 137) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =137;
+        if (vt.voteProposalAttributes[_id].voteType != 707) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =707;
          
         uint256 wad = vt.voteProposalAttributes[_id].amount;
         address daiJoin = vt.voteProposalAttributes[_id].tokenID;
        
-        MakerStorage storage mt = MakerStorageTracking();
-        uint256 cdp = mt.CDP[index];
+        BProtocolStorage storage bp = BProtocolStorageTracking();
+        uint256 cdp = bp.CDP[index];
            
         IDSProxy proxy = IDSProxy(_getProxy(address(this)));
          _tokenApprove(DAI_TOKEN, address(proxy), wad);
@@ -475,7 +475,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            137,
+            707,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -487,13 +487,13 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 138) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =138;
+        if (vt.voteProposalAttributes[_id].voteType != 708) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =708;
          
         address daiJoin = vt.voteProposalAttributes[_id].tokenID;
        
-        MakerStorage storage mt = MakerStorageTracking();
-        uint256 cdp = mt.CDP[index];
+        BProtocolStorage storage bp = BProtocolStorageTracking();
+        uint256 cdp = bp.CDP[index];
            
         IDSProxy proxy = IDSProxy(_getProxy(address(this)));
         _tokenApprove(DAI_TOKEN, address(proxy), type(uint256).max);
@@ -521,7 +521,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            138,
+            708,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
