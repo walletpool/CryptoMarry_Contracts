@@ -264,7 +264,7 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
 
     function executeUniV2Swap(
         uint24 _id,
-         uint256 amountOutMin,
+         uint256 requiredAmount,
          address[] calldata path
     ) external payable returns (uint256 resp){
        address msgSender_ = _msgSender();   
@@ -275,6 +275,7 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
             .VoteTrackingStorage();
 
         uint256 amount = vt.voteProposalAttributes[_id].amount;
+        require (path.length>=2);
          IUniswapV2Router02 router = IUniswapV2Router02(UNISWAPV2_ROUTER);
          //swapExactETHForTokens
         if (vt.voteProposalAttributes[_id].voteType == 505 ) {
@@ -283,7 +284,7 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         if (path[path.length - 1]!= vt.voteProposalAttributes[_id].receiver) revert COULD_NOT_PROCESS("wrong pair");
         try
             router.swapExactETHForTokens{value: amount}(
-                amountOutMin,
+                requiredAmount,
                 path,
                 address(this),
                 block.timestamp
@@ -296,18 +297,41 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
              revert COULD_NOT_PROCESS("swapExactETHForTokens");
         }
         }
-        //swapExactTokensForETH
-
-        if (vt.voteProposalAttributes[_id].voteType == 506 ) {
+        //swapETHForExactTokens
+        else if (vt.voteProposalAttributes[_id].voteType == 506 ) {
         vt.voteProposalAttributes[_id].voteStatus =506;
+        amount = _getBalance(address(0), amount);
+       
+        if (path[0]!= vt.voteProposalAttributes[_id].tokenID) revert COULD_NOT_PROCESS("wrong pair");
+        try
+            router.swapETHForExactTokens{value: amount}(
+                requiredAmount,
+                path,
+                address(this),
+                block.timestamp
+            )
+        returns (uint256[] memory amounts) {
+            resp = amounts[0];
+        } catch Error(string memory reason) {
+            revert COULD_NOT_PROCESS(reason);
+        } catch {
+             revert COULD_NOT_PROCESS("swapExactETHForTokens");
+        }
+        }
+
+        //swapExactTokensForETH
+       else if (vt.voteProposalAttributes[_id].voteType == 507 ) {
+        vt.voteProposalAttributes[_id].voteStatus =507;
+        
         address tokenIn = vt.voteProposalAttributes[_id].tokenID;
+        if (path[0]!= tokenIn) revert COULD_NOT_PROCESS("wrong pair");
         amount = _getBalance(tokenIn, amount);
         _tokenApprove(tokenIn, UNISWAPV2_ROUTER, amount);
-        if (path[0]!= vt.voteProposalAttributes[_id].tokenID) revert COULD_NOT_PROCESS("wrong pair");
+        
        try
             router.swapExactTokensForETH(
                 amount,
-                amountOutMin,
+                requiredAmount,
                 path,
                 address(this),
                 block.timestamp
@@ -321,24 +345,80 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         }
         _tokenApproveZero(tokenIn, UNISWAPV2_ROUTER);
         }
+
+         //swapTokensForExactETH
+       else if (vt.voteProposalAttributes[_id].voteType == 508 ) {
+        vt.voteProposalAttributes[_id].voteStatus =508;
+        
+        address tokenIn = vt.voteProposalAttributes[_id].tokenID;
+        if (path[0]!= tokenIn) revert COULD_NOT_PROCESS("wrong pair");
+        amount = _getBalance(tokenIn, amount);
+        _tokenApprove(tokenIn, UNISWAPV2_ROUTER, amount);
+        
+       try
+            router.swapExactTokensForETH(
+                requiredAmount,
+                amount,
+                path,
+                address(this),
+                block.timestamp
+            )
+        returns (uint256[] memory amounts) {
+            resp = amounts[0];
+        } catch Error(string memory reason) {
+            revert COULD_NOT_PROCESS(reason);
+        } catch {
+             revert COULD_NOT_PROCESS("swapExactTokensForETH");
+        }
+        _tokenApproveZero(tokenIn, UNISWAPV2_ROUTER);
+        }
+
+
         //swapExactTokensForTokens
-        if (vt.voteProposalAttributes[_id].voteType == 507 ) {
-        vt.voteProposalAttributes[_id].voteStatus =507;
+        else if (vt.voteProposalAttributes[_id].voteType == 509 ) {
+        vt.voteProposalAttributes[_id].voteStatus =509;
         address tokenIn = vt.voteProposalAttributes[_id].tokenID;
         amount = _getBalance(tokenIn, amount);
         _tokenApprove(tokenIn, UNISWAPV2_ROUTER, amount);
 
-         if (path[0]!= vt.voteProposalAttributes[_id].tokenID || path[path.length - 1]!= vt.voteProposalAttributes[_id].receiver) revert COULD_NOT_PROCESS("wrong pair");
+         if (path[0]!= tokenIn || path[path.length - 1]!= vt.voteProposalAttributes[_id].receiver) revert COULD_NOT_PROCESS("wrong pair");
        try
             router.swapExactTokensForTokens(
                 amount,
-                amountOutMin,
+                requiredAmount,
                 path,
                 address(this),
                 block.timestamp
             )
         returns (uint256[] memory amounts) {
             resp = amounts[amounts.length - 1];
+        } catch Error(string memory reason) {
+            revert COULD_NOT_PROCESS(reason);
+        } catch {
+             revert COULD_NOT_PROCESS("swapExactTokensForTokens");
+        }
+        _tokenApproveZero(tokenIn, UNISWAPV2_ROUTER);
+        }
+
+         //swapTokensForExactTokens
+        else if (vt.voteProposalAttributes[_id].voteType == 510 ) {
+        vt.voteProposalAttributes[_id].voteStatus =510;
+        address tokenIn = vt.voteProposalAttributes[_id].tokenID;
+        address tokenOut = vt.voteProposalAttributes[_id].receiver;
+        amount = _getBalance(tokenIn, amount);
+        _tokenApprove(tokenIn, UNISWAPV2_ROUTER, amount);
+
+         if (path[0]!= tokenIn || path[path.length - 1]!= tokenOut) revert COULD_NOT_PROCESS("wrong pair");
+       try
+            router.swapExactTokensForTokens(
+                requiredAmount,
+                amount,
+                path,
+                address(this),
+                block.timestamp
+            )
+        returns (uint256[] memory amounts) {
+            resp = amounts[0];
         } catch Error(string memory reason) {
             revert COULD_NOT_PROCESS(reason);
         } catch {
