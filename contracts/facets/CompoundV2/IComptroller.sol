@@ -8,4 +8,12 @@ interface IComptroller {
     function checkMembership(address account, address cToken) external view returns (bool);
     function claimComp(address holder) external;
     function getCompAddress() external view returns(address);
+    function getAccountLiquidity(address)
+        external
+        view
+        returns (uint256, uint256, uint256);
+}
+
+interface IPriceFeed {
+     function getUnderlyingPrice(address cToken) external view returns (uint);
 }
