@@ -158,7 +158,9 @@ await WavePortal7.changeaddressNFT(nftContract.address,nftSplit.address);
   console.log(cut);
   tx = await diamondCut.diamondCut(cut, diamondInit.address, functionCall);
   console.log('Diamond cut tx: ', tx.hash)
+
   receipt = await tx.wait()
+
   if (!receipt.status) {
     throw Error(`Diamond upgrade failed: ${tx.hash}`)
   }
@@ -230,7 +232,6 @@ await WavePortal7.changeaddressNFT(nftContract.address,nftSplit.address);
   const cUSDT =  await WavePortal7.attach("0xf650c3d88d12db855b8bf7d11be6c55a4e07dcc9");
 
   console.log("Balance cUSDT", await cUSDT.balanceOf(instance.address));
-
 
 
   txn = await instance.createProposal(

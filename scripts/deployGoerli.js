@@ -35,6 +35,23 @@ async function main() {
   DiamondCutFacet.address,
   DiamondCutFacet.deployTransaction.gasLimit
 );
+
+///Compound V3 Deployment USDC
+const CometUSDCGoerli = "0x3EE77595A8459e93C2888b13aDB354017B198188"
+
+const CompoundV3FacetUSDC = await deploy('CompoundV3FacetUSDC',forwarder.address,CometUSDCGoerli);
+ console.log(
+  "CompoundV3FacetUSDC deployed:",
+  CompoundV3FacetUSDC.address,
+  CompoundV3FacetUSDC.deployTransaction.gasLimit
+);
+WhiteListAddr.push({
+  ContractAddress: CompoundV3FacetUSDC.address,
+  Status: 1
+})
+
+
+
 /*
  const DiamondLoupeFacet = await deploy('DiamondLoupeFacet');
  console.log(
