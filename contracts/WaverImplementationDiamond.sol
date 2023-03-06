@@ -202,7 +202,7 @@ contract WaverIDiamond is
 
     function createProposal(
         bytes calldata _message,
-        uint8 _votetype,
+        uint16 _votetype,
         address payable _receiver,
         address _tokenID,
         uint256 _amount,

@@ -13,7 +13,7 @@ import "./IWrappedNativeToken.sol";
 import "./BytesLib.sol";
 import "./ISwapRouter.sol";
 
-contract UniSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
+contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
     using SafeERC20 for IERC20;
     using BytesLib for bytes;
 
