@@ -60,12 +60,11 @@ contract CompoundV3FacetUSDC is ERC2771ContextUpgradeable, HandlerBase {
         } else if (vt.voteProposalAttributes[_id].voteType == 802) {
             vt.voteProposalAttributes[_id].voteStatus = 802;
             address tokenIn = vt.voteProposalAttributes[_id].tokenID;
-            _amount = _getBalance(tokenIn, MAX_UINT);
+            _amount = _getBalance(tokenIn, _amount);
             _tokenApprove(tokenIn, cometAddress_USDC, _amount);
             Comet(cometAddress_USDC).supply(tokenIn, _amount);
             _tokenApproveZero(tokenIn, cometAddress_USDC);
         }
-        // Redeeming cToken for corresponding ERC20 token.
         else {
             revert COULD_NOT_PROCESS();
         }
@@ -85,6 +84,31 @@ contract CompoundV3FacetUSDC is ERC2771ContextUpgradeable, HandlerBase {
         Comet comet = Comet(cometAddress_USDC);
         uint256 utilization = comet.getUtilization();
         return comet.getSupplyRate(utilization) * SECONDS_PER_YEAR * 100;
+    }
+
+     
+    /*
+     * Get USD Balance
+     */
+    function getBalanceOfUSDC() public view returns (uint256) {
+        Comet comet = Comet(cometAddress_USDC);
+        return comet.balanceOf(address(this));
+    }
+
+    /*
+     * Get Colleteral Balance
+     */
+    function getcollateralBalanceOfUSDC(address colleteralAsset) public view returns (uint256) {
+        Comet comet = Comet(cometAddress_USDC);
+        return comet.collateralBalanceOf(address(this),colleteralAsset);
+    }
+
+     /*
+     * Get principal borrowed + interest 
+     */
+    function getBorrowBalanceOfUSDC() public view returns (uint256) {
+        Comet comet = Comet(cometAddress_USDC);
+        return comet.borrowBalanceOf(address(this));
     }
 
     /*

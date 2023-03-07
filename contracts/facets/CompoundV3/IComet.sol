@@ -34,6 +34,10 @@ interface Comet {
 
   function totalSupply() external view returns (uint256);
   function totalBorrow() external view returns (uint256);
+ 
+  function borrowBalanceOf(address account) external view returns (uint256);
+  function balanceOf(address account) external view returns (uint256);
+  function collateralBalanceOf(address account, address asset) external view returns (uint128);
 
   function baseIndexScale() external pure returns (uint64);
 
