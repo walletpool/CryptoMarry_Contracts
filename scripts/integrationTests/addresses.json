@@ -1,5 +1,8 @@
 {
     "usdc-mainnet": {
+      "comptroller" : "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B",
+      "CETH": "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
+      "CUSDC": "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
       "comet": "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
       "bulker": "0x74a81F84268744a40FEBc48f8b812a1f188D80C3",
       "configurator": "0x316f9708bB98af7dA9c68C1C3b5e79039cD336E3",
@@ -18,6 +21,9 @@
       "LINK_Price_Feed": "0x2c1d072e956AFFC0D435Cb7AC38EF18d24d9127c"
     },
     "usdc-goerli": {
+      "comptroller" : "0x05Df6C772A563FfB37fD3E04C1A279Fb30228621",
+      "CETH": "0x64078a6189Bf45f80091c6Ff2fCEe1B15Ac8dbde",
+      "CUSDC": "0x73506770799Eb04befb5AaE4734e58C2C624F493",
       "comet": "0x3EE77595A8459e93C2888b13aDB354017B198188",
       "bulker": "0xf82AAB8ae0E7F6a2ecBfe2375841d83AeA4cb9cE",
       "configurator": "0xB28495db3eC65A0e3558F040BC4f98A0d588Ae60",

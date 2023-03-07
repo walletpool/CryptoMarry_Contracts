@@ -40,7 +40,7 @@ library CometStructs {
 
   struct RewardOwed {
     address token;
-    uint owed;
+    uint256 owed;
   }
 
   struct TotalsCollateral {

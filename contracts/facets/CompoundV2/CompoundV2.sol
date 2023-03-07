@@ -17,15 +17,12 @@ contract CompoundV2Facet is ERC2771ContextUpgradeable, HandlerBase {
     error COULD_NOT_PROCESS(string);
 
     address public immutable COMPTROLLER;
-    address public immutable PRICEFEED;
 
     constructor(
         MinimalForwarderUpgradeable forwarder,
-        address _COMPTROLLER,
-        address _PRICEFEED
+        address _COMPTROLLER
     ) ERC2771ContextUpgradeable(address(forwarder)) {
         COMPTROLLER = _COMPTROLLER;
-        PRICEFEED = _PRICEFEED;
     }
 
     function compoundV2Supply(uint24 _id) external {
@@ -80,13 +77,8 @@ contract CompoundV2Facet is ERC2771ContextUpgradeable, HandlerBase {
             _amount = _getBalance(token, _amount);
             _tokenApprove(token, address(cToken), _amount);
 
-            try cToken.mint(_amount) returns (uint256 errorCode) {
-                if (errorCode == 0)
-                    revert COULD_NOT_PROCESS(
-                        string(
-                            abi.encodePacked("error ", _uint2String(errorCode))
-                        )
-                    );
+            try cToken.mint(_amount) {
+            
             } catch Error(string memory reason) {
                 revert COULD_NOT_PROCESS(reason);
             } catch {
@@ -110,13 +102,7 @@ contract CompoundV2Facet is ERC2771ContextUpgradeable, HandlerBase {
             _amount = _getBalance(address(cEther), _amount);
 
             // Execute redeem
-            try cEther.redeem(_amount) returns (uint256 errorCode) {
-                if (errorCode == 0)
-                    revert COULD_NOT_PROCESS(
-                        string(
-                            abi.encodePacked("error ", _uint2String(errorCode))
-                        )
-                    );
+            try cEther.redeem(_amount) {
             } catch Error(string memory reason) {
                 revert COULD_NOT_PROCESS(reason);
             } catch {
@@ -134,13 +120,7 @@ contract CompoundV2Facet is ERC2771ContextUpgradeable, HandlerBase {
             ICEther cEther = ICEther(vt.voteProposalAttributes[_id].tokenID);
             uint256 beforeCEtherAmount = cEther.balanceOf(address(this));
 
-            try cEther.redeemUnderlying(_amount) returns (uint256 errorCode) {
-                if (errorCode == 0)
-                    revert COULD_NOT_PROCESS(
-                        string(
-                            abi.encodePacked("error ", _uint2String(errorCode))
-                        )
-                    );
+            try cEther.redeemUnderlying(_amount) {
             } catch Error(string memory reason) {
                 revert COULD_NOT_PROCESS(reason);
             } catch {
@@ -163,13 +143,7 @@ contract CompoundV2Facet is ERC2771ContextUpgradeable, HandlerBase {
             // if amount == type(uint256).max return balance of Proxy
             _amount = _getBalance(address(compound), _amount);
 
-            try compound.redeem(_amount) returns (uint256 errorCode) {
-                if (errorCode == 0)
-                    revert COULD_NOT_PROCESS(
-                        string(
-                            abi.encodePacked("error ", _uint2String(errorCode))
-                        )
-                    );
+            try compound.redeem(_amount){
             } catch Error(string memory reason) {
                 revert COULD_NOT_PROCESS(reason);
             } catch {
@@ -186,13 +160,7 @@ contract CompoundV2Facet is ERC2771ContextUpgradeable, HandlerBase {
             ICToken compound = ICToken(vt.voteProposalAttributes[_id].tokenID);
             uint256 beforeCTokenAmount = compound.balanceOf(address(this));
 
-            try compound.redeemUnderlying(_amount) returns (uint256 errorCode) {
-                if (errorCode == 0)
-                    revert COULD_NOT_PROCESS(
-                        string(
-                            abi.encodePacked("error ", _uint2String(errorCode))
-                        )
-                    );
+            try compound.redeemUnderlying(_amount) {
             } catch Error(string memory reason) {
                 revert COULD_NOT_PROCESS(reason);
             } catch {
@@ -252,13 +220,8 @@ contract CompoundV2Facet is ERC2771ContextUpgradeable, HandlerBase {
 
             // Borrow, check the underlying balance for this contract's address
 
-            try cToken.borrow(_amount) returns (uint256 errorCode) {
-                if (errorCode == 0)
-                    revert COULD_NOT_PROCESS(
-                        string(
-                            abi.encodePacked("error ", _uint2String(errorCode))
-                        )
-                    );
+            try cToken.borrow(_amount) {
+                   
             } catch Error(string memory reason) {
                 revert COULD_NOT_PROCESS(reason);
             } catch {
@@ -297,13 +260,7 @@ contract CompoundV2Facet is ERC2771ContextUpgradeable, HandlerBase {
 
             // Borrow, check the underlying balance for this contract's address
 
-            try cEther.borrow(_amount) returns (uint256 errorCode) {
-                if (errorCode == 0)
-                    revert COULD_NOT_PROCESS(
-                        string(
-                            abi.encodePacked("error ", _uint2String(errorCode))
-                        )
-                    );
+            try cEther.borrow(_amount)  {
             } catch Error(string memory reason) {
                 revert COULD_NOT_PROCESS(reason);
             } catch {
@@ -328,13 +285,7 @@ contract CompoundV2Facet is ERC2771ContextUpgradeable, HandlerBase {
             }
 
             _tokenApprove(token, address(compound), debt);
-            try compound.repayBorrow(debt) returns (uint256 errorCode) {
-                if (errorCode == 0)
-                    revert COULD_NOT_PROCESS(
-                        string(
-                            abi.encodePacked("error ", _uint2String(errorCode))
-                        )
-                    );
+            try compound.repayBorrow(debt) {
             } catch Error(string memory reason) {
                 revert COULD_NOT_PROCESS(reason);
             } catch {
@@ -394,4 +345,9 @@ contract CompoundV2Facet is ERC2771ContextUpgradeable, HandlerBase {
 
         return afterCompBalance - beforeCompBalance;
     }
+
+    function getborrowBalanceStored(address cToken) external view returns (uint256) { 
+        ICToken compound = ICToken(cToken);
+        return compound.borrowBalanceStored(address(this));
+    } 
 }

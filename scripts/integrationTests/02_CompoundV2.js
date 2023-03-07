@@ -40,8 +40,8 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 let Contracts = {}
 
 let jsonRpcServer, deployment, cometAddress, myContractFactory, baseAssetAddress, 
-wethAddress, txn,CompoundV3FacetUSDC, instance,
-WavePortal7, WaverImplementation,nftContract,nftSplit, diamondInit, diamondLoupeFacet, DiamondCutFacet , CompoundFacet;
+wethAddress, txn, instance,
+WavePortal7, WaverImplementation,nftContract,nftSplit, diamondInit, diamondLoupeFacet, DiamondCutFacet , CompoundV2Facet;
 
 const mnemonic = hre.network.config.accounts.mnemonic;
 const addresses = [];
@@ -94,7 +94,7 @@ async function seedWithBaseToken(toAddress, amt) {
     return;
   }
 
-describe("Compound III Integration Test", function () {
+describe("Compound II Integration Test", function () {
     before(async () => {
       console.log('\n Running a hardhat local evm fork of a public net...\n');
   
@@ -111,6 +111,9 @@ describe("Compound III Integration Test", function () {
       cometAddress = networks[net].comet;
       wethAddress = networks[net].WETH;
       rewardsCOMP = networks[net].rewards;
+      CompAddress = networks[net].comptroller;
+      CETHAddress= networks[net].CETH;
+      CUSDCAddress= networks[net].CUSDC;
       
     });
   
@@ -120,10 +123,10 @@ describe("Compound III Integration Test", function () {
       
     Contracts = await deployTest();
      
-    CompoundV3FacetUSDC = await deploy('CompoundV3FacetUSDC',Contracts.forwarder.address,cometAddress);
+    CompoundV2Facet = await deploy('CompoundV2Facet',Contracts.forwarder.address,CompAddress);
       
       WhiteListAddr.push({
-        ContractAddress: CompoundV3FacetUSDC.address,
+        ContractAddress: CompoundV2Facet.address,
         Status: 1
       })
       txn = await Contracts.WavePortal7.whiteListAddr(WhiteListAddr);
@@ -152,226 +155,321 @@ describe("Compound III Integration Test", function () {
       await jsonRpcServer.close();
     });
   
-    it('Users Can connect CompoundV3 App', async () => {
+    it('Users Can connect CompoundV2 App', async () => {
         const cut = []
         const diamondCut = await ethers.getContractAt('IDiamondCut', instance.address);
         let tx;
         let receipt;
         cut.push({
-            facetAddress: CompoundV3FacetUSDC.address,
+            facetAddress: CompoundV2Facet.address,
             action: FacetCutAction.Add,
-            functionSelectors: getSelectors(CompoundV3FacetUSDC)
+            functionSelectors: getSelectors(CompoundV2Facet)
           })
         tx = await diamondCut.diamondCut(cut,ZERO_ADDRESS, "0x");
         receipt = await tx.wait();
         txn = await instance.getAllConnectedApps();
-        expect (txn).contain(CompoundV3FacetUSDC.address)
+        expect (txn).contain(CompoundV2Facet.address)
     });
   
-    it('Third party Users cannot connect CompoundV3 App', async () => {
+    it('Third party Users cannot connect CompoundV2 App', async () => {
         const cut = []
         const diamondCut = await ethers.getContractAt('IDiamondCut', instance.address);
         cut.push({
-            facetAddress: CompoundV3FacetUSDC.address,
+            facetAddress: CompoundV2Facet.address,
             action: FacetCutAction.Add,
-            functionSelectors: getSelectors(CompoundV3FacetUSDC)
+            functionSelectors: getSelectors(CompoundV2Facet)
           })
         await expect(diamondCut.connect(Contracts.accounts[3]).diamondCut(cut,ZERO_ADDRESS, "0x")).to.reverted;
     });
 
-    it('Users Can disconnect CompoundV3 App', async () => {
+    it('Users Can disconnect CompoundV2 App', async () => {
         const cut = []
         const diamondCut = await ethers.getContractAt('IDiamondCut', instance.address);
         let tx;
         let receipt;
         cut.push({
-            facetAddress: CompoundV3FacetUSDC.address,
+            facetAddress: CompoundV2Facet.address,
             action: FacetCutAction.Add,
-            functionSelectors: getSelectors(CompoundV3FacetUSDC)
+            functionSelectors: getSelectors(CompoundV2Facet)
           })
         tx = await diamondCut.diamondCut(cut,ZERO_ADDRESS, "0x");
         receipt = await tx.wait();
         txn = await instance.getAllConnectedApps();
-        expect (txn).contain(CompoundV3FacetUSDC.address);
-        const stakeWETH = await ethers.getContractAt('CompoundV3FacetUSDC', instance.address);
-        txn = await stakeWETH.getTvlUSDC()
+        expect (txn).contain(CompoundV2Facet.address);
+        const stakeWETH = await ethers.getContractAt('CompoundV2Facet', instance.address);
+        txn = await stakeWETH.claimComp()
         let remove = []; 
         remove.push({
             facetAddress: ZERO_ADDRESS,
             action: FacetCutAction.Remove,
-            functionSelectors: getSelectors(CompoundV3FacetUSDC)
+            functionSelectors: getSelectors(CompoundV2Facet)
           })
         tx = await diamondCut.diamondCut(remove,ZERO_ADDRESS, "0x");
         txn = await instance.getAllConnectedApps();
-        expect (txn).to.not.contain(CompoundV3FacetUSDC.address);
-        await expect (stakeWETH.getTvlUSDC()).to.reverted;
+        expect (txn).to.not.contain(CompoundV2Facet.address);
+        await expect (stakeWETH.claimComp()).to.reverted;
     });
 
-    it('Users can supply WETH, borrow USDC, and repay of usdc', async () => {
+    it('Users can supply  ETH, USDC and get/redeem corresponding CTokens', async () => {
         const cut = []
         const provider = new ethers.providers.JsonRpcProvider(jsonRpcUrl);
         const diamondCut = await ethers.getContractAt('IDiamondCut', instance.address);
         cut.push({
-            facetAddress: CompoundV3FacetUSDC.address,
+            facetAddress: CompoundV2Facet.address,
             action: FacetCutAction.Add,
-            functionSelectors: getSelectors(CompoundV3FacetUSDC)
+            functionSelectors: getSelectors(CompoundV2Facet)
           })
         txn = await diamondCut.diamondCut(cut,ZERO_ADDRESS, "0x");
 
         //Getting some WETH
         const signer = provider.getSigner(Contracts.accounts[0].address);
         const weth = new ethers.Contract(wethAddress, wethAbi, signer);
+        const ceth = new ethers.Contract(CETHAddress, stdErc20Abi, signer);
         const usdc = new ethers.Contract(baseAssetAddress, stdErc20Abi, signer);
+        const cusdc = new ethers.Contract(CUSDCAddress, stdErc20Abi, signer);
         let tx = await weth.deposit({ value: ethers.utils.parseEther('100') });
         await tx.wait(1);
-
-        tx = await weth.transfer(instance.address, ethers.utils.parseEther('10'));
+        await seedWithBaseToken(instance.address, ethers.utils.parseUnits('10000',6));
+        tx = await weth.transfer(instance.address, ethers.utils.parseEther('100'));
         await tx.wait(1);
 
+        tx = await weth.callStatic.balanceOf(instance.address);
+        tx = await usdc.callStatic.balanceOf(instance.address);
+
+        //Supplying ETH
         txn = await instance
         .createProposal(
           0x2,
-          800,
+          810,
+          CETHAddress,
           "0x0000000000000000000000000000000000000000",
-          wethAddress,
-          ethers.utils.parseEther('8'),
+          ethers.utils.parseEther('10'),
           100,
           false
         );
+
         txn = await instance.connect(Contracts.accounts[1]).voteResponse(1, 1, false);
 
-        const stakeWETH = await ethers.getContractAt('CompoundV3FacetUSDC', instance.address);
-        txn = await stakeWETH.executeSupplyCompoundV3USDC(1);
+        const stakeETH = await ethers.getContractAt('CompoundV2Facet', instance.address);
+        txn = await stakeETH.compoundV2Supply(1);
         txn = await instance.getVotingStatuses(1);
-        expect(txn[0].voteStatus).to.equal(800);
-
-        //borrowing USDC
+        expect(txn[0].voteStatus).to.equal(810);
+        txn = await ceth.callStatic.balanceOf(instance.address);
+       
+        //Supplying USDC
         txn = await instance
         .createProposal(
           0x2,
-          801,
-          "0x0000000000000000000000000000000000000000",
+          811,
+          CUSDCAddress,
           usdcAddress,
-          ethers.utils.parseUnits("100",6),
+          ethers.utils.parseUnits('10',6),
           100,
           false
         );
-        txn = await instance.connect(Contracts.accounts[1]).voteResponse(2, 1, false);
-        txn = await stakeWETH.executeSupplyCompoundV3USDC(2);
-        txn = await instance.getVotingStatuses(1);
-        expect(txn[1].voteStatus).to.equal(801);
-        bal = await usdc.callStatic.balanceOf(instance.address);
-        expect(bal).to.equal(ethers.utils.parseUnits("100",6))  
-        expect (await stakeWETH.getBorrowBalanceOfUSDC()).to.equal(ethers.utils.parseUnits("100",6));      
 
-        //repaying some USDC
+        txn = await instance.connect(Contracts.accounts[1]).voteResponse(2, 1, false);
+
+        const stakeUSDC = await ethers.getContractAt('CompoundV2Facet', instance.address);
+        txn = await stakeUSDC.compoundV2Supply(2);
+        txn = await instance.getVotingStatuses(1);
+        expect(txn[1].voteStatus).to.equal(811);
+        txn = await usdc.callStatic.balanceOf(instance.address);
+
+        await advanceBlockHeight(1000);
+
+        balanceCETH = await ceth.callStatic.balanceOf(instance.address);
+        //Redeeming cETH
         txn = await instance
         .createProposal(
           0x2,
-          802,
+          812,
           "0x0000000000000000000000000000000000000000",
-          usdcAddress,
-          ethers.utils.parseUnits("50",6),
+          CETHAddress,
+          balanceCETH,
           100,
           false
         );
 
         txn = await instance.connect(Contracts.accounts[1]).voteResponse(3, 1, false);
-        txn = await stakeWETH.executeSupplyCompoundV3USDC(3);
+
+        const RedeemEth = await ethers.getContractAt('CompoundV2Facet', instance.address);
+        txn = await RedeemEth.compoundV2Supply(3);
         txn = await instance.getVotingStatuses(1);
-        expect(txn[2].voteStatus).to.equal(802);
-        bal = await usdc.callStatic.balanceOf(instance.address);
-        expect(bal).to.equal(ethers.utils.parseUnits("50",6)) 
-        const outstandingF = await stakeWETH.getBorrowBalanceOfUSDC();
-        expect (await stakeWETH.getBorrowBalanceOfUSDC()).to.equal(ethers.utils.parseUnits("50",6)); 
-        
-        //paying with some interest 
-        await advanceBlockHeight(1000);
-        const outstanding = await stakeWETH.getBorrowBalanceOfUSDC();
-        await seedWithBaseToken(instance.address, outstanding);
-        //repaying some USDC
+        expect(txn[2].voteStatus).to.equal(812);
+        txn = await ceth.callStatic.balanceOf(instance.address);
+
+
+        //Redeeming cUSDC
+        balanceCUSDC = await cusdc.callStatic.balanceOf(instance.address);
         txn = await instance
         .createProposal(
           0x2,
-          802,
-          "0x0000000000000000000000000000000000000000",
+          814,
           usdcAddress,
-          outstanding,
+          CUSDCAddress,
+          balanceCUSDC,
           100,
           false
         );
+
         txn = await instance.connect(Contracts.accounts[1]).voteResponse(4, 1, false);
-        txn = await stakeWETH.executeSupplyCompoundV3USDC(4);
-        expect (await stakeWETH.getBorrowBalanceOfUSDC()).to.equal(ethers.utils.parseUnits("0",6)); 
-        
+        const RedeemUSDC = await ethers.getContractAt('CompoundV2Facet', instance.address);
+        txn = await RedeemUSDC.compoundV2Supply(4);
+        txn = await instance.getVotingStatuses(1);
+        expect(txn[3].voteStatus).to.equal(814);
+        txn = await usdc.callStatic.balanceOf(instance.address);
     });
 
-    it('Users can earn supply APR by supplying USDC with claiming COMP reward', async () => {
-        const cut = []
+    it('Users can borrow tokens with the colleteral they have supplied', async () => {
+       const cut = []
         const provider = new ethers.providers.JsonRpcProvider(jsonRpcUrl);
         const diamondCut = await ethers.getContractAt('IDiamondCut', instance.address);
         cut.push({
-            facetAddress: CompoundV3FacetUSDC.address,
+            facetAddress: CompoundV2Facet.address,
             action: FacetCutAction.Add,
-            functionSelectors: getSelectors(CompoundV3FacetUSDC)
+            functionSelectors: getSelectors(CompoundV2Facet)
           })
         txn = await diamondCut.diamondCut(cut,ZERO_ADDRESS, "0x");
 
-        //Getting some USDC
+        //Getting some WETH
         const signer = provider.getSigner(Contracts.accounts[0].address);
         const weth = new ethers.Contract(wethAddress, wethAbi, signer);
+        const ceth = new ethers.Contract(CETHAddress, stdErc20Abi, signer);
         const usdc = new ethers.Contract(baseAssetAddress, stdErc20Abi, signer);
-        const comet = new ethers.Contract(cometAddress, cometAbi, signer);
-
+        const cusdc = new ethers.Contract(CUSDCAddress, stdErc20Abi, signer);
+        let tx = await weth.deposit({ value: ethers.utils.parseEther('100') });
+        await tx.wait(1);
         await seedWithBaseToken(instance.address, ethers.utils.parseUnits('10000',6));
+        tx = await weth.transfer(instance.address, ethers.utils.parseEther('100'));
+        await tx.wait(1);
 
-        const SupplyAmount = ethers.utils.parseUnits('1000',6);
+        tx = await weth.callStatic.balanceOf(instance.address);
+        tx = await usdc.callStatic.balanceOf(instance.address);
 
-        txn = await instance
-        .createProposal(
-          0x2,
-          800,
-          "0x0000000000000000000000000000000000000000",
-          baseAssetAddress,
-          SupplyAmount,
-          100,
-          false
-        );
-        txn = await instance.connect(Contracts.accounts[1]).voteResponse(1, 1, false);
-
-        const stakeWETH = await ethers.getContractAt('CompoundV3FacetUSDC', instance.address);
-       
-        txn = await stakeWETH.executeSupplyCompoundV3USDC(1);
-
-        txn = await instance.getVotingStatuses(1);
-        expect(txn[0].voteStatus).to.equal(800);
-
-        const balance = await stakeWETH.callStatic.getBalanceOfUSDC();
-        const USDCBalance = await stakeWETH.getcollateralBalanceOfUSDC(baseAssetAddress);
-        const amountCOMP = await stakeWETH.callStatic.getRewardsOwedUSDC(rewardsCOMP);        
-        await advanceBlockHeight(1000);
-
-        //Withdrawing USDC + APR 
-        const currentUSDCBalance = await stakeWETH.getcollateralBalanceOfUSDC(baseAssetAddress);  
-        const balanceCurrent = await stakeWETH.callStatic.getBalanceOfUSDC();
-        const amountCOMPCurrent = await stakeWETH.callStatic.getRewardsOwedUSDC(rewardsCOMP);        
-        txn = await stakeWETH.claimCometRewardsUSDC(rewardsCOMP);
-      
-        txn = await instance
-        .createProposal(
-          0x2,
-          801,
-          "0x0000000000000000000000000000000000000000",
-          baseAssetAddress,
-          balanceCurrent,
-          100,
-          false
-        );
-        txn = await instance.connect(Contracts.accounts[1]).voteResponse(2, 1, false);
-        txn = await stakeWETH.executeSupplyCompoundV3USDC(2);
-
-        expect (await stakeWETH.callStatic.getBalanceOfUSDC()).to.equal(1);
+         //Supplying ETH
+         txn = await instance
+         .createProposal(
+           0x2,
+           810,
+           CETHAddress,
+           "0x0000000000000000000000000000000000000000",
+           ethers.utils.parseEther('10'),
+           100,
+           false
+         );
+ 
+         txn = await instance.connect(Contracts.accounts[1]).voteResponse(1, 1, false);
+ 
+         const stakeETH = await ethers.getContractAt('CompoundV2Facet', instance.address);
+         txn = await stakeETH.compoundV2Supply(1);
+         txn = await instance.getVotingStatuses(1);
+         expect(txn[0].voteStatus).to.equal(810);
+         txn = await ceth.callStatic.balanceOf(instance.address);
         
+         //Supplying USDC
+         txn = await instance
+         .createProposal(
+           0x2,
+           811,
+           CUSDCAddress,
+           usdcAddress,
+           ethers.utils.parseUnits('1000',6),
+           100,
+           false
+         );
+ 
+         txn = await instance.connect(Contracts.accounts[1]).voteResponse(2, 1, false);
+ 
+         const stakeUSDC = await ethers.getContractAt('CompoundV2Facet', instance.address);
+         txn = await stakeUSDC.compoundV2Supply(2);
+         txn = await instance.getVotingStatuses(1);
+         expect(txn[1].voteStatus).to.equal(811);
+         txn = await usdc.callStatic.balanceOf(instance.address);
+
+         //Borrowing USDC 
+
+         txn = await instance
+         .createProposal(
+           0x2,
+           816,
+           usdcAddress,
+           CUSDCAddress,
+           ethers.utils.parseUnits('100',6),
+           100,
+           false
+         );
+
+         txn = await instance.connect(Contracts.accounts[1]).voteResponse(3, 1, false);
+         const borrowUSDC = await ethers.getContractAt('CompoundV2Facet', instance.address);
+         txn = await borrowUSDC.compoundV2BorrowRepay(3);
+         txn = await instance.getVotingStatuses(1);
+         expect(txn[2].voteStatus).to.equal(816);
+
+         //Borrowing ETH
+
+         txn = await instance
+         .createProposal(
+           0x2,
+           817,
+           ZERO_ADDRESS,
+           CETHAddress,
+           ethers.utils.parseUnits('1',18),
+           100,
+           false
+         );
+
+         txn = await instance.connect(Contracts.accounts[1]).voteResponse(4, 1, false);
+         const borrowETH = await ethers.getContractAt('CompoundV2Facet', instance.address);
+         txn = await borrowETH.compoundV2BorrowRepay(4);
+         txn = await instance.getVotingStatuses(1);
+         expect(txn[3].voteStatus).to.equal(817);
+
+         await advanceBlockHeight(1000);
+
+           //Repaying USDC 
+
+           const repayUSDC = await ethers.getContractAt('CompoundV2Facet', instance.address);
+           outstandingUSDC = await repayUSDC.getborrowBalanceStored(CUSDCAddress);
+
+           txn = await instance
+           .createProposal(
+             0x2,
+             818,
+             usdcAddress,
+             CUSDCAddress,
+             outstandingUSDC,
+             100,
+             false
+           );
+  
+           txn = await instance.connect(Contracts.accounts[1]).voteResponse(5, 1, false);
+           
+           txn = await repayUSDC.compoundV2BorrowRepay(5);
+           txn = await instance.getVotingStatuses(1);
+           expect(txn[4].voteStatus).to.equal(818);
+           txn = await repayUSDC.getborrowBalanceStored(CUSDCAddress);
+  
+           //Borrowing ETH
+           const repayETH = await ethers.getContractAt('CompoundV2Facet', instance.address);
+           outstandingETH = await repayETH.getborrowBalanceStored(CETHAddress);
+  
+           txn = await instance
+           .createProposal(
+             0x2,
+             819,
+             wethAddress,
+             CETHAddress,
+             outstandingETH,
+             100,
+             false
+           );
+  
+           txn = await instance.connect(Contracts.accounts[1]).voteResponse(6, 1, false);
+           txn = await repayETH.compoundV2BorrowRepay(6);
+           txn = await instance.getVotingStatuses(1);
+           expect(txn[5].voteStatus).to.equal(819);
+           outstandingETH = await repayETH.getborrowBalanceStored(CUSDCAddress);
         
     });
   });
