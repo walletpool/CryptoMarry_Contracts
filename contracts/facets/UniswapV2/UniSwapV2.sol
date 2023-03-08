@@ -30,17 +30,12 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
             _;
     }
 
-
+    //Adding ETH as a liquidity
     function UniAddLiquidityETH(
         uint24 _id,
-        uint256 amountTokenDesired,
-        uint256 amountTokenMin,
-        uint256 amountETHMin
-    ) external payable checkValidity(_id) returns (
-            uint256 amountToken,
-            uint256 amountETH,
-            uint256 liquidity
-        ){
+        uint256 amountETHMin,
+        uint256 amountTokenMin
+    ) external payable checkValidity(_id) {
 
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -49,6 +44,7 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
          vt.voteProposalAttributes[_id].voteStatus =501;
         
          uint256 value = vt.voteProposalAttributes[_id].amount;
+         uint256 amountTokenDesired = vt.voteProposalAttributes[_id].voteends;
          address token = vt.voteProposalAttributes[_id].tokenID;
          
          // Get uniswapV2 router
@@ -69,10 +65,8 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
                 address(this),
                 block.timestamp
             )
-        returns (uint256 ret1, uint256 ret2, uint256 ret3) {
-            amountToken = ret1;
-            amountETH = ret2;
-            liquidity = ret3;
+         {
+        
         } catch Error(string memory reason) {
             revert COULD_NOT_PROCESS(reason);
         } catch {
@@ -89,9 +83,9 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         VoteProposalLib.checkForwarder(); 
     }
 
+
     function uniAddLiquidity(
         uint24 _id,
-        uint256 amountBDesired,
         uint256 amountAMin,
         uint256 amountBMin
     ) external payable checkValidity(_id){
@@ -103,8 +97,9 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
          vt.voteProposalAttributes[_id].voteStatus = 502;
         
          uint256 amountADesired = vt.voteProposalAttributes[_id].amount;
+         uint256 amountBDesired = vt.voteProposalAttributes[_id].voteends;
          address tokenA = vt.voteProposalAttributes[_id].tokenID;
-         address tokenB = vt.voteProposalAttributes[_id].tokenID;
+         address tokenB = vt.voteProposalAttributes[_id].receiver;
          
          // Get uniswapV2 router
         IUniswapV2Router02 router = IUniswapV2Router02(UNISWAPV2_ROUTER);
@@ -279,7 +274,7 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
          IUniswapV2Router02 router = IUniswapV2Router02(UNISWAPV2_ROUTER);
          //swapExactETHForTokens
         if (vt.voteProposalAttributes[_id].voteType == 505 ) {
-        vt.voteProposalAttributes[_id].voteStatus =505;
+        vt.voteProposalAttributes[_id].voteStatus = 505;
         amount = _getBalance(address(0), amount);
         if (path[path.length - 1]!= vt.voteProposalAttributes[_id].receiver) revert COULD_NOT_PROCESS("wrong pair");
         try
@@ -300,12 +295,12 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         //swapETHForExactTokens
         else if (vt.voteProposalAttributes[_id].voteType == 506 ) {
         vt.voteProposalAttributes[_id].voteStatus =506;
-        amount = _getBalance(address(0), amount);
+        requiredAmount = _getBalance(address(0), requiredAmount);
        
         if (path[0]!= vt.voteProposalAttributes[_id].tokenID) revert COULD_NOT_PROCESS("wrong pair");
         try
-            router.swapETHForExactTokens{value: amount}(
-                requiredAmount,
+            router.swapETHForExactTokens{value: requiredAmount}(
+                amount,
                 path,
                 address(this),
                 block.timestamp
@@ -315,7 +310,7 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         } catch Error(string memory reason) {
             revert COULD_NOT_PROCESS(reason);
         } catch {
-             revert COULD_NOT_PROCESS("swapExactETHForTokens");
+             revert COULD_NOT_PROCESS("swapETHForExactTokens");
         }
         }
 
@@ -352,13 +347,13 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         
         address tokenIn = vt.voteProposalAttributes[_id].tokenID;
         if (path[0]!= tokenIn) revert COULD_NOT_PROCESS("wrong pair");
-        amount = _getBalance(tokenIn, amount);
-        _tokenApprove(tokenIn, UNISWAPV2_ROUTER, amount);
+        requiredAmount = _getBalance(tokenIn, requiredAmount);
+        _tokenApprove(tokenIn, UNISWAPV2_ROUTER, requiredAmount);
         
        try
-            router.swapExactTokensForETH(
-                requiredAmount,
+            router.swapTokensForExactETH(
                 amount,
+                requiredAmount,
                 path,
                 address(this),
                 block.timestamp
@@ -372,7 +367,6 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         }
         _tokenApproveZero(tokenIn, UNISWAPV2_ROUTER);
         }
-
 
         //swapExactTokensForTokens
         else if (vt.voteProposalAttributes[_id].voteType == 509 ) {
@@ -405,14 +399,14 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         vt.voteProposalAttributes[_id].voteStatus =510;
         address tokenIn = vt.voteProposalAttributes[_id].tokenID;
         address tokenOut = vt.voteProposalAttributes[_id].receiver;
-        amount = _getBalance(tokenIn, amount);
-        _tokenApprove(tokenIn, UNISWAPV2_ROUTER, amount);
+        requiredAmount = _getBalance(tokenIn, requiredAmount);
+        _tokenApprove(tokenIn, UNISWAPV2_ROUTER, requiredAmount);
 
          if (path[0]!= tokenIn || path[path.length - 1]!= tokenOut) revert COULD_NOT_PROCESS("wrong pair");
        try
-            router.swapExactTokensForTokens(
-                requiredAmount,
+            router.swapTokensForExactTokens(
                 amount,
+                requiredAmount,
                 path,
                 address(this),
                 block.timestamp
@@ -422,7 +416,7 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         } catch Error(string memory reason) {
             revert COULD_NOT_PROCESS(reason);
         } catch {
-             revert COULD_NOT_PROCESS("swapExactTokensForTokens");
+             revert COULD_NOT_PROCESS("swapTokensForExactTokens");
         }
         _tokenApproveZero(tokenIn, UNISWAPV2_ROUTER);
         }
