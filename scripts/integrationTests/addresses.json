@@ -1,5 +1,6 @@
 {
     "usdc-mainnet": {
+      "uniswapRouter" : "0xE592427A0AEce92De3Edee1F18E0157C05861564",
       "comptroller" : "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B",
       "CETH": "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
       "CUSDC": "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
@@ -21,6 +22,7 @@
       "LINK_Price_Feed": "0x2c1d072e956AFFC0D435Cb7AC38EF18d24d9127c"
     },
     "usdc-goerli": {
+      "uniswapRouter" : "0xE592427A0AEce92De3Edee1F18E0157C05861564",
       "comptroller" : "0x05Df6C772A563FfB37fD3E04C1A279Fb30228621",
       "CETH": "0x64078a6189Bf45f80091c6Ff2fCEe1B15Ac8dbde",
       "CUSDC": "0x73506770799Eb04befb5AaE4734e58C2C624F493",
