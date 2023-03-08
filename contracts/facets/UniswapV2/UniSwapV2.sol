@@ -431,5 +431,10 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         VoteProposalLib.checkForwarder(); 
     }
 
+    function getPairAddressV2(address tokenA, address tokenB) external view returns (address Pair){
+         IUniswapV2Router02 router = IUniswapV2Router02(UNISWAPV2_ROUTER);
+           return  UniswapV2Library.pairFor(router.factory(), tokenA, tokenB); 
+    }
+
 }
 

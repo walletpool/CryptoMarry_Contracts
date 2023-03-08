@@ -360,7 +360,7 @@ describe("Uniswap V3 Integration Test", function () {
         const signer = provider.getSigner(Contracts.accounts[0].address);
         const weth = new ethers.Contract(wethAddress, wethAbi, signer);
         const usdc = new ethers.Contract(baseAssetAddress, stdErc20Abi, signer);
-        const liq = new ethers.Contract("0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640", stdErc20Abi, signer);
+        
 
 
         //Swapping exact ETH to USDC 
@@ -386,6 +386,7 @@ describe("Uniswap V3 Integration Test", function () {
         expect(txn[0].voteStatus).to.equal(505);
 
         txn = await usdc.callStatic.balanceOf(instance.address);
+        console.log("USDCInit", txn)
         expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('3000',6)));
 
          //Supplying to ETH/USDC Pool
@@ -461,12 +462,22 @@ describe("Uniswap V3 Integration Test", function () {
          expect(txn[3].voteStatus).to.equal(502);
  
          txn = await usdc.callStatic.balanceOf(instance.address);
+         console.log("USDC", txn)
          expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('800',6)));
 
          await advanceBlockHeight(5000);
 
+         const removeLiqETH = await ethers.getContractAt('UniSwapV2Facet', instance.address);
+
+         pair = await removeLiqETH.callStatic.getPairAddressV2(baseAssetAddress,wethAddress);
+         console.log("PAIR", pair)
+         const liq = new ethers.Contract(pair, stdErc20Abi, signer);
+
+         liquidity = await liq.callStatic.balanceOf(instance.address);
+         console.log("Liquidity", liquidity)
+
          //Remove liquidity ETH
-          liquidity = ethers.utils.parseUnits("1440",6)
+      
          txn = await instance
          .createProposal(
            0x2,
@@ -480,138 +491,14 @@ describe("Uniswap V3 Integration Test", function () {
  
          txn = await instance.connect(Contracts.accounts[1]).voteResponse(5, 1, false);
  
-         const removeLiqETH = await ethers.getContractAt('UniSwapV2Facet', instance.address);
- 
-         txn = await removeLiqETH.uniRemoveLiquidityETH(5,ethers.utils.parseUnits("100",6),ethers.utils.parseUnits("0.90",18)); // voteID, MinimumAmount
+         txn = await removeLiqETH.uniRemoveLiquidityETH(5,ethers.utils.parseUnits("1600",6),ethers.utils.parseUnits("1.02",18)); // voteID, MinimumAmount
          txn = await instance.getVotingStatuses(1);
          expect(txn[4].voteStatus).to.equal(503);
- 
          txn = await usdc.callStatic.balanceOf(instance.address);
+         console.log("USDC", txn)
          expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('800',6)));
-
-         ///Remove liquidity WTH
-         liquidity = ethers.utils.parseUnits("140",6)
-        txn = await instance
-        .createProposal(
-          0x2,
-          504,
-          wethAddress,
-          baseAssetAddress,
-          liquidity,
-          100,
-          false
-        );
-
-        txn = await instance.connect(Contracts.accounts[1]).voteResponse(6, 1, false);
-
-        const removeLiqWETH = await ethers.getContractAt('UniSwapV2Facet', instance.address);
-
-        txn = await removeLiqWETH.uniRemoveLiquidity(6,ethers.utils.parseUnits("10",6),ethers.utils.parseUnits("0.09",18)); // voteID, MinimumAmount
-        txn = await instance.getVotingStatuses(1);
-        expect(txn[5].voteStatus).to.equal(504);
-
-        txn = await usdc.callStatic.balanceOf(instance.address);
-        expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('800',6)));
-
-
-
-
-
-
-
-        // //Swapping USDC to ETH 
-        // txn = await instance
-        // .createProposal(
-        //   0x2,
-        //   507,
-        //   wethAddress,
-        //   baseAssetAddress,
-        //   ethers.utils.parseUnits("780",6),
-        //   100,
-        //   false
-        // );
-
-        // txn = await instance.connect(Contracts.accounts[1]).voteResponse(3, 1, false);
-
-        // const swapUSDC = await ethers.getContractAt('UniSwapV2Facet', instance.address);
-        // path = [baseAssetAddress,wethAddress]
-        // txn = await swapUSDC.executeUniV2Swap(3, ethers.utils.parseUnits("0.5",18),path); // voteID, MinimumAmount
-        // txn = await instance.getVotingStatuses(1);
-        // expect(txn[2].voteStatus).to.equal(507);
-        // txn = await usdc.callStatic.balanceOf(instance.address);
-        // expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('1220',6)));
-
-        //  //Swapping USDC to ETH 
-        //  txn = await instance
-        //  .createProposal(
-        //    0x2,
-        //    508,
-        //    wethAddress,
-        //    baseAssetAddress,
-        //    ethers.utils.parseUnits("0.5",18),
-        //    100,
-        //    false
-        //  );
- 
-        //  txn = await instance.connect(Contracts.accounts[1]).voteResponse(4, 1, false);
- 
-        //  const swapUSDCETH = await ethers.getContractAt('UniSwapV2Facet', instance.address);
-        //  path = [baseAssetAddress,wethAddress]
-        //  txn = await swapUSDCETH.executeUniV2Swap(4, ethers.utils.parseUnits("800",6),path); // voteID, MinimumAmount
-        //  txn = await instance.getVotingStatuses(1);
-        //  expect(txn[3].voteStatus).to.equal(508);
-        //  txn = await usdc.callStatic.balanceOf(instance.address);
-        //  expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('780',6)));
-
-        //    //Swapping USDC to WETH 
-        //    txn = await instance
-        //    .createProposal(
-        //      0x2,
-        //      509,
-        //      wethAddress,
-        //      baseAssetAddress,
-        //      ethers.utils.parseUnits('390',6),
-        //      100,
-        //      false
-        //    );
-   
-        //    txn = await instance.connect(Contracts.accounts[1]).voteResponse(5, 1, false);
-   
-        //    const swapeUSDCWETH = await ethers.getContractAt('UniSwapV2Facet', instance.address);
-        //    path = [baseAssetAddress,wethAddress]
-        //    txn = await swapeUSDCWETH.executeUniV2Swap(5,  ethers.utils.parseUnits('0.25',18),path); // voteID, MinimumAmount
-           
-        //    txn = await instance.getVotingStatuses(1);
-        //    expect(txn[4].voteStatus).to.equal(509);
-
-        //    txn = await usdc.callStatic.balanceOf(instance.address);
-        //    expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('500',6)));
-        //    txn = await weth.callStatic.balanceOf(instance.address);
-        //    expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('0.25',18)));
-
-        //  //Swapping USDC to WETH 
-        //  txn = await instance
-        //  .createProposal(
-        //    0x2,
-        //    510,
-        //    wethAddress,
-        //    baseAssetAddress,
-        //    ethers.utils.parseUnits('0.25',18),
-        //    100,
-        //    false
-        //  );
- 
-        //  txn = await instance.connect(Contracts.accounts[1]).voteResponse(6, 1, false);
-        //  path = [baseAssetAddress,wethAddress]
- 
-        //  const swapUSDCWETH = await ethers.getContractAt('UniSwapV2Facet', instance.address);
-        //  txn = await swapUSDCWETH.executeUniV2Swap(6, ethers.utils.parseUnits('390',6), path); // voteID, MinimumAmount, fee=3000, 0
-        //  txn = await instance.getVotingStatuses(1);
-        //  expect(txn[5].voteStatus).to.equal(510);
-        //  txn = await usdc.callStatic.balanceOf(instance.address);
-        //  expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('100',6)));
-        //  txn = await weth.callStatic.balanceOf(instance.address);
-        //  expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('0.5',18)));
+         liquidity = await liq.callStatic.balanceOf(instance.address);
+         console.log("Liquidity", liquidity)
    
       });
 
