@@ -1,5 +1,6 @@
 {
     "usdc-mainnet": {
+      "SushiSwapRouter": "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F",
       "uniswapV2Router" : "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
       "oneInchRouter" : "0x1111111254EEB25477B68fb85Ed929f73A960582",
       "uniswapRouter" : "0xE592427A0AEce92De3Edee1F18E0157C05861564",
@@ -24,6 +25,7 @@
       "LINK_Price_Feed": "0x2c1d072e956AFFC0D435Cb7AC38EF18d24d9127c"
     },
     "usdc-goerli": {
+      "SushiSwapRouter": "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
       "uniswapV2Router" : "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
       "uniswapRouter" : "0xE592427A0AEce92De3Edee1F18E0157C05861564",
       "comptroller" : "0x05Df6C772A563FfB37fD3E04C1A279Fb30228621",

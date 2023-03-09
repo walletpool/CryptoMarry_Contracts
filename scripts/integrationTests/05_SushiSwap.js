@@ -22,16 +22,6 @@ const wethAbi = [
     'function balanceOf(address) returns (uint)',
   ];
 
-  const cometAbi = [
-    'event Supply(address indexed from, address indexed dst, uint256 amount)',
-    'function supply(address asset, uint amount)',
-    'function withdraw(address asset, uint amount)',
-    'function balanceOf(address account) returns (uint256)',
-    'function accrueAccount(address account)',
-    'function borrowBalanceOf(address account) returns (uint256)',
-    'function collateralBalanceOf(address account, address asset) external view returns (uint128)',
-  ];
-  
 
 const jsonRpcUrl = 'http://127.0.0.1:8545';
 const providerUrl = hre.config.networks.hardhat.forking.url;
@@ -41,7 +31,7 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 let Contracts = {}
 
 let jsonRpcServer, cometAddress, baseAssetAddress, 
-wethAddress, txn, instance, UniSwapV2Facet;
+wethAddress, txn, instance, SushiSwapFacet;
 
 const mnemonic = hre.network.config.accounts.mnemonic;
 const addresses = [];
@@ -66,7 +56,7 @@ async function advanceBlockHeight(blocks) {
   }
 
   
-describe("Uniswap V3 Integration Test", function () {
+describe("SushiSwap Integration Test", function () {
     before(async () => {
       console.log('\n Running a hardhat local evm fork of a public net...\n');
   
@@ -84,7 +74,7 @@ describe("Uniswap V3 Integration Test", function () {
       wethAddress = networks[net].WETH;
       rewardsCOMP = networks[net].rewards;
       CompAddress = networks[net].comptroller;
-      UniswapRouterV2Address = networks[net].uniswapV2Router;
+      SushiSwapRouterAddress = networks[net].SushiSwapRouter;
       wbtcAddress = networks[net].WBTC;
       
     });
@@ -95,11 +85,11 @@ describe("Uniswap V3 Integration Test", function () {
       
     Contracts = await deployTest();
      
-    UniSwapV2Facet = await deploy('UniSwapV2Facet',Contracts.forwarder.address,UniswapRouterV2Address);
+    SushiSwapFacet = await deploy('SushiSwapFacet',Contracts.forwarder.address,SushiSwapRouterAddress);
 
       
       WhiteListAddr.push({
-        ContractAddress: UniSwapV2Facet.address,
+        ContractAddress: SushiSwapFacet.address,
         Status: 1
       })
       txn = await Contracts.WavePortal7.whiteListAddr(WhiteListAddr);
@@ -127,71 +117,71 @@ describe("Uniswap V3 Integration Test", function () {
       await jsonRpcServer.close();
     });
   
-    it('Users can connect UniswapV2 App', async () => {
+    it('Users can connect SushiSwap App', async () => {
         const cut = []
         const diamondCut = await ethers.getContractAt('IDiamondCut', instance.address);
         let tx;
         let receipt;
         cut.push({
-            facetAddress: UniSwapV2Facet.address,
+            facetAddress: SushiSwapFacet.address,
             action: FacetCutAction.Add,
-            functionSelectors: getSelectors(UniSwapV2Facet)
+            functionSelectors: getSelectors(SushiSwapFacet)
           })
         tx = await diamondCut.diamondCut(cut,ZERO_ADDRESS, "0x");
         receipt = await tx.wait();
         txn = await instance.getAllConnectedApps();
-        expect (txn).contain(UniSwapV2Facet.address)
+        expect (txn).contain(SushiSwapFacet.address)
     });
   
-    it('Third party Users cannot connect UniswapV2 App', async () => {
+    it('Third party Users cannot connect SushiSwap App', async () => {
         const cut = []
         const diamondCut = await ethers.getContractAt('IDiamondCut', instance.address);
         cut.push({
-            facetAddress: UniSwapV2Facet.address,
+            facetAddress: SushiSwapFacet.address,
             action: FacetCutAction.Add,
-            functionSelectors: getSelectors(UniSwapV2Facet)
+            functionSelectors: getSelectors(SushiSwapFacet)
           })
         await expect(diamondCut.connect(Contracts.accounts[3]).diamondCut(cut,ZERO_ADDRESS, "0x")).to.reverted;
     });
 
-    it('Users can disconnect UniswapV2 App', async () => {
+    it('Users can disconnect SushiSwap App', async () => {
         const cut = []
         const diamondCut = await ethers.getContractAt('IDiamondCut', instance.address);
         let tx;
         let receipt;
         cut.push({
-            facetAddress: UniSwapV2Facet.address,
+            facetAddress: SushiSwapFacet.address,
             action: FacetCutAction.Add,
-            functionSelectors: getSelectors(UniSwapV2Facet)
+            functionSelectors: getSelectors(SushiSwapFacet)
           })
         tx = await diamondCut.diamondCut(cut,ZERO_ADDRESS, "0x");
         receipt = await tx.wait();
         txn = await instance.getAllConnectedApps();
-        expect (txn).contain(UniSwapV2Facet.address);
-        const UniswapFacet = await ethers.getContractAt('UniSwapV2Facet', instance.address);
-        //txn = await UniswapFacet.withdrawWeth(0)
+        expect (txn).contain(SushiSwapFacet.address);
+        const instanceSushi = await ethers.getContractAt('SushiSwapFacet', instance.address);
+        txn = await instanceSushi.getPairAddressSushi(usdcAddress,wethAddress)
         let remove = []; 
         remove.push({
             facetAddress: ZERO_ADDRESS,
             action: FacetCutAction.Remove,
-            functionSelectors: getSelectors(UniSwapV2Facet)
+            functionSelectors: getSelectors(SushiSwapFacet)
           })
         tx = await diamondCut.diamondCut(remove,ZERO_ADDRESS, "0x");
         txn = await instance.getAllConnectedApps();
-        expect (txn).to.not.contain(UniSwapV2Facet.address);
-        //await expect (stakeWETH.withdrawWeth(0)).to.reverted;
+        expect (txn).to.not.contain(SushiSwapFacet.address);
+        await expect (instanceSushi.getPairAddressSushi(usdcAddress,wethAddress)).to.reverted;
     });
 
 
 
-    it('Users can swap assets on UniswapV2', async () => {
+    it('Users can swap assets on SushiSwap', async () => {
         const cut = []
         const provider = new ethers.providers.JsonRpcProvider(jsonRpcUrl);
         const diamondCut = await ethers.getContractAt('IDiamondCut', instance.address);
         cut.push({
-            facetAddress: UniSwapV2Facet.address,
+            facetAddress: SushiSwapFacet.address,
             action: FacetCutAction.Add,
-            functionSelectors: getSelectors(UniSwapV2Facet)
+            functionSelectors: getSelectors(SushiSwapFacet)
           })
         txn = await diamondCut.diamondCut(cut,ZERO_ADDRESS, "0x");
 
@@ -204,7 +194,7 @@ describe("Uniswap V3 Integration Test", function () {
         txn = await instance
         .createProposal(
           0x2,
-          505,
+          520,
           baseAssetAddress,
           wethAddress,
           ethers.utils.parseUnits('1',18),
@@ -214,13 +204,13 @@ describe("Uniswap V3 Integration Test", function () {
 
         txn = await instance.connect(Contracts.accounts[1]).voteResponse(1, 1, false);
 
-        const swapETH = await ethers.getContractAt('UniSwapV2Facet', instance.address);
+        const swapETH = await ethers.getContractAt('SushiSwapFacet', instance.address);
 
         path = [wethAddress,baseAssetAddress]
 
-        txn = await swapETH.executeUniV2Swap(1,ethers.utils.parseUnits('1548',6),path); // voteID, MinimumAmount, fee=3000, 0
+        txn = await swapETH.executeSushiSwap(1,ethers.utils.parseUnits('1548',6),path); // voteID, MinimumAmount, fee=3000, 0
         txn = await instance.getVotingStatuses(1);
-        expect(txn[0].voteStatus).to.equal(505);
+        expect(txn[0].voteStatus).to.equal(520);
 
         txn = await usdc.callStatic.balanceOf(instance.address);
         expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('1548',6)));
@@ -229,7 +219,7 @@ describe("Uniswap V3 Integration Test", function () {
          txn = await instance
          .createProposal(
            0x2,
-           506,
+           521,
            baseAssetAddress,
            wethAddress,
            ethers.utils.parseUnits('2000',6),
@@ -239,13 +229,13 @@ describe("Uniswap V3 Integration Test", function () {
  
          txn = await instance.connect(Contracts.accounts[1]).voteResponse(2, 1, false);
  
-         const swapETHUSDC = await ethers.getContractAt('UniSwapV2Facet', instance.address);
+         const swapETHUSDC = await ethers.getContractAt('SushiSwapFacet', instance.address);
  
          path = [wethAddress,baseAssetAddress]
  
-         txn = await swapETHUSDC.executeUniV2Swap(2,ethers.utils.parseUnits("1.65",18),path); // voteID, MinimumAmount, fee=3000, 0
+         txn = await swapETHUSDC.executeSushiSwap(2,ethers.utils.parseUnits("1.65",18),path); // voteID, MinimumAmount, fee=3000, 0
          txn = await instance.getVotingStatuses(1);
-         expect(txn[1].voteStatus).to.equal(506);
+         expect(txn[1].voteStatus).to.equal(521);
  
          txn = await usdc.callStatic.balanceOf(instance.address);
          expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('2000',6)));
@@ -254,7 +244,7 @@ describe("Uniswap V3 Integration Test", function () {
         txn = await instance
         .createProposal(
           0x2,
-          507,
+          522,
           wethAddress,
           baseAssetAddress,
           ethers.utils.parseUnits("780",6),
@@ -264,11 +254,11 @@ describe("Uniswap V3 Integration Test", function () {
 
         txn = await instance.connect(Contracts.accounts[1]).voteResponse(3, 1, false);
 
-        const swapUSDC = await ethers.getContractAt('UniSwapV2Facet', instance.address);
+        const swapUSDC = await ethers.getContractAt('SushiSwapFacet', instance.address);
         path = [baseAssetAddress,wethAddress]
-        txn = await swapUSDC.executeUniV2Swap(3, ethers.utils.parseUnits("0.5",18),path); // voteID, MinimumAmount
+        txn = await swapUSDC.executeSushiSwap(3, ethers.utils.parseUnits("0.5",18),path); // voteID, MinimumAmount
         txn = await instance.getVotingStatuses(1);
-        expect(txn[2].voteStatus).to.equal(507);
+        expect(txn[2].voteStatus).to.equal(522);
         txn = await usdc.callStatic.balanceOf(instance.address);
         expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('1220',6)));
 
@@ -276,7 +266,7 @@ describe("Uniswap V3 Integration Test", function () {
          txn = await instance
          .createProposal(
            0x2,
-           508,
+           523,
            wethAddress,
            baseAssetAddress,
            ethers.utils.parseUnits("0.5",18),
@@ -286,11 +276,11 @@ describe("Uniswap V3 Integration Test", function () {
  
          txn = await instance.connect(Contracts.accounts[1]).voteResponse(4, 1, false);
  
-         const swapUSDCETH = await ethers.getContractAt('UniSwapV2Facet', instance.address);
+         const swapUSDCETH = await ethers.getContractAt('SushiSwapFacet', instance.address);
          path = [baseAssetAddress,wethAddress]
-         txn = await swapUSDCETH.executeUniV2Swap(4, ethers.utils.parseUnits("800",6),path); // voteID, MinimumAmount
+         txn = await swapUSDCETH.executeSushiSwap(4, ethers.utils.parseUnits("800",6),path); // voteID, MinimumAmount
          txn = await instance.getVotingStatuses(1);
-         expect(txn[3].voteStatus).to.equal(508);
+         expect(txn[3].voteStatus).to.equal(523);
          txn = await usdc.callStatic.balanceOf(instance.address);
          expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('780',6)));
 
@@ -298,7 +288,7 @@ describe("Uniswap V3 Integration Test", function () {
            txn = await instance
            .createProposal(
              0x2,
-             509,
+             524,
              wethAddress,
              baseAssetAddress,
              ethers.utils.parseUnits('390',6),
@@ -308,12 +298,12 @@ describe("Uniswap V3 Integration Test", function () {
    
            txn = await instance.connect(Contracts.accounts[1]).voteResponse(5, 1, false);
    
-           const swapeUSDCWETH = await ethers.getContractAt('UniSwapV2Facet', instance.address);
+           const swapeUSDCWETH = await ethers.getContractAt('SushiSwapFacet', instance.address);
            path = [baseAssetAddress,wethAddress]
-           txn = await swapeUSDCWETH.executeUniV2Swap(5,  ethers.utils.parseUnits('0.25',18),path); // voteID, MinimumAmount
+           txn = await swapeUSDCWETH.executeSushiSwap(5,  ethers.utils.parseUnits('0.25',18),path); // voteID, MinimumAmount
            
            txn = await instance.getVotingStatuses(1);
-           expect(txn[4].voteStatus).to.equal(509);
+           expect(txn[4].voteStatus).to.equal(524);
 
            txn = await usdc.callStatic.balanceOf(instance.address);
            expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('500',6)));
@@ -324,7 +314,7 @@ describe("Uniswap V3 Integration Test", function () {
          txn = await instance
          .createProposal(
            0x2,
-           510,
+           525,
            wethAddress,
            baseAssetAddress,
            ethers.utils.parseUnits('0.25',18),
@@ -335,10 +325,10 @@ describe("Uniswap V3 Integration Test", function () {
          txn = await instance.connect(Contracts.accounts[1]).voteResponse(6, 1, false);
          path = [baseAssetAddress,wethAddress]
  
-         const swapUSDCWETH = await ethers.getContractAt('UniSwapV2Facet', instance.address);
-         txn = await swapUSDCWETH.executeUniV2Swap(6, ethers.utils.parseUnits('390',6), path); // voteID, MinimumAmount, fee=3000, 0
+         const swapUSDCWETH = await ethers.getContractAt('SushiSwapFacet', instance.address);
+         txn = await swapUSDCWETH.executeSushiSwap(6, ethers.utils.parseUnits('390',6), path); // voteID, MinimumAmount, fee=3000, 0
          txn = await instance.getVotingStatuses(1);
-         expect(txn[5].voteStatus).to.equal(510);
+         expect(txn[5].voteStatus).to.equal(525);
          txn = await usdc.callStatic.balanceOf(instance.address);
          expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('100',6)));
          txn = await weth.callStatic.balanceOf(instance.address);
@@ -346,14 +336,14 @@ describe("Uniswap V3 Integration Test", function () {
    
       });
 
-      it('Users can supply assets to UniswapV2', async () => {
+      it('Users can supply assets to SushiSwap', async () => {
         const cut = []
         const provider = new ethers.providers.JsonRpcProvider(jsonRpcUrl);
         const diamondCut = await ethers.getContractAt('IDiamondCut', instance.address);
         cut.push({
-            facetAddress: UniSwapV2Facet.address,
+            facetAddress: SushiSwapFacet.address,
             action: FacetCutAction.Add,
-            functionSelectors: getSelectors(UniSwapV2Facet)
+            functionSelectors: getSelectors(SushiSwapFacet)
           })
         txn = await diamondCut.diamondCut(cut,ZERO_ADDRESS, "0x");
 
@@ -367,7 +357,7 @@ describe("Uniswap V3 Integration Test", function () {
         txn = await instance
         .createProposal(
           0x2,
-          505,
+          520,
           baseAssetAddress,
           wethAddress,
           ethers.utils.parseUnits('2',18),
@@ -377,13 +367,13 @@ describe("Uniswap V3 Integration Test", function () {
 
         txn = await instance.connect(Contracts.accounts[1]).voteResponse(1, 1, false);
 
-        const swapETH = await ethers.getContractAt('UniSwapV2Facet', instance.address);
+        const swapETH = await ethers.getContractAt('SushiSwapFacet', instance.address);
 
         path = [wethAddress,baseAssetAddress]
 
-        txn = await swapETH.executeUniV2Swap(1,ethers.utils.parseUnits('3096',6),path); // voteID, MinimumAmount, fee=3000, 0
+        txn = await swapETH.executeSushiSwap(1,ethers.utils.parseUnits('3096',6),path); // voteID, MinimumAmount, fee=3000, 0
         txn = await instance.getVotingStatuses(1);
-        expect(txn[0].voteStatus).to.equal(505);
+        expect(txn[0].voteStatus).to.equal(520);
 
         txn = await usdc.callStatic.balanceOf(instance.address);
         expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('3000',6)));
@@ -392,7 +382,7 @@ describe("Uniswap V3 Integration Test", function () {
          resp = await instance
          .createProposal(
            0x2,
-           501,
+           526,
            wethAddress,
            baseAssetAddress,
            ethers.utils.parseUnits('1',18),
@@ -403,11 +393,11 @@ describe("Uniswap V3 Integration Test", function () {
  
          txn = await instance.connect(Contracts.accounts[1]).voteResponse(2, 1, false);
  
-         const supplyETHUSDC = await ethers.getContractAt('UniSwapV2Facet', instance.address);
+         const supplyETHUSDC = await ethers.getContractAt('SushiSwapFacet', instance.address);
  
-         txn = await supplyETHUSDC.UniAddLiquidityETH(2,ethers.utils.parseUnits("0.9",18),ethers.utils.parseUnits("1440",6)); // voteID, MinimumAmount, fee=3000, 0
+         txn = await supplyETHUSDC.sushiAddLiquidityETH(2,ethers.utils.parseUnits("0.9",18),ethers.utils.parseUnits("1440",6)); // voteID, MinimumAmount, fee=3000, 0
          txn = await instance.getVotingStatuses(1);
-         expect(txn[1].voteStatus).to.equal(501);
+         expect(txn[1].voteStatus).to.equal(526);
  
          txn = await usdc.callStatic.balanceOf(instance.address);
          expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('1500',6)));
@@ -416,7 +406,7 @@ describe("Uniswap V3 Integration Test", function () {
            txn = await instance
            .createProposal(
              0x2,
-             509,
+             524,
              wethAddress,
              baseAssetAddress,
              ethers.utils.parseUnits('500',6),
@@ -426,12 +416,12 @@ describe("Uniswap V3 Integration Test", function () {
    
            txn = await instance.connect(Contracts.accounts[1]).voteResponse(3, 1, false);
    
-           const swapeUSDCWETH = await ethers.getContractAt('UniSwapV2Facet', instance.address);
+           const swapeUSDCWETH = await ethers.getContractAt('SushiSwapFacet', instance.address);
            path = [baseAssetAddress,wethAddress]
-           txn = await swapeUSDCWETH.executeUniV2Swap(3,  ethers.utils.parseUnits('0.3',18),path); // voteID, MinimumAmount
+           txn = await swapeUSDCWETH.executeSushiSwap(3,  ethers.utils.parseUnits('0.3',18),path); // voteID, MinimumAmount
            
            txn = await instance.getVotingStatuses(1);
-           expect(txn[2].voteStatus).to.equal(509);
+           expect(txn[2].voteStatus).to.equal(524);
 
            txn = await usdc.callStatic.balanceOf(instance.address);
            expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('900',6)));
@@ -444,7 +434,7 @@ describe("Uniswap V3 Integration Test", function () {
          txn = await instance
          .createProposal(
            0x2,
-           502,
+           527,
            wethAddress,
            baseAssetAddress,
            ethers.utils.parseUnits('145',6),
@@ -454,20 +444,20 @@ describe("Uniswap V3 Integration Test", function () {
  
          txn = await instance.connect(Contracts.accounts[1]).voteResponse(4, 1, false);
  
-         const supplyWETHUSDC = await ethers.getContractAt('UniSwapV2Facet', instance.address);
+         const supplyWETHUSDC = await ethers.getContractAt('SushiSwapFacet', instance.address);
  
-         txn = await supplyWETHUSDC.uniAddLiquidity(4,ethers.utils.parseUnits("140",6),ethers.utils.parseUnits("0.09",18)); // voteID, MinimumAmount, fee=3000, 0
+         txn = await supplyWETHUSDC.sushiAddLiquidity(4,ethers.utils.parseUnits("140",6),ethers.utils.parseUnits("0.09",18)); // voteID, MinimumAmount, fee=3000, 0
          txn = await instance.getVotingStatuses(1);
-         expect(txn[3].voteStatus).to.equal(502);
+         expect(txn[3].voteStatus).to.equal(527);
  
          txn = await usdc.callStatic.balanceOf(instance.address);
          expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('800',6)));
 
          await advanceBlockHeight(5000);
 
-         const removeLiqETH = await ethers.getContractAt('UniSwapV2Facet', instance.address);
+         const removeLiqETH = await ethers.getContractAt('SushiSwapFacet', instance.address);
 
-         pair = await removeLiqETH.callStatic.getPairAddressV2(baseAssetAddress,wethAddress);
+         pair = await removeLiqETH.callStatic.getPairAddressSushi(baseAssetAddress,wethAddress);
          const liq = new ethers.Contract(pair, stdErc20Abi, signer);
 
          liquidity = await liq.callStatic.balanceOf(instance.address);
@@ -477,7 +467,7 @@ describe("Uniswap V3 Integration Test", function () {
          txn = await instance
          .createProposal(
            0x2,
-           503,
+           528,
            wethAddress,
            baseAssetAddress,
            liquidity,
@@ -487,9 +477,9 @@ describe("Uniswap V3 Integration Test", function () {
  
          txn = await instance.connect(Contracts.accounts[1]).voteResponse(5, 1, false);
  
-         txn = await removeLiqETH.uniRemoveLiquidityETH(5,ethers.utils.parseUnits("1600",6),ethers.utils.parseUnits("1.02",18)); // voteID, MinimumAmount
+         txn = await removeLiqETH.sushiRemoveLiquidityETH(5,ethers.utils.parseUnits("1600",6),ethers.utils.parseUnits("1.02",18)); // voteID, MinimumAmount
          txn = await instance.getVotingStatuses(1);
-         expect(txn[4].voteStatus).to.equal(503);
+         expect(txn[4].voteStatus).to.equal(528);
          txn = await usdc.callStatic.balanceOf(instance.address);
          expect (Number(txn)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('800',6)));
          liquidity = await liq.callStatic.balanceOf(instance.address);

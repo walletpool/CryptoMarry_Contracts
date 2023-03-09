@@ -33,7 +33,6 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
 
     function sushiAddLiquidityETH(
         uint24 _id,
-        uint256 amountTokenDesired,
         uint256 amountTokenMin,
         uint256 amountETHMin
     ) external payable checkValidity(_id) returns (
@@ -45,10 +44,11 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
 
-        if (vt.voteProposalAttributes[_id].voteType != 536) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =536;
+        if (vt.voteProposalAttributes[_id].voteType != 526) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =526;
         
          uint256 value = vt.voteProposalAttributes[_id].amount;
+         uint256 amountTokenDesired = vt.voteProposalAttributes[_id].voteends;
          address token = vt.voteProposalAttributes[_id].tokenID;
          
          // Get uniswapV2 router
@@ -83,7 +83,7 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
           emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            536,
+            526,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -91,7 +91,6 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
 
     function sushiAddLiquidity(
         uint24 _id,
-        uint256 amountBDesired,
         uint256 amountAMin,
         uint256 amountBMin
     ) external payable checkValidity(_id){
@@ -99,12 +98,13 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
 
-        if (vt.voteProposalAttributes[_id].voteType != 537) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =537;
+        if (vt.voteProposalAttributes[_id].voteType != 527) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =527;
         
          uint256 amountADesired = vt.voteProposalAttributes[_id].amount;
+         uint256 amountBDesired = vt.voteProposalAttributes[_id].voteends;
          address tokenA = vt.voteProposalAttributes[_id].tokenID;
-         address tokenB = vt.voteProposalAttributes[_id].tokenID;
+         address tokenB = vt.voteProposalAttributes[_id].receiver;
          
          // Get uniswapV2 router
         IUniswapV2Router02 router = IUniswapV2Router02(sushiSwapRouter);
@@ -138,7 +138,7 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
           emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            537,
+            527,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -156,13 +156,12 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
 
-        if (vt.voteProposalAttributes[_id].voteType != 538) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =538;
+        if (vt.voteProposalAttributes[_id].voteType != 528) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =528;
         
 
         address token = vt.voteProposalAttributes[_id].tokenID;
         uint256 liquidity = vt.voteProposalAttributes[_id].amount;
-         
          
          // Get uniswapV2 router
         IUniswapV2Router02 router = IUniswapV2Router02(sushiSwapRouter);
@@ -196,7 +195,7 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
           emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            138,
+            528,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -214,8 +213,8 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
 
-        if (vt.voteProposalAttributes[_id].voteType != 539) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =539;
+        if (vt.voteProposalAttributes[_id].voteType != 529) {revert COULD_NOT_PROCESS('wrong type');}
+         vt.voteProposalAttributes[_id].voteStatus =529;
         
 
         address tokenA = vt.voteProposalAttributes[_id].tokenID;
@@ -255,7 +254,7 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
           emit VoteProposalLib.VoteStatus(
             _id,
             _msgSender(),
-            539,
+            529,
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
@@ -302,13 +301,13 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
         }
         //swapETHForExactTokens
         else if (vt.voteProposalAttributes[_id].voteType == 521 ) {
-        vt.voteProposalAttributes[_id].voteStatus =521;
-        amount = _getBalance(address(0), amount);
+        vt.voteProposalAttributes[_id].voteStatus = 521;
+        requiredAmount = _getBalance(address(0), requiredAmount);
        
         if (path[0]!= vt.voteProposalAttributes[_id].tokenID) revert COULD_NOT_PROCESS("wrong pair");
         try
-            router.swapETHForExactTokens{value: amount}(
-                requiredAmount,
+            router.swapETHForExactTokens{value: requiredAmount}(
+                amount,
                 path,
                 address(this),
                 block.timestamp
@@ -323,8 +322,8 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
         }
 
         //swapExactTokensForETH
-       else if (vt.voteProposalAttributes[_id].voteType == 523 ) {
-        vt.voteProposalAttributes[_id].voteStatus =523;
+       else if (vt.voteProposalAttributes[_id].voteType == 522 ) {
+        vt.voteProposalAttributes[_id].voteStatus =522;
         
         address tokenIn = vt.voteProposalAttributes[_id].tokenID;
         if (path[0]!= tokenIn) revert COULD_NOT_PROCESS("wrong pair");
@@ -350,17 +349,17 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
         }
 
          //swapTokensForExactETH
-       else if (vt.voteProposalAttributes[_id].voteType == 524 ) {
-        vt.voteProposalAttributes[_id].voteStatus =524;
+       else if (vt.voteProposalAttributes[_id].voteType == 523 ) {
+        vt.voteProposalAttributes[_id].voteStatus =523;
         
         address tokenIn = vt.voteProposalAttributes[_id].tokenID;
         if (path[0]!= tokenIn) revert COULD_NOT_PROCESS("wrong pair");
-        amount = _getBalance(tokenIn, amount);
-        _tokenApprove(tokenIn, sushiSwapRouter, amount);
+        requiredAmount = _getBalance(tokenIn, requiredAmount);
+        _tokenApprove(tokenIn, sushiSwapRouter, requiredAmount);
        try
-            router.swapExactTokensForETH(
-                requiredAmount, //amountOut
+            router.swapTokensForExactETH(
                 amount, //AmountInMax
+                requiredAmount,
                 path,
                 address(this),
                 block.timestamp
@@ -377,8 +376,8 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
 
 
         //swapExactTokensForTokens
-        else if (vt.voteProposalAttributes[_id].voteType == 525 ) {
-        vt.voteProposalAttributes[_id].voteStatus =525;
+        else if (vt.voteProposalAttributes[_id].voteType == 524 ) {
+        vt.voteProposalAttributes[_id].voteStatus =524;
         address tokenIn = vt.voteProposalAttributes[_id].tokenID;
         amount = _getBalance(tokenIn, amount);
         _tokenApprove(tokenIn, sushiSwapRouter, amount);
@@ -403,18 +402,18 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
         }
 
          //swapTokensForExactTokens
-        else if (vt.voteProposalAttributes[_id].voteType == 526 ) {
-        vt.voteProposalAttributes[_id].voteStatus =526;
+        else if (vt.voteProposalAttributes[_id].voteType == 525 ) {
+        vt.voteProposalAttributes[_id].voteStatus =525;
         address tokenIn = vt.voteProposalAttributes[_id].tokenID;
         address tokenOut = vt.voteProposalAttributes[_id].receiver;
-        amount = _getBalance(tokenIn, amount);
-        _tokenApprove(tokenIn, sushiSwapRouter, amount);
+        requiredAmount = _getBalance(tokenIn, requiredAmount);
+        _tokenApprove(tokenIn, sushiSwapRouter, requiredAmount);
 
          if (path[0]!= tokenIn || path[path.length - 1]!= tokenOut) revert COULD_NOT_PROCESS("wrong pair");
        try
-            router.swapExactTokensForTokens(
-                requiredAmount,
+            router.swapTokensForExactTokens(
                 amount,
+                requiredAmount,
                 path,
                 address(this),
                 block.timestamp
@@ -424,7 +423,7 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
         } catch Error(string memory reason) {
             revert COULD_NOT_PROCESS(reason);
         } catch {
-             revert COULD_NOT_PROCESS("swapExactTokensForTokens");
+             revert COULD_NOT_PROCESS("swapTokensForExactTokens");
         }
         _tokenApproveZero(tokenIn, sushiSwapRouter);
         }
@@ -437,6 +436,11 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
+    }
+
+     function getPairAddressSushi(address tokenA, address tokenB) external view returns (address Pair){
+         IUniswapV2Router02 router = IUniswapV2Router02(sushiSwapRouter);
+           return  SushiSwapLibrary.pairFor(router.factory(), tokenA, tokenB); 
     }
 
 }
