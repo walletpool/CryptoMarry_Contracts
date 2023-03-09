@@ -16,11 +16,11 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
     using SafeERC20 for IERC20;
     error COULD_NOT_PROCESS(string);
     
-    address public immutable UNISWAPV2_ROUTER;
+    address public immutable QUICKSWAPV2_ROUTER;
     
-    constructor(MinimalForwarderUpgradeable forwarder, address _UNISWAPV2_ROUTER)
+    constructor(MinimalForwarderUpgradeable forwarder, address _QUICKSWAPV2_ROUTER)
         ERC2771ContextUpgradeable(address(forwarder))
-        {UNISWAPV2_ROUTER = _UNISWAPV2_ROUTER;}
+        {QUICKSWAPV2_ROUTER = _QUICKSWAPV2_ROUTER;}
 
 
  modifier checkValidity(uint24 _id) {  
@@ -33,7 +33,6 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
 
     function quickAddLiquidityETH(
         uint24 _id,
-        uint256 amountTokenDesired,
         uint256 amountTokenMin,
         uint256 amountETHMin
     ) external payable checkValidity(_id) returns (
@@ -49,15 +48,16 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
          vt.voteProposalAttributes[_id].voteStatus =550;
         
          uint256 value = vt.voteProposalAttributes[_id].amount;
+         uint256 amountTokenDesired = vt.voteProposalAttributes[_id].voteends;
          address token = vt.voteProposalAttributes[_id].tokenID;
          
          // Get uniswapV2 router
-        IUniswapV2Router02 router = IUniswapV2Router02(UNISWAPV2_ROUTER);
+        IUniswapV2Router02 router = IUniswapV2Router02(QUICKSWAPV2_ROUTER);
 
              // Approve token
         value = _getBalance(address(0), value);
         amountTokenDesired = _getBalance(token, amountTokenDesired);
-        _tokenApprove(token, UNISWAPV2_ROUTER, amountTokenDesired);
+        _tokenApprove(token, QUICKSWAPV2_ROUTER, amountTokenDesired);
 
         // Add liquidity ETH
         try
@@ -78,7 +78,7 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         } catch {
             revert COULD_NOT_PROCESS("addLiquidityETH");
         }
-        _tokenApproveZero(token, UNISWAPV2_ROUTER);
+        _tokenApproveZero(token, QUICKSWAPV2_ROUTER);
 
           emit VoteProposalLib.VoteStatus(
             _id,
@@ -91,7 +91,6 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
 
     function quickAddLiquidity(
         uint24 _id,
-        uint256 amountBDesired,
         uint256 amountAMin,
         uint256 amountBMin
     ) external payable checkValidity(_id){
@@ -103,17 +102,18 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
          vt.voteProposalAttributes[_id].voteStatus = 551;
         
          uint256 amountADesired = vt.voteProposalAttributes[_id].amount;
+         uint256 amountBDesired = vt.voteProposalAttributes[_id].voteends;
          address tokenA = vt.voteProposalAttributes[_id].tokenID;
-         address tokenB = vt.voteProposalAttributes[_id].tokenID;
+         address tokenB = vt.voteProposalAttributes[_id].receiver;
          
          // Get uniswapV2 router
-        IUniswapV2Router02 router = IUniswapV2Router02(UNISWAPV2_ROUTER);
+        IUniswapV2Router02 router = IUniswapV2Router02(QUICKSWAPV2_ROUTER);
 
         // Approve token
         amountADesired = _getBalance(tokenA, amountADesired);
         amountBDesired = _getBalance(tokenB, amountBDesired);
-        _tokenApprove(tokenA, UNISWAPV2_ROUTER, amountADesired);
-        _tokenApprove(tokenB, UNISWAPV2_ROUTER, amountBDesired);
+        _tokenApprove(tokenA, QUICKSWAPV2_ROUTER, amountADesired);
+        _tokenApprove(tokenB, QUICKSWAPV2_ROUTER, amountBDesired);
 
         // Add liquidity ETH
          try
@@ -132,8 +132,8 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         } catch {
             revert COULD_NOT_PROCESS("addLiquidity");
         }
-        _tokenApproveZero(tokenA, UNISWAPV2_ROUTER);
-        _tokenApproveZero(tokenB, UNISWAPV2_ROUTER);
+        _tokenApproveZero(tokenA, QUICKSWAPV2_ROUTER);
+        _tokenApproveZero(tokenB, QUICKSWAPV2_ROUTER);
 
           emit VoteProposalLib.VoteStatus(
             _id,
@@ -159,19 +159,18 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         if (vt.voteProposalAttributes[_id].voteType != 552) {revert COULD_NOT_PROCESS('wrong type');}
          vt.voteProposalAttributes[_id].voteStatus =552;
         
-
         address token = vt.voteProposalAttributes[_id].tokenID;
         uint256 liquidity = vt.voteProposalAttributes[_id].amount;
          
          
          // Get uniswapV2 router
-        IUniswapV2Router02 router = IUniswapV2Router02(UNISWAPV2_ROUTER);
+        IUniswapV2Router02 router = IUniswapV2Router02(QUICKSWAPV2_ROUTER);
         address pair =
             UniswapV2Library.pairFor(router.factory(), token, router.WETH());
 
                // Approve token
         liquidity = _getBalance(pair, liquidity);
-        _tokenApprove(pair, UNISWAPV2_ROUTER, liquidity);
+        _tokenApprove(pair, QUICKSWAPV2_ROUTER, liquidity);
 
         // remove liquidityETH
         try
@@ -191,7 +190,7 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         } catch {
             revert COULD_NOT_PROCESS("addLiquidityETH");
         }
-         _tokenApproveZero(pair, UNISWAPV2_ROUTER);
+         _tokenApproveZero(pair, QUICKSWAPV2_ROUTER);
 
           emit VoteProposalLib.VoteStatus(
             _id,
@@ -224,13 +223,13 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
          
          
          // Get uniswapV2 router
-        IUniswapV2Router02 router = IUniswapV2Router02(UNISWAPV2_ROUTER);
+        IUniswapV2Router02 router = IUniswapV2Router02(QUICKSWAPV2_ROUTER);
         address pair =
             UniswapV2Library.pairFor(router.factory(), tokenA, tokenB);
 
                // Approve token
         liquidity = _getBalance(pair, liquidity);
-        _tokenApprove(pair, UNISWAPV2_ROUTER, liquidity);
+        _tokenApprove(pair, QUICKSWAPV2_ROUTER, liquidity);
 
          try
             router.removeLiquidity(
@@ -250,7 +249,7 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         } catch {
             revert COULD_NOT_PROCESS("removeLiquidity");
         }
-         _tokenApproveZero(pair, UNISWAPV2_ROUTER);
+         _tokenApproveZero(pair, QUICKSWAPV2_ROUTER);
 
           emit VoteProposalLib.VoteStatus(
             _id,
@@ -276,7 +275,7 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
 
         uint256 amount = vt.voteProposalAttributes[_id].amount;
         require (path.length>=2);
-         IUniswapV2Router02 router = IUniswapV2Router02(UNISWAPV2_ROUTER);
+         IUniswapV2Router02 router = IUniswapV2Router02(QUICKSWAPV2_ROUTER);
          //swapExactETHForTokens
         if (vt.voteProposalAttributes[_id].voteType == 554 ) {
         vt.voteProposalAttributes[_id].voteStatus =554;
@@ -300,12 +299,12 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         //swapETHForExactTokens
         else if (vt.voteProposalAttributes[_id].voteType == 555 ) {
         vt.voteProposalAttributes[_id].voteStatus =555;
-        amount = _getBalance(address(0), amount);
+        requiredAmount = _getBalance(address(0), requiredAmount);
        
         if (path[0]!= vt.voteProposalAttributes[_id].tokenID) revert COULD_NOT_PROCESS("wrong pair");
         try
-            router.swapETHForExactTokens{value: amount}(
-                requiredAmount,
+            router.swapETHForExactTokens{value: requiredAmount}(
+                amount,
                 path,
                 address(this),
                 block.timestamp
@@ -315,7 +314,7 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         } catch Error(string memory reason) {
             revert COULD_NOT_PROCESS(reason);
         } catch {
-             revert COULD_NOT_PROCESS("swapExactETHForTokens");
+             revert COULD_NOT_PROCESS("swapETHForExactTokens");
         }
         }
 
@@ -326,7 +325,7 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         address tokenIn = vt.voteProposalAttributes[_id].tokenID;
         if (path[0]!= tokenIn) revert COULD_NOT_PROCESS("wrong pair");
         amount = _getBalance(tokenIn, amount);
-        _tokenApprove(tokenIn, UNISWAPV2_ROUTER, amount);
+        _tokenApprove(tokenIn, QUICKSWAPV2_ROUTER, amount);
         
        try
             router.swapExactTokensForETH(
@@ -343,7 +342,7 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         } catch {
              revert COULD_NOT_PROCESS("swapExactTokensForETH");
         }
-        _tokenApproveZero(tokenIn, UNISWAPV2_ROUTER);
+        _tokenApproveZero(tokenIn, QUICKSWAPV2_ROUTER);
         }
 
          //swapTokensForExactETH
@@ -353,12 +352,12 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         address tokenIn = vt.voteProposalAttributes[_id].tokenID;
         if (path[0]!= tokenIn) revert COULD_NOT_PROCESS("wrong pair");
         amount = _getBalance(tokenIn, amount);
-        _tokenApprove(tokenIn, UNISWAPV2_ROUTER, amount);
+        _tokenApprove(tokenIn, QUICKSWAPV2_ROUTER, amount);
         
        try
-            router.swapExactTokensForETH(
+            router.swapTokensForExactETH(
+                amount, //AmountInMax
                 requiredAmount,
-                amount,
                 path,
                 address(this),
                 block.timestamp
@@ -368,9 +367,9 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         } catch Error(string memory reason) {
             revert COULD_NOT_PROCESS(reason);
         } catch {
-             revert COULD_NOT_PROCESS("swapExactTokensForETH");
+             revert COULD_NOT_PROCESS("swapTokensForExactETH");
         }
-        _tokenApproveZero(tokenIn, UNISWAPV2_ROUTER);
+        _tokenApproveZero(tokenIn, QUICKSWAPV2_ROUTER);
         }
 
 
@@ -379,7 +378,7 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         vt.voteProposalAttributes[_id].voteStatus =558;
         address tokenIn = vt.voteProposalAttributes[_id].tokenID;
         amount = _getBalance(tokenIn, amount);
-        _tokenApprove(tokenIn, UNISWAPV2_ROUTER, amount);
+        _tokenApprove(tokenIn, QUICKSWAPV2_ROUTER, amount);
 
          if (path[0]!= tokenIn || path[path.length - 1]!= vt.voteProposalAttributes[_id].receiver) revert COULD_NOT_PROCESS("wrong pair");
        try
@@ -397,7 +396,7 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         } catch {
              revert COULD_NOT_PROCESS("swapExactTokensForTokens");
         }
-        _tokenApproveZero(tokenIn, UNISWAPV2_ROUTER);
+        _tokenApproveZero(tokenIn, QUICKSWAPV2_ROUTER);
         }
 
          //swapTokensForExactTokens
@@ -406,11 +405,11 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         address tokenIn = vt.voteProposalAttributes[_id].tokenID;
         address tokenOut = vt.voteProposalAttributes[_id].receiver;
         amount = _getBalance(tokenIn, amount);
-        _tokenApprove(tokenIn, UNISWAPV2_ROUTER, amount);
+        _tokenApprove(tokenIn, QUICKSWAPV2_ROUTER, amount);
 
          if (path[0]!= tokenIn || path[path.length - 1]!= tokenOut) revert COULD_NOT_PROCESS("wrong pair");
        try
-            router.swapExactTokensForTokens(
+            router.swapTokensForExactTokens(
                 requiredAmount,
                 amount,
                 path,
@@ -422,9 +421,9 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         } catch Error(string memory reason) {
             revert COULD_NOT_PROCESS(reason);
         } catch {
-             revert COULD_NOT_PROCESS("swapExactTokensForTokens");
+             revert COULD_NOT_PROCESS("swapTokensForExactTokens");
         }
-        _tokenApproveZero(tokenIn, UNISWAPV2_ROUTER);
+        _tokenApproveZero(tokenIn, QUICKSWAPV2_ROUTER);
         }
 
      
@@ -435,6 +434,11 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
             block.timestamp
         ); 
         VoteProposalLib.checkForwarder(); 
+    }
+
+    function getPairAddressQuickSwap(address tokenA, address tokenB) external view returns (address Pair){
+         IUniswapV2Router02 router = IUniswapV2Router02(QUICKSWAPV2_ROUTER);
+           return  UniswapV2Library.pairFor(router.factory(), tokenA, tokenB); 
     }
 
 }
