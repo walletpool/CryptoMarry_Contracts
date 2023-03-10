@@ -218,7 +218,7 @@ contract AaveV3Facet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function _getPoolAndAToken(address underlying)
-        internal
+        public
         view
         returns (address pool, address aToken)
     {
