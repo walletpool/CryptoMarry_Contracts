@@ -1,5 +1,7 @@
 {
     "usdc-mainnet": {
+      "aaveV3Provider": "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e",
+      "aaveV2Provider": "0xB53C1a33016B2DC2fF3653530bfF1848a515c8c5",
       "QuickSwapRouter": "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff",
       "SushiSwapRouter": "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F",
       "uniswapV2Router" : "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
@@ -26,6 +28,8 @@
       "LINK_Price_Feed": "0x2c1d072e956AFFC0D435Cb7AC38EF18d24d9127c"
     },
     "usdc-goerli": {
+      "aaveV3Provider": "0xC911B590248d127aD18546B186cC6B324e99F02c",
+      "aaveV2Provider": "0x5E52dEc931FFb32f609681B8438A51c675cc232d",
       "QuickSwapRouter": "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff",
       "SushiSwapRouter": "0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506",
       "uniswapV2Router" : "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
