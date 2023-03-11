@@ -22,7 +22,7 @@ const wethAbi = [
     'function approve(address, uint) returns (bool)',
     'function transfer(address, uint)',
     'function balanceOf(address) returns (uint)',
-   ' function getUserAccountData(address user) external  view returns (uint256 totalCollateralETH,uint256 totalDebtETH,uint256 availableBorrowsETH,uint256 currentLiquidationThreshold,uint256 ltv,uint256 healthFactor)',
+   ' function getUserAccountData(address user) external  view returns (uint256 totalCollateralBase,uint256 totalDebtBase,uint256 availableBorrowsBase,uint256 currentLiquidationThreshold,uint256 ltv,uint256 healthFactor)',
     ' function getReserveData(address asset) external view returns ( uint256 data,  uint128 liquidityIndex,uint128 variableBorrowIndex,uint128 currentLiquidityRate,uint128 currentVariableBorrowRate,uint128 currentStableBorrowRate,uint40 lastUpdateTimestamp,address aTokenAddress,address stableDebtTokenAddress,address variableDebtTokenAddress,address interestRateStrategyAddress,uint8 id)',
   'function principalBalanceOf(address user) external view returns (uint256)'
   ];
@@ -359,14 +359,14 @@ describe("AaveV3 Integration Test", function () {
         const instanceAaveV3 = await ethers.getContractAt('AaveV3Facet', instance.address);
 
 
-        //Depositing USDC
+        //Depositing ETH
         txn = await instance
         .createProposal(
           0x2,
-          220,
+          221,
           ZERO_ADDRESS,
           baseAssetAddress,
-          ethers.utils.parseUnits('10000',6),
+          ethers.utils.parseUnits('5',18),
           100,
           false
         );
@@ -376,107 +376,105 @@ describe("AaveV3 Integration Test", function () {
         txn = await instanceAaveV3.executeAaveV3(1); // voteID
     
         txn = await instance.getVotingStatuses(1);
-        expect(txn[0].voteStatus).to.equal(220);
+        expect(txn[0].voteStatus).to.equal(221);
 
-        txn = await usdc.callStatic.balanceOf(instance.address);
-        expect (Number(txn)).to.equal(Number(ethers.utils.parseUnits('0',6)));
 
-        
-         DebtPool = await instanceAaveV3._getPoolAndAToken(wethAddress);
+        DebtPool = await instanceAaveV3._getPoolAndAToken(wethAddress);
         const apoolweth = new ethers.Contract(DebtPool.pool, stdErc20Abi, signer);
         txn = await apoolweth.callStatic.getUserAccountData(instance.address);
         console.log("debt", txn)
         await advanceBlockHeight(1000);
+
   
-         //Borrowing WETH
+         //Borrowing USDC
          txn = await instance
          .createProposal(
            0x2,
            224,
            ZERO_ADDRESS,
            usdcAddress,
-           ethers.utils.parseUnits('2',6),
+           ethers.utils.parseUnits('1000',6),
            100,
            false
          );
  
-        //  txn = await instance.connect(Contracts.accounts[1]).voteResponse(2, 1, false);
-        //  console.log("STEP1")
+         txn = await instance.connect(Contracts.accounts[1]).voteResponse(2, 1, false);
+         console.log("STEP1")
  
-        //  txn = await instanceAaveV3.executeAaveV3BorrowRepay(2,1); // voteID
-        //  console.log("STEP1.1")
+         txn = await instanceAaveV3.executeAaveV3BorrowRepay(2,1); // voteID
+         console.log("STEP1.1")
 
-     
-        //  txn = await instance.getVotingStatuses(1);
-        //  expect(txn[1].voteStatus).to.equal(224);
- 
-        //  txn = await weth.callStatic.balanceOf(instance.address);
-        //  expect (Number(txn)).to.equal(Number(ethers.utils.parseUnits('2',18)));
-
-        //  txn = await apoolweth.callStatic.getUserAccountData(instance.address);
-        //  expect(txn.totalDebtETH).to.equal(ethers.utils.parseUnits('2',18))
- 
-        //  console.log("STEP2")
-
-        //  await advanceBlockHeight(1000);
-
-        //  //Getting total amount + health factors and other
-        //  txn = await apoolweth.callStatic.getUserAccountData(instance.address);
-        //  expect(Number(txn.totalDebtETH)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('2',18)))
-        
-        // //Getting debt amount
-        //  txn = await apoolweth.callStatic.getReserveData(wethAddress);
-        //  const stableDebtTokenAddress = new ethers.Contract(txn.stableDebtTokenAddress, stdErc20Abi, signer);
-        //  txn = await stableDebtTokenAddress.callStatic.balanceOf(instance.address);
-
-
-         //borrowing ETH
-         txn = await instance
-         .createProposal(
-           0x2,
-           225,
-           ZERO_ADDRESS,
-           ZERO_ADDRESS,
-           ethers.utils.parseUnits('2',18),
-           100,
-           false
-         );
- 
-         txn = await instance.connect(Contracts.accounts[1]).voteResponse(3, 1, false);
- 
-         txn = await instanceAaveV3.executeAaveV3BorrowRepay(3,1); // voteID
      
          txn = await instance.getVotingStatuses(1);
-         expect(txn[2].voteStatus).to.equal(225);
+         expect(txn[1].voteStatus).to.equal(224);
+ 
+         txn = await weth.callStatic.balanceOf(instance.address);
+         expect (Number(txn)).to.equal(Number(ethers.utils.parseUnits('2',18)));
 
          txn = await apoolweth.callStatic.getUserAccountData(instance.address);
-         expect(Number(txn.totalDebtETH)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('4',18)))
+         expect(txn.totalDebtETH).to.equal(ethers.utils.parseUnits('2',18))
+ 
+         console.log("STEP2")
+
+         await advanceBlockHeight(1000);
+
+         //Getting total amount + health factors and other
+         txn = await apoolweth.callStatic.getUserAccountData(instance.address);
+         expect(Number(txn.totalDebtETH)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('2',18)))
+        
+        //Getting debt amount
+         txn = await apoolweth.callStatic.getReserveData(wethAddress);
+         const stableDebtTokenAddress = new ethers.Contract(txn.stableDebtTokenAddress, stdErc20Abi, signer);
+         txn = await stableDebtTokenAddress.callStatic.balanceOf(instance.address);
 
 
-          //Repaying with ETH all debt 
-          debtNow = await stableDebtTokenAddress.callStatic.balanceOf(instance.address);
+        //  //borrowing ETH
+        //  txn = await instance
+        //  .createProposal(
+        //    0x2,
+        //    225,
+        //    ZERO_ADDRESS,
+        //    ZERO_ADDRESS,
+        //    ethers.utils.parseUnits('2',18),
+        //    100,
+        //    false
+        //  );
+ 
+        //  txn = await instance.connect(Contracts.accounts[1]).voteResponse(3, 1, false);
+ 
+        //  txn = await instanceAaveV3.executeAaveV3BorrowRepay(3,1); // voteID
+     
+        //  txn = await instance.getVotingStatuses(1);
+        //  expect(txn[2].voteStatus).to.equal(225);
+
+        //  txn = await apoolweth.callStatic.getUserAccountData(instance.address);
+        //  expect(Number(txn.totalDebtETH)).to.greaterThanOrEqual(Number(ethers.utils.parseUnits('4',18)))
+
+
+        //   //Repaying with ETH all debt 
+        //   debtNow = await stableDebtTokenAddress.callStatic.balanceOf(instance.address);
          
-          txn = await instance
-          .createProposal(
-            0x2,
-            227,
-            ZERO_ADDRESS,
-            ZERO_ADDRESS,
-            debtNow,
-            100,
-            false
-          );
+        //   txn = await instance
+        //   .createProposal(
+        //     0x2,
+        //     227,
+        //     ZERO_ADDRESS,
+        //     ZERO_ADDRESS,
+        //     debtNow,
+        //     100,
+        //     false
+        //   );
   
-          txn = await instance.connect(Contracts.accounts[1]).voteResponse(4, 1, false);
+        //   txn = await instance.connect(Contracts.accounts[1]).voteResponse(4, 1, false);
   
-          txn = await instanceAaveV3.executeAaveV3BorrowRepay(4,1); // voteID
+        //   txn = await instanceAaveV3.executeAaveV3BorrowRepay(4,1); // voteID
       
-          txn = await instance.getVotingStatuses(1);
-          expect(txn[3].voteStatus).to.equal(227);
+        //   txn = await instance.getVotingStatuses(1);
+        //   expect(txn[3].voteStatus).to.equal(227);
 
-          txn = await apoolweth.callStatic.getUserAccountData(instance.address);
-          console.log(txn)
-         // expect(Number(txn.totalDebtETH)).to.equal(Number(0))
+        //   txn = await apoolweth.callStatic.getUserAccountData(instance.address);
+        //   console.log(txn)
+        //  // expect(Number(txn.totalDebtETH)).to.equal(Number(0))
 
 
 

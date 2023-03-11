@@ -174,7 +174,9 @@ contract AaveV3Facet is ERC2771ContextUpgradeable, HandlerBase {
         uint256 rateMode,
         address onBehalfOf
     ) internal {
-        address pool = IPoolAddressesProvider(PROVIDER).getPool();
+
+        (address pool, ) = _getPoolAndAToken(asset);
+       // address pool = IPoolAddressesProvider(PROVIDER).getPool();
 
         try
             IPool(pool).borrow(
@@ -196,7 +198,8 @@ contract AaveV3Facet is ERC2771ContextUpgradeable, HandlerBase {
         uint256 rateMode,
         address onBehalfOf
     ) internal returns (uint256 remainDebt) {
-        address pool = IPoolAddressesProvider(PROVIDER).getPool();
+        (address pool, ) = _getPoolAndAToken(asset);
+       // address pool = IPoolAddressesProvider(PROVIDER).getPool();
         _tokenApprove(asset, pool, amount);
 
         try
