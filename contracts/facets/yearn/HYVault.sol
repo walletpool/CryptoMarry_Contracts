@@ -13,6 +13,7 @@ import "../handlerBase.sol";
 
 contract YearnFacet is ERC2771ContextUpgradeable, HandlerBase{
     error COULD_NOT_PROCESS(string);
+
     
     constructor(MinimalForwarderUpgradeable forwarder)
         ERC2771ContextUpgradeable(address(forwarder))
@@ -34,8 +35,9 @@ contract YearnFacet is ERC2771ContextUpgradeable, HandlerBase{
         address tokenAddr = vt.voteProposalAttributes[_id].tokenID;
         _amount = _getBalance(tokenAddr, _amount);
 
-        if (vt.voteProposalAttributes[_id].voteType == 210){
-        vt.voteProposalAttributes[_id].voteStatus =210;
+     //Depositing token into Yearn
+     if (vt.voteProposalAttributes[_id].voteType == 210){
+        vt.voteProposalAttributes[_id].voteStatus = 210;
 
         IYVault yVault = IYVault(vt.voteProposalAttributes[_id].receiver);
 
@@ -43,7 +45,6 @@ contract YearnFacet is ERC2771ContextUpgradeable, HandlerBase{
             IERC20(address(yVault)).balanceOf(address(this));
            
             _tokenApprove(tokenAddr, address(yVault), _amount);
-
 
         try yVault.deposit(_amount) {} catch Error(string memory reason) {
             revert COULD_NOT_PROCESS(reason);
@@ -55,9 +56,9 @@ contract YearnFacet is ERC2771ContextUpgradeable, HandlerBase{
             IERC20(address(yVault)).balanceOf(address(this));     
             }
 
-
+        //Depositing ETH
         else if (vt.voteProposalAttributes[_id].voteType == 211){
-        vt.voteProposalAttributes[_id].voteStatus =211;
+        vt.voteProposalAttributes[_id].voteStatus = 211;
 
         IYVault yVault = IYVault(vt.voteProposalAttributes[_id].receiver);
 
@@ -73,6 +74,7 @@ contract YearnFacet is ERC2771ContextUpgradeable, HandlerBase{
             IERC20(address(yVault)).balanceOf(address(this));
             }
 
+        //Withdrawing token
         else if (vt.voteProposalAttributes[_id].voteType == 212){
         vt.voteProposalAttributes[_id].voteStatus =212;
 
@@ -89,6 +91,7 @@ contract YearnFacet is ERC2771ContextUpgradeable, HandlerBase{
         After = IERC20(token).balanceOf(address(this));      
             }
 
+         //Withdrawing ETH
         else if (vt.voteProposalAttributes[_id].voteType == 213){
         vt.voteProposalAttributes[_id].voteStatus =213;
 

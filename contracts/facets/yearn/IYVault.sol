@@ -21,3 +21,7 @@ interface IYVault {
 
     function withdrawETH(uint256 _shares) external;
 }
+
+interface IRegistry{
+    function latestVault(address token) external view returns (address);
+}

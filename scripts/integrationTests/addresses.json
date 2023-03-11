@@ -1,5 +1,7 @@
 {
     "usdc-mainnet": {
+      "ETHYVault": "0xa258C4606Ca8206D8aA700cE2143D7db854D168c",
+      "USDCYVault": "0xa354F35829Ae975e850e23e9615b11Da1B3dC4DE",
       "aaveV3Provider": "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e",
       "aaveV2Provider": "0xB53C1a33016B2DC2fF3653530bfF1848a515c8c5",
       "QuickSwapRouter": "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff",
