@@ -15,11 +15,21 @@ import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
 import { IERC173 } from "../interfaces/IERC173.sol";
 import {IERC165} from  "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
+interface MakerProxy{
+    function build(address) external; 
+    function proxies (address) external view returns (address);
+}
+
 // It is expected that this contract is customized if you want to deploy your diamond
 // with data from a deployment script. Use the init function to initialize state variables
 // of your diamond. Add parameters to the init funciton if you need to.
 
-contract DiamondInit {    
+contract DiamondInitMaker {    
+
+    MakerProxy immutable MakerProxyRegistry;
+
+    constructor(MakerProxy _MakerProxyRegistry)
+        {MakerProxyRegistry = _MakerProxyRegistry;}
 
     // You can add parameters to this function in order to pass in 
     // data to set your own state variables 
@@ -31,6 +41,7 @@ contract DiamondInit {
         ds.supportedInterfaces[type(IDiamondCut).interfaceId] = true;
         ds.supportedInterfaces[type(IDiamondLoupe).interfaceId] = true;
         ds.supportedInterfaces[type(IERC173).interfaceId] = true;
+        MakerProxyRegistry.build(address(this));
 
         // add your own state variables 
         // EIP-2535 specifies that the `diamondCut` function takes two optional 

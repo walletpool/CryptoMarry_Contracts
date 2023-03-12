@@ -82,10 +82,11 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
 
     function openLockETHAndDraw(
         uint24 _id
-
     ) external checkValidity(_id) payable returns (uint256 cdp){
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
+
+        //openLockETHAndDraw
         if (vt.voteProposalAttributes[_id].voteType != 130) {revert COULD_NOT_PROCESS('wrong type');}
          vt.voteProposalAttributes[_id].voteStatus =130;
 
@@ -97,7 +98,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         uint256 wadD = vt.voteProposalAttributes[_id].voteends;
         bytes32 ilk = bytes32(vt.voteProposalAttributes[_id].voteProposalText);
 
-        IDSProxy proxy = IDSProxy(_getProxy(address(this)));
+        IDSProxy proxy = IDSProxy(_getProxy());
 
         // if amount == type(uint256).max return balance of Proxy
         value = _getBalance(address(0), value);
@@ -152,7 +153,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         uint256 wadD = vt.voteProposalAttributes[_id].voteends;
         bytes32 ilk = bytes32(vt.voteProposalAttributes[_id].voteProposalText);
 
-        IDSProxy proxy = IDSProxy(_getProxy(address(this)));
+        IDSProxy proxy = IDSProxy(_getProxy());
         address token = IMakerGemJoin(gemJoin).gem();
 
         // if amount == type(uint256).max return balance of Proxy
@@ -207,12 +208,12 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
          
         uint256 value = vt.voteProposalAttributes[_id].amount;
         address ethJoin = vt.voteProposalAttributes[_id].tokenID;
-        address owner = _getProxy(address(this));
+        address owner = _getProxy();
        
         MakerStorage storage mt = MakerStorageTracking();
         uint256 cdp = mt.CDP[index];
            
-        IDSProxy proxy = IDSProxy(_getProxy(address(this)));
+        IDSProxy proxy = IDSProxy(_getProxy());
 
         // if amount == type(uint256).max return balance of Proxy
         value = _getBalance(address(0), value);
@@ -256,13 +257,13 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
 
         uint256 wad = vt.voteProposalAttributes[_id].amount;
         address gemJoin = vt.voteProposalAttributes[_id].tokenID;
-        address owner = _getProxy(address(this));
+        address owner = _getProxy();
         address token = IMakerGemJoin(gemJoin).gem();
         
         MakerStorage storage mt = MakerStorageTracking();
         uint256 cdp = mt.CDP[index];
         
-        IDSProxy proxy = IDSProxy(_getProxy(address(this)));
+        IDSProxy proxy = IDSProxy(_getProxy());
         // if amount == type(uint256).max return balance of Proxy
         wad = _getBalance(token, wad);
 
@@ -313,7 +314,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         MakerStorage storage mt = MakerStorageTracking();
         uint256 cdp = mt.CDP[index];
            
-        IDSProxy proxy = IDSProxy(_getProxy(address(this)));
+        IDSProxy proxy = IDSProxy(_getProxy());
 
           try
             proxy.execute(
@@ -358,7 +359,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         MakerStorage storage mt = MakerStorageTracking();
         uint256 cdp = mt.CDP[index];
            
-        IDSProxy proxy = IDSProxy(_getProxy(address(this)));
+        IDSProxy proxy = IDSProxy(_getProxy());
           try
             proxy.execute(
                 PROXY_ACTIONS,
@@ -402,7 +403,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         MakerStorage storage mt = MakerStorageTracking();
         uint256 cdp = mt.CDP[index];
            
-        IDSProxy proxy = IDSProxy(_getProxy(address(this)));
+        IDSProxy proxy = IDSProxy(_getProxy());
           
           try
             proxy.execute(
@@ -448,7 +449,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         MakerStorage storage mt = MakerStorageTracking();
         uint256 cdp = mt.CDP[index];
            
-        IDSProxy proxy = IDSProxy(_getProxy(address(this)));
+        IDSProxy proxy = IDSProxy(_getProxy());
          _tokenApprove(DAI_TOKEN, address(proxy), wad);
           
           try
@@ -495,7 +496,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         MakerStorage storage mt = MakerStorageTracking();
         uint256 cdp = mt.CDP[index];
            
-        IDSProxy proxy = IDSProxy(_getProxy(address(this)));
+        IDSProxy proxy = IDSProxy(_getProxy());
         _tokenApprove(DAI_TOKEN, address(proxy), type(uint256).max);
           
           try
@@ -528,8 +529,8 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
 
-     function _getProxy(address user) internal view returns (address) {
-        return IDSProxyRegistry(PROXY_REGISTRY).proxies(user);
+     function _getProxy() public view returns (address) {
+        return IDSProxyRegistry(PROXY_REGISTRY).proxies(address(this));
     }
 
 

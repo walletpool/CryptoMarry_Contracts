@@ -68,6 +68,7 @@ library VoteProposalLib {
         mapping(bytes32 => uint256) signedMessages;
         mapping(address => mapping(bytes32 => uint256)) approvedHashes;
         mapping(address => string) nameAddress;
+        mapping(uint256 => address) proxies; //To keep proxies 1 Maker 
     }
 
     function VoteTrackingStorage()
