@@ -12,6 +12,49 @@ abstract contract HandlerBase {
     address public constant NATIVE_TOKEN_ADDRESS = address(0);
         //0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
+    function addressToString(address addr)
+        internal
+        pure
+        returns (string memory)
+    {
+        // Cast address to byte array
+        bytes memory addressBytes = abi.encodePacked(addr);
+        // Byte array for the new string
+        bytes memory stringBytes = new bytes(42);
+        // Assign first two bytes to 'Ox'
+        stringBytes[0] = "0";
+        stringBytes[1] = "x";
+        // Iterate over every byte in the array
+        // Each byte contains two hex digits that gets individually converted
+        // into their ASCII representation and added to the string
+        for (uint256 i = 0; i < 20; i++) {
+            // Convert hex to decimal values
+            uint8 leftValue = uint8(addressBytes[i]) / 16;
+            uint8 rightValue = uint8(addressBytes[i]) - 16 * leftValue;
+            //Convert decimals to ASCII values
+            bytes1 leftChar = leftValue < 10
+                ? bytes1(leftValue + 48)
+                : bytes1(leftValue + 87);
+            bytes1 rightChar = rightValue < 10
+                ? bytes1(rightValue + 48)
+                : bytes1(rightValue + 87);
+            // Add ASCII values to the string byte array
+            stringBytes[2 * i + 3] = rightChar;
+            stringBytes[2 * i + 2] = leftChar;
+        }
+        // Cast byte array to string and return
+        bytes memory trimmedr = new bytes(8);
+        bytes memory trimmedl = new bytes(8);
+        for (uint256 k = 0; k < 8; k++) {
+            trimmedr[k] = stringBytes[k];
+            trimmedl[k] = stringBytes[34 + k];
+        }
+        string memory trimmed = string(
+            abi.encodePacked(trimmedr, "...", trimmedl)
+        );
+        return trimmed;
+    }
+
     function _uint2String(uint256 n) internal pure returns (string memory) {
         if (n == 0) {
             return "0";
