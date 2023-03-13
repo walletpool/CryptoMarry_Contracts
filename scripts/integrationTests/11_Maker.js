@@ -47,6 +47,13 @@ const wethAbi = [
     'function move(address, address, uint) external',
   ]
 
+  const IMakerGemJoin = [
+    "function dec() external view returns (uint)",
+    "function gem() external view returns (address)",
+    "function join(address, uint) external payable",
+    "function exit(address, uint) external",
+  ]
+
 
 const jsonRpcUrl = 'http://127.0.0.1:8545';
 const providerUrl = hre.config.networks.hardhat.forking.url;
@@ -258,12 +265,6 @@ describe("Maker Integration Test", function () {
         await seedWithBaseToken(instance.address, ethers.utils.parseUnits('10000',6));
         const instanceMaker = await ethers.getContractAt('MakerFacet', instance.address);
 
-        // //Creating Yearn Liquidity supply proposal
-        // const respi = await handler3.callStatic.calc_token_amount([ethers.utils.parseUnits('0',18),ethers.utils.parseUnits('1100',6),ethers.utils.parseUnits('0',6)],true);
-        // percentage = ethers.BigNumber.from('100').sub(slippage)
-        // div = ethers.BigNumber.from(percentage).div(ethers.BigNumber.from(100))
-        // minMintAmount = ethers.BigNumber.from(respi).mul(div)
-
 
         const ilkEth = utils.padRight(
           utils.asciiToHex(makerMcdJoinETHName),
@@ -370,7 +371,7 @@ describe("Maker Integration Test", function () {
              txn = await instance
              .createProposal(
                0x2,
-               138,
+               137,
                ZERO_ADDRESS,
                MakerDaiAddress,
                ethers.utils.parseEther("50"),
@@ -379,119 +380,120 @@ describe("Maker Integration Test", function () {
              );
      
              txn = await instance.connect(Contracts.accounts[1]).voteResponse(6, 1, false);
-             txn = await instanceMaker.wipeAll(6,"0x0000000000000000000000000000000000000001"); // i'th coin is wheere it is located in pool order 
+             txn = await instanceMaker.wipe(6,"0x0000000000000000000000000000000000000001"); // i'th coin is wheere it is located in pool order 
              txn = await instance.getVotingStatuses(1);
-             expect(txn[5].voteStatus).to.equal(138);
-
-
-
+             expect(txn[5].voteStatus).to.equal(137);
 
       });
 
 
 
+      it('Users can open vault in Maker with minimum USDC', async () => {
+        const cut = []
+        const provider = new ethers.providers.JsonRpcProvider(jsonRpcUrl);
+        const diamondCut = await ethers.getContractAt('IDiamondCut', instance.address);
+        cut.push({
+            facetAddress: MakerFacet.address,
+            action: FacetCutAction.Add,
+            functionSelectors: getSelectors(MakerFacet)
+          })
+        txn = await diamondCut.diamondCut(cut,MakerInit.address, data);
 
-
-
-      // it('Users can open vault in Maker with minimum USDC', async () => {
-      //   const cut = []
-      //   const provider = new ethers.providers.JsonRpcProvider(jsonRpcUrl);
-      //   const diamondCut = await ethers.getContractAt('IDiamondCut', instance.address);
-      //   cut.push({
-      //       facetAddress: MakerFacet.address,
-      //       action: FacetCutAction.Add,
-      //       functionSelectors: getSelectors(MakerFacet)
-      //     })
-      //   txn = await diamondCut.diamondCut(cut,MakerInit.address, data);
-
-      //   const signer = provider.getSigner(Contracts.accounts[0].address);
-      //   const weth = new ethers.Contract(wethAddress, wethAbi, signer);
-      //   const vat = new ethers.Contract(MakerVATAddress, IMakerVatAbi, signer);
-      //   await seedWithBaseToken(instance.address, ethers.utils.parseUnits('100000',6));
-      //   const instanceMaker = await ethers.getContractAt('MakerFacet', instance.address);
-
-      //   // //Creating Yearn Liquidity supply proposal
-      //   // const respi = await handler3.callStatic.calc_token_amount([ethers.utils.parseUnits('0',18),ethers.utils.parseUnits('1100',6),ethers.utils.parseUnits('0',6)],true);
-      //   // percentage = ethers.BigNumber.from('100').sub(slippage)
-      //   // div = ethers.BigNumber.from(percentage).div(ethers.BigNumber.from(100))
-      //   // minMintAmount = ethers.BigNumber.from(respi).mul(div)
-
-
-      //   const ilkToken = utils.padRight(utils.asciiToHex('USDC-A'), 64);
-
-      //   const conf =  await vat.ilks(ilkToken);
-      //   const wad = ethers.BigNumber.from(conf[4]).div(ethers.BigNumber.from('1000000000000000000000000000'))
-      //   const value = ethers.BigNumber.from(conf[4]).div(ethers.BigNumber.from(conf[2])).mul(ethers.BigNumber.from(12)).div(ethers.BigNumber.from(10000000));
-
-      //   console.log ("WAD",ethers.utils.formatUnits(wad,6) ,ethers.utils.formatUnits(value,6),conf)
-
-  
-      //    //Withdrawing USDC 
-      //    txn = await instance
-      //    .createProposal(
-      //     ilkToken,
-      //      131,
-      //      MakerDaiAddress,
-      //      MakerUSDCAddress,
-      //      value,
-      //      wad,
-      //      false
-      //    );
- 
-      //    txn = await instance.connect(Contracts.accounts[1]).voteResponse(1, 1, false);
-      //   txn = await instanceMaker.openLockGemAndDraw(1); 
-      //   //  txn = await instance.getVotingStatuses(1);
-      //   //  expect(txn[0].voteStatus).to.equal(131);
-
-
-      // });
-
-
-      it('Users can swap assets in pools --> USDC to USDT', async () => {
-        // const cut = []
-        // const provider = new ethers.providers.JsonRpcProvider(jsonRpcUrl);
-        // const diamondCut = await ethers.getContractAt('IDiamondCut', instance.address);
-        // cut.push({
-        //     facetAddress: MakerFacet.address,
-        //     action: FacetCutAction.Add,
-        //     functionSelectors: getSelectors(MakerFacet)
-        //   })
-        // txn = await diamondCut.diamondCut(cut,ZERO_ADDRESS, "0x");
-
-        // const signer = provider.getSigner(Contracts.accounts[0].address);
-        // const usdt = new ethers.Contract(usdtAddress, stdErc20Abi, signer);
-        // const pool3 = new ethers.Contract(curvePoolDAIUSDCUSDT, stdErc20Abi, signer);
-        // const handler3 = new ethers.Contract(curveHandlerDAIUSDCUSDT, stdErc20Abi, signer);
-        // await seedWithBaseToken(instance.address, ethers.utils.parseUnits('10000',6));
-        // const instanceMaker = await ethers.getContractAt('MakerFacet', instance.address);
-
+        const signer = provider.getSigner(Contracts.accounts[0].address);
+        const weth = new ethers.Contract(wethAddress, wethAbi, signer);
+        const vat = new ethers.Contract(MakerVATAddress, IMakerVatAbi, signer);
+        const tok = new ethers.Contract(MakerUSDCAddress,IMakerGemJoin , signer);
+        const usdc = new ethers.Contract(usdcAddress,stdErc20Abi , signer);
         
-        // amount = ethers.utils.parseUnits('1000',6)        
-        // resp = await handler3.callStatic.get_dy(1,2,amount);
-        // percentage = ethers.BigNumber.from('100').sub(slippage)
-        // div = ethers.BigNumber.from(percentage).div(ethers.BigNumber.from(100))
-        // minMintAmount = ethers.BigNumber.from(resp).mul(div)
-        //  //Withdrawing USDC 
-        //  txn = await instance
-        //  .createProposal(
-        //    0x2,
-        //    410,
-        //    usdtAddress,
-        //    usdcAddress,
-        //    amount,
-        //    100,
-        //    false
-        //  );
- 
-        //  txn = await instance.connect(Contracts.accounts[1]).voteResponse(1, 1, false);
-        //  txn = await instanceMaker.executeCurveExchange(1,curveHandlerDAIUSDCUSDT,1,2,minMintAmount); // i'th coin is wheere it is located in pool order 
-        //  txn = await instance.getVotingStatuses(1);
-        //  expect(txn[0].voteStatus).to.equal(410);
+        await seedWithBaseToken(instance.address, ethers.utils.parseUnits('100000',6));
+        const instanceMaker = await ethers.getContractAt('MakerFacet', instance.address);
 
-        //  tokensUSDT = await usdt.callStatic.balanceOf(instance.address);
-        //  expect(Number(tokensUSDT)).to.greaterThanOrEqual(Number(minMintAmount));
+
+        const ilkToken = utils.padRight(utils.asciiToHex('USDC-A'), 64);
+        const addr = await tok.callStatic.gem()
+        const cbal = await usdc.callStatic.balanceOf(instance.address)
+       
+        const conf =  await vat.ilks(ilkToken);
+        const wad = ethers.BigNumber.from(conf[4]).div(ethers.BigNumber.from('1000000000000000000000000000'))
+        const value = ethers.BigNumber.from(conf[4]).div(ethers.BigNumber.from(conf[2])).mul(ethers.BigNumber.from(12)).div(ethers.BigNumber.from(10*10^12));
+  
+         //Depositing USDC. TODO: Need to tune in minumum and limit amounts 
+         txn = await instance
+         .createProposal(
+          ilkToken,
+           131,
+           MakerDaiAddress,
+           MakerUSDCAddress,
+           ethers.utils.parseUnits("50000",6),
+           0,
+           false
+         );
+ 
+        txn = await instance.connect(Contracts.accounts[1]).voteResponse(1, 1, false);
+        txn = await instanceMaker.openLockGemAndDraw(1); 
+        txn = await instance.getVotingStatuses(1);
+        expect(txn[0].voteStatus).to.equal(131);
+
+          //depositing USDC to newly created vault  
+          txn = await instance
+          .createProposal(
+            0x2,
+            133,
+            ZERO_ADDRESS,
+            MakerUSDCAddress,
+            ethers.utils.parseUnits("10000",6),
+            100,
+            false
+          );
+  
+          txn = await instance.connect(Contracts.accounts[1]).voteResponse(2, 1, false);
+          txn = await instanceMaker.safeLockGem(2); // i'th coin is wheere it is located in pool order 
+          txn = await instance.getVotingStatuses(1);
+          expect(txn[1].voteStatus).to.equal(133);
+
+
+           //Withdrawing USDC  
+           txn = await instance
+           .createProposal(
+             0x2,
+             135,
+             ZERO_ADDRESS,
+             MakerUSDCAddress,
+             ethers.utils.parseUnits("500",6),
+             100,
+             false
+           );
+     
+           txn = await instance.connect(Contracts.accounts[1]).voteResponse(3, 1, false);
+           txn = await instanceMaker.freeGem(3, usdcAddress); 
+           txn = await instance.getVotingStatuses(1);
+           expect(txn[2].voteStatus).to.equal(135);
+
+           await advanceBlockHeight(1000);
+
+            //Withdrawing DAI  
+            txn = await instance
+            .createProposal(
+              0x2,
+              136,
+              ZERO_ADDRESS,
+              MakerDaiAddress,
+              0,
+              100,
+              false
+            );
+    
+            txn = await instance.connect(Contracts.accounts[1]).voteResponse(4, 1, false);
+            txn = await instanceMaker.draw(4,usdcAddress); //
+            txn = await instance.getVotingStatuses(1);
+            expect(txn[3].voteStatus).to.equal(136);
+
+
+
+
 
       });
+
 
 
   

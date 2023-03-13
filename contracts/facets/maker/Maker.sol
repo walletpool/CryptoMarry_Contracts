@@ -89,6 +89,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         //openLockETHAndDraw
         if (vt.voteProposalAttributes[_id].voteType != 130) {revert COULD_NOT_PROCESS('wrong type');}
          vt.voteProposalAttributes[_id].voteStatus =130;
+           MakerStorage storage mt = MakerStorageTracking();
 
         uint256 value = vt.voteProposalAttributes[_id].amount;
         address ethJoin = vt.voteProposalAttributes[_id].tokenID;
@@ -102,6 +103,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
 
         // if amount == type(uint256).max return balance of Proxy
         value = _getBalance(address(0), value);
+        require(mt.CDP[address(1)] == 0);
 
           try
             proxy.execute{value: value}(
@@ -119,7 +121,6 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
             )
         returns (bytes32 ret) {
             cdp = uint256(ret);
-            MakerStorage storage mt = MakerStorageTracking();
             mt.CDP[address(1)] = cdp;
         } catch Error(string memory reason) {
             revert COULD_NOT_PROCESS(reason);
@@ -146,6 +147,9 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         if (vt.voteProposalAttributes[_id].voteType != 131) {revert COULD_NOT_PROCESS('wrong type');}
            vt.voteProposalAttributes[_id].voteStatus =131;
 
+         MakerStorage storage mt = MakerStorageTracking();
+
+
         address gemJoin = vt.voteProposalAttributes[_id].tokenID;
         address daiJoin = vt.voteProposalAttributes[_id].receiver;
         uint256 wadC = vt.voteProposalAttributes[_id].amount;
@@ -155,7 +159,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
 
         IDSProxy proxy = IDSProxy(_getProxy());
         address token = IMakerGemJoin(gemJoin).gem();
-
+        require(mt.CDP[token] == 0);
         // if amount == type(uint256).max return balance of Proxy
         wadC = _getBalance(token, wadC);
         _tokenApprove(token, address(proxy), wadC);
@@ -177,7 +181,6 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
                 )
             )
         returns (bytes32 ret) {
-            MakerStorage storage mt = MakerStorageTracking();
             mt.CDP[token] = uint256(ret);
         } catch Error(string memory reason) {
             revert COULD_NOT_PROCESS(reason);
@@ -264,6 +267,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         IDSProxy proxy = IDSProxy(_getProxy());
         // if amount == type(uint256).max return balance of Proxy
         wad = _getBalance(token, wad);
+        _tokenApprove(token, address(proxy), wad);
 
           try
             proxy.execute(
