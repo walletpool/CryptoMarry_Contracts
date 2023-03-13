@@ -3,6 +3,7 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const fetch = require('node-fetch');
 // const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const sleep = delay => new Promise(resolve => setTimeout(resolve, delay));
+const web3 = require('web3');
 
 
 const { expect } = require('chai');
