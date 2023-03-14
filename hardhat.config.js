@@ -15,7 +15,7 @@ const cometInstance = 'usdc-mainnet';
 const connections = {
   'usdc-mainnet': {
     providerUrl: process.env.FORK_ALCHEMY_URL,
-    // blockNumber: 15415000, // 2022-08-26T11:06:22.000Z
+    blockNumber: 15415000, // 2022-08-26T11:06:22.000Z
     //blockNumber: 16783000, // 2022-12-15T18:51:47.000Z
     chainId: 1,
   },

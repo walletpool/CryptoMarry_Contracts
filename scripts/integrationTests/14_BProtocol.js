@@ -142,8 +142,8 @@ describe("BProtocol Integration Test", function () {
       usdtAddress = networks[net].USDT;
       MakerProxyRegistryAddress = networks[net].MakerProxyRegistry
       MakerChainLogAddress = networks[net].MakerChainLog
-      MakerCDPManagerAddress = networks[net].MakerCDPManager
-      MakerProxyActionsAddress = networks[net].MakerProxyActions
+      BPCDPManagerAddress = networks[net].BPCDPManager
+      BPProxyActionsAddress = networks[net].BPProxyActions
       MakerDaiAddress = networks[net].MAKER_MCD_JOIN_DAI
       MakerETHAddress = networks[net].MAKER_MCD_JOIN_ETH_A
       MakerVATAddress = networks[net].MAKER_MCD_VAT
@@ -157,7 +157,8 @@ describe("BProtocol Integration Test", function () {
       
     Contracts = await deployTest();
      
-    BProtocolFacet = await deploy('BProtocolFacet',Contracts.forwarder.address,MakerProxyRegistryAddress,daiAddress,MakerChainLogAddress, MakerCDPManagerAddress, MakerProxyActionsAddress);
+    BProtocolFacet = await deploy('BProtocolFacet',Contracts.forwarder.address,
+    MakerProxyRegistryAddress,daiAddress,MakerChainLogAddress, BPCDPManagerAddress, BPProxyActionsAddress);
     MakerInit = await deploy('DiamondInitMaker', MakerProxyRegistryAddress);
     data = MakerInit.interface.encodeFunctionData("init",[])
       
@@ -175,7 +176,7 @@ describe("BProtocol Integration Test", function () {
         5,
         1,
         {
-          value: hre.ethers.utils.parseEther("10"),
+          value: hre.ethers.utils.parseEther("20"),
         }
       );
       txn = await Contracts.WavePortal7.connect(Contracts.accounts[1]).response(1, 0, 1);
@@ -234,7 +235,7 @@ describe("BProtocol Integration Test", function () {
         txn = await instance.getAllConnectedApps();
         expect (txn).contain(BProtocolFacet.address);
         const instanceMaker = await ethers.getContractAt('BProtocolFacet', instance.address);
-        proxy = await instanceMaker._getProxy()
+        proxy = await instanceMaker._getProxyBP()
         let remove = []; 
         remove.push({
             facetAddress: ZERO_ADDRESS,
@@ -244,7 +245,7 @@ describe("BProtocol Integration Test", function () {
         tx = await diamondCut.diamondCut(remove,ZERO_ADDRESS, "0x");
         txn = await instance.getAllConnectedApps();
         expect (txn).to.not.contain(BProtocolFacet.address);
-        await expect (instanceMaker._getProxy()).to.reverted;
+        await expect (instanceMaker._getProxyBP()).to.reverted;
     });
 
 
@@ -281,7 +282,7 @@ describe("BProtocol Integration Test", function () {
          txn = await instance
          .createProposal(
            ilkEth,
-           130,
+           700,
            MakerDaiAddress,
            MakerETHAddress,
            value,
@@ -290,16 +291,16 @@ describe("BProtocol Integration Test", function () {
          );
  
          txn = await instance.connect(Contracts.accounts[1]).voteResponse(1, 1, false);
-         txn = await instanceMaker.openLockETHAndDraw(1); // i'th coin is wheere it is located in pool order 
+         txn = await instanceMaker.openLockETHAndDrawBP(1); // i'th coin is wheere it is located in pool order 
          txn = await instance.getVotingStatuses(1);
-         expect(txn[0].voteStatus).to.equal(130);
+         expect(txn[0].voteStatus).to.equal(700);
 
 
           //Depositing ETH  
           txn = await instance
           .createProposal(
             0x2,
-            132,
+            702,
             ZERO_ADDRESS,
             MakerETHAddress,
             ethers.utils.parseEther("1"),
@@ -308,35 +309,34 @@ describe("BProtocol Integration Test", function () {
           );
   
           txn = await instance.connect(Contracts.accounts[1]).voteResponse(2, 1, false);
-          txn = await instanceMaker.safeLockETH(2); // i'th coin is wheere it is located in pool order 
+          txn = await instanceMaker.safeLockETHBP(2); // i'th coin is wheere it is located in pool order 
           txn = await instance.getVotingStatuses(1);
-          expect(txn[1].voteStatus).to.equal(132);
+          expect(txn[1].voteStatus).to.equal(702);
 
 
            //Withdrawing ETH  
            txn = await instance
            .createProposal(
              0x2,
-             134,
+             704,
              ZERO_ADDRESS,
              MakerETHAddress,
              ethers.utils.parseEther("1"),
              100,
              false
            );
-           console.log("INS", instance.address, )
    
            txn = await instance.connect(Contracts.accounts[1]).voteResponse(3, 1, false);
-           txn = await instanceMaker.freeETH(3); // i'th coin is wheere it is located in pool order 
+           txn = await instanceMaker.freeETHBP(3); // i'th coin is wheere it is located in pool order 
            txn = await instance.getVotingStatuses(1);
-           expect(txn[2].voteStatus).to.equal(134);
+           expect(txn[2].voteStatus).to.equal(704);
 
             //Withdrawing DAI  
             txn = await instance
             .createProposal(
               0x2,
-              136,
-              ZERO_ADDRESS,
+              706,
+              "0x0000000000000000000000000000000000000001",
               MakerDaiAddress,
               ethers.utils.parseEther("100"),
               100,
@@ -344,17 +344,17 @@ describe("BProtocol Integration Test", function () {
             );
     
             txn = await instance.connect(Contracts.accounts[1]).voteResponse(4, 1, false);
-            txn = await instanceMaker.draw(4,"0x0000000000000000000000000000000000000001"); // i'th coin is wheere it is located in pool order 
+            txn = await instanceMaker.drawBP(4); // i'th coin is wheere it is located in pool order 
             txn = await instance.getVotingStatuses(1);
-            expect(txn[3].voteStatus).to.equal(136);
+            expect(txn[3].voteStatus).to.equal(706);
 
 
             //Paying back DAI  
             txn = await instance
             .createProposal(
               0x2,
-              137,
-              ZERO_ADDRESS,
+              707,
+              "0x0000000000000000000000000000000000000001",
               MakerDaiAddress,
               ethers.utils.parseEther("50"),
               100,
@@ -362,17 +362,17 @@ describe("BProtocol Integration Test", function () {
             );
     
             txn = await instance.connect(Contracts.accounts[1]).voteResponse(5, 1, false);
-            txn = await instanceMaker.wipe(5,"0x0000000000000000000000000000000000000001"); // i'th coin is wheere it is located in pool order 
+            txn = await instanceMaker.wipeBP(5); // i'th coin is wheere it is located in pool order 
             txn = await instance.getVotingStatuses(1);
-            expect(txn[4].voteStatus).to.equal(137);
+            expect(txn[4].voteStatus).to.equal(707);
 
 
              //Paying back DAI  
              txn = await instance
              .createProposal(
                0x2,
-               137,
-               ZERO_ADDRESS,
+               707,
+               "0x0000000000000000000000000000000000000001",
                MakerDaiAddress,
                ethers.utils.parseEther("50"),
                100,
@@ -380,9 +380,9 @@ describe("BProtocol Integration Test", function () {
              );
      
              txn = await instance.connect(Contracts.accounts[1]).voteResponse(6, 1, false);
-             txn = await instanceMaker.wipe(6,"0x0000000000000000000000000000000000000001"); // i'th coin is wheere it is located in pool order 
+             txn = await instanceMaker.wipeBP(6); // i'th coin is wheere it is located in pool order 
              txn = await instance.getVotingStatuses(1);
-             expect(txn[5].voteStatus).to.equal(137);
+             expect(txn[5].voteStatus).to.equal(707);
 
       });
 
@@ -421,7 +421,7 @@ describe("BProtocol Integration Test", function () {
          txn = await instance
          .createProposal(
           ilkToken,
-           131,
+           701,
            MakerDaiAddress,
            MakerUSDCAddress,
            ethers.utils.parseUnits("50000",6),
@@ -430,15 +430,15 @@ describe("BProtocol Integration Test", function () {
          );
  
         txn = await instance.connect(Contracts.accounts[1]).voteResponse(1, 1, false);
-        txn = await instanceMaker.openLockGemAndDraw(1); 
+        txn = await instanceMaker.openLockGemAndDrawBP(1); 
         txn = await instance.getVotingStatuses(1);
-        expect(txn[0].voteStatus).to.equal(131);
+        expect(txn[0].voteStatus).to.equal(701);
 
           //depositing USDC to newly created vault  
           txn = await instance
           .createProposal(
             0x2,
-            133,
+            703,
             ZERO_ADDRESS,
             MakerUSDCAddress,
             ethers.utils.parseUnits("10000",6),
@@ -447,17 +447,17 @@ describe("BProtocol Integration Test", function () {
           );
   
           txn = await instance.connect(Contracts.accounts[1]).voteResponse(2, 1, false);
-          txn = await instanceMaker.safeLockGem(2); // i'th coin is wheere it is located in pool order 
+          txn = await instanceMaker.safeLockGemBP(2); // i'th coin is wheere it is located in pool order 
           txn = await instance.getVotingStatuses(1);
-          expect(txn[1].voteStatus).to.equal(133);
+          expect(txn[1].voteStatus).to.equal(703);
 
 
            //Withdrawing USDC  
            txn = await instance
            .createProposal(
              0x2,
-             135,
-             ZERO_ADDRESS,
+             705,
+             usdcAddress,
              MakerUSDCAddress,
              ethers.utils.parseUnits("500",6),
              100,
@@ -465,9 +465,9 @@ describe("BProtocol Integration Test", function () {
            );
      
            txn = await instance.connect(Contracts.accounts[1]).voteResponse(3, 1, false);
-           txn = await instanceMaker.freeGem(3, usdcAddress); 
+           txn = await instanceMaker.freeGemBP(3); 
            txn = await instance.getVotingStatuses(1);
-           expect(txn[2].voteStatus).to.equal(135);
+           expect(txn[2].voteStatus).to.equal(705);
 
            await advanceBlockHeight(1000);
 
@@ -475,8 +475,8 @@ describe("BProtocol Integration Test", function () {
             txn = await instance
             .createProposal(
               0x2,
-              136,
-              ZERO_ADDRESS,
+              706,
+              usdcAddress,
               MakerDaiAddress,
               0,
               100,
@@ -484,14 +484,9 @@ describe("BProtocol Integration Test", function () {
             );
     
             txn = await instance.connect(Contracts.accounts[1]).voteResponse(4, 1, false);
-            txn = await instanceMaker.draw(4,usdcAddress); //
+            txn = await instanceMaker.drawBP(4); //
             txn = await instance.getVotingStatuses(1);
-            expect(txn[3].voteStatus).to.equal(136);
-
-
-
-
-
+            expect(txn[3].voteStatus).to.equal(706);
       });
 
 
