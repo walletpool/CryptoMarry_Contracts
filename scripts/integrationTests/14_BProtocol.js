@@ -65,7 +65,7 @@ let Contracts = {}
 const utils = web3.utils;
 
 let jsonRpcServer, baseAssetAddress, 
-wethAddress, txn, instance, MakerFacet,MakerInit,data;
+wethAddress, txn, instance, BProtocolFacet,MakerInit,data;
 
 const mnemonic = hre.network.config.accounts.mnemonic;
 const addresses = [];
@@ -120,7 +120,7 @@ async function seedWithBaseToken(toAddress, amt) {
 }
 
   
-describe("Maker Integration Test", function () {
+describe("BProtocol Integration Test", function () {
     before(async () => {
       console.log('\n Running a hardhat local evm fork of a public net...\n');
   
@@ -157,12 +157,12 @@ describe("Maker Integration Test", function () {
       
     Contracts = await deployTest();
      
-    MakerFacet = await deploy('MakerFacet',Contracts.forwarder.address,MakerProxyRegistryAddress,daiAddress,MakerChainLogAddress, MakerCDPManagerAddress, MakerProxyActionsAddress);
+    BProtocolFacet = await deploy('BProtocolFacet',Contracts.forwarder.address,MakerProxyRegistryAddress,daiAddress,MakerChainLogAddress, MakerCDPManagerAddress, MakerProxyActionsAddress);
     MakerInit = await deploy('DiamondInitMaker', MakerProxyRegistryAddress);
     data = MakerInit.interface.encodeFunctionData("init",[])
       
       WhiteListAddr.push({
-        ContractAddress: MakerFacet.address,
+        ContractAddress: BProtocolFacet.address,
         Status: 1
       })
       txn = await Contracts.WavePortal7.whiteListAddr(WhiteListAddr);
@@ -190,72 +190,72 @@ describe("Maker Integration Test", function () {
       await jsonRpcServer.close();
     });
   
-    it('Users can connect Maker App', async () => {
+    it('Users can connect BProtocol App', async () => {
         const cut = []
         const diamondCut = await ethers.getContractAt('IDiamondCut', instance.address);
         let tx;
         let receipt;
         cut.push({
-            facetAddress: MakerFacet.address,
+            facetAddress: BProtocolFacet.address,
             action: FacetCutAction.Add,
-            functionSelectors: getSelectors(MakerFacet)
+            functionSelectors: getSelectors(BProtocolFacet)
           })
 
         tx = await diamondCut.diamondCut(cut,MakerInit.address, data);
         receipt = await tx.wait();
         txn = await instance.getAllConnectedApps();
-        expect (txn).contain(MakerFacet.address)
+        expect (txn).contain(BProtocolFacet.address)
 
     });
   
-    it('Third party Users cannot connect Maker App', async () => {
+    it('Third party Users cannot connect BProtocol App', async () => {
         const cut = []
         const diamondCut = await ethers.getContractAt('IDiamondCut', instance.address);
         cut.push({
-            facetAddress: MakerFacet.address,
+            facetAddress: BProtocolFacet.address,
             action: FacetCutAction.Add,
-            functionSelectors: getSelectors(MakerFacet)
+            functionSelectors: getSelectors(BProtocolFacet)
           })
         await expect(diamondCut.connect(Contracts.accounts[3]).diamondCut(cut,MakerInit.address, data)).to.reverted;
     });
 
-    it('Users can disconnect Maker App', async () => {
+    it('Users can disconnect BProtocol App', async () => {
         const cut = []
         const diamondCut = await ethers.getContractAt('IDiamondCut', instance.address);
         let tx;
         let receipt;
         cut.push({
-            facetAddress: MakerFacet.address,
+            facetAddress: BProtocolFacet.address,
             action: FacetCutAction.Add,
-            functionSelectors: getSelectors(MakerFacet)
+            functionSelectors: getSelectors(BProtocolFacet)
           })
         tx = await diamondCut.diamondCut(cut,MakerInit.address, data);
         receipt = await tx.wait();
         txn = await instance.getAllConnectedApps();
-        expect (txn).contain(MakerFacet.address);
-        const instanceMaker = await ethers.getContractAt('MakerFacet', instance.address);
+        expect (txn).contain(BProtocolFacet.address);
+        const instanceMaker = await ethers.getContractAt('BProtocolFacet', instance.address);
         proxy = await instanceMaker._getProxy()
         let remove = []; 
         remove.push({
             facetAddress: ZERO_ADDRESS,
             action: FacetCutAction.Remove,
-            functionSelectors: getSelectors(MakerFacet)
+            functionSelectors: getSelectors(BProtocolFacet)
           })
         tx = await diamondCut.diamondCut(remove,ZERO_ADDRESS, "0x");
         txn = await instance.getAllConnectedApps();
-        expect (txn).to.not.contain(MakerFacet.address);
+        expect (txn).to.not.contain(BProtocolFacet.address);
         await expect (instanceMaker._getProxy()).to.reverted;
     });
 
 
-    it('Users can open vault in Maker with minimum ETH', async () => {
+    it('Users can open vault in BProtocol with minimum ETH', async () => {
         const cut = []
         const provider = new ethers.providers.JsonRpcProvider(jsonRpcUrl);
         const diamondCut = await ethers.getContractAt('IDiamondCut', instance.address);
         cut.push({
-            facetAddress: MakerFacet.address,
+            facetAddress: BProtocolFacet.address,
             action: FacetCutAction.Add,
-            functionSelectors: getSelectors(MakerFacet)
+            functionSelectors: getSelectors(BProtocolFacet)
           })
         txn = await diamondCut.diamondCut(cut,MakerInit.address, data);
 
@@ -263,7 +263,7 @@ describe("Maker Integration Test", function () {
         const weth = new ethers.Contract(wethAddress, wethAbi, signer);
         const vat = new ethers.Contract(MakerVATAddress, IMakerVatAbi, signer);
         await seedWithBaseToken(instance.address, ethers.utils.parseUnits('10000',6));
-        const instanceMaker = await ethers.getContractAt('MakerFacet', instance.address);
+        const instanceMaker = await ethers.getContractAt('BProtocolFacet', instance.address);
 
 
         const ilkEth = utils.padRight(
@@ -290,7 +290,7 @@ describe("Maker Integration Test", function () {
          );
  
          txn = await instance.connect(Contracts.accounts[1]).voteResponse(1, 1, false);
-         txn = await instanceMaker.openLockETHAndDraw(1);
+         txn = await instanceMaker.openLockETHAndDraw(1); // i'th coin is wheere it is located in pool order 
          txn = await instance.getVotingStatuses(1);
          expect(txn[0].voteStatus).to.equal(130);
 
@@ -336,7 +336,7 @@ describe("Maker Integration Test", function () {
             .createProposal(
               0x2,
               136,
-              "0x0000000000000000000000000000000000000001",
+              ZERO_ADDRESS,
               MakerDaiAddress,
               ethers.utils.parseEther("100"),
               100,
@@ -344,7 +344,7 @@ describe("Maker Integration Test", function () {
             );
     
             txn = await instance.connect(Contracts.accounts[1]).voteResponse(4, 1, false);
-            txn = await instanceMaker.draw(4); // i'th coin is wheere it is located in pool order 
+            txn = await instanceMaker.draw(4,"0x0000000000000000000000000000000000000001"); // i'th coin is wheere it is located in pool order 
             txn = await instance.getVotingStatuses(1);
             expect(txn[3].voteStatus).to.equal(136);
 
@@ -354,7 +354,7 @@ describe("Maker Integration Test", function () {
             .createProposal(
               0x2,
               137,
-              "0x0000000000000000000000000000000000000001",
+              ZERO_ADDRESS,
               MakerDaiAddress,
               ethers.utils.parseEther("50"),
               100,
@@ -362,7 +362,7 @@ describe("Maker Integration Test", function () {
             );
     
             txn = await instance.connect(Contracts.accounts[1]).voteResponse(5, 1, false);
-            txn = await instanceMaker.wipe(5); // i'th coin is wheere it is located in pool order 
+            txn = await instanceMaker.wipe(5,"0x0000000000000000000000000000000000000001"); // i'th coin is wheere it is located in pool order 
             txn = await instance.getVotingStatuses(1);
             expect(txn[4].voteStatus).to.equal(137);
 
@@ -372,7 +372,7 @@ describe("Maker Integration Test", function () {
              .createProposal(
                0x2,
                137,
-               "0x0000000000000000000000000000000000000001",
+               ZERO_ADDRESS,
                MakerDaiAddress,
                ethers.utils.parseEther("50"),
                100,
@@ -380,7 +380,7 @@ describe("Maker Integration Test", function () {
              );
      
              txn = await instance.connect(Contracts.accounts[1]).voteResponse(6, 1, false);
-             txn = await instanceMaker.wipe(6); // i'th coin is wheere it is located in pool order 
+             txn = await instanceMaker.wipe(6,"0x0000000000000000000000000000000000000001"); // i'th coin is wheere it is located in pool order 
              txn = await instance.getVotingStatuses(1);
              expect(txn[5].voteStatus).to.equal(137);
 
@@ -388,14 +388,14 @@ describe("Maker Integration Test", function () {
 
 
 
-      it('Users can open vault in Maker with minimum USDC', async () => {
+      it('Users can open vault in BProtocol with minimum USDC', async () => {
         const cut = []
         const provider = new ethers.providers.JsonRpcProvider(jsonRpcUrl);
         const diamondCut = await ethers.getContractAt('IDiamondCut', instance.address);
         cut.push({
-            facetAddress: MakerFacet.address,
+            facetAddress: BProtocolFacet.address,
             action: FacetCutAction.Add,
-            functionSelectors: getSelectors(MakerFacet)
+            functionSelectors: getSelectors(BProtocolFacet)
           })
         txn = await diamondCut.diamondCut(cut,MakerInit.address, data);
 
@@ -406,7 +406,7 @@ describe("Maker Integration Test", function () {
         const usdc = new ethers.Contract(usdcAddress,stdErc20Abi , signer);
         
         await seedWithBaseToken(instance.address, ethers.utils.parseUnits('100000',6));
-        const instanceMaker = await ethers.getContractAt('MakerFacet', instance.address);
+        const instanceMaker = await ethers.getContractAt('BProtocolFacet', instance.address);
 
 
         const ilkToken = utils.padRight(utils.asciiToHex('USDC-A'), 64);
@@ -439,7 +439,7 @@ describe("Maker Integration Test", function () {
           .createProposal(
             0x2,
             133,
-            usdcAddress,
+            ZERO_ADDRESS,
             MakerUSDCAddress,
             ethers.utils.parseUnits("10000",6),
             100,
@@ -447,7 +447,7 @@ describe("Maker Integration Test", function () {
           );
   
           txn = await instance.connect(Contracts.accounts[1]).voteResponse(2, 1, false);
-          txn = await instanceMaker.safeLockGem(2);
+          txn = await instanceMaker.safeLockGem(2); // i'th coin is wheere it is located in pool order 
           txn = await instance.getVotingStatuses(1);
           expect(txn[1].voteStatus).to.equal(133);
 
@@ -457,7 +457,7 @@ describe("Maker Integration Test", function () {
            .createProposal(
              0x2,
              135,
-             usdcAddress,
+             ZERO_ADDRESS,
              MakerUSDCAddress,
              ethers.utils.parseUnits("500",6),
              100,
@@ -465,7 +465,7 @@ describe("Maker Integration Test", function () {
            );
      
            txn = await instance.connect(Contracts.accounts[1]).voteResponse(3, 1, false);
-           txn = await instanceMaker.freeGem(3); 
+           txn = await instanceMaker.freeGem(3, usdcAddress); 
            txn = await instance.getVotingStatuses(1);
            expect(txn[2].voteStatus).to.equal(135);
 
@@ -476,7 +476,7 @@ describe("Maker Integration Test", function () {
             .createProposal(
               0x2,
               136,
-              usdcAddress,
+              ZERO_ADDRESS,
               MakerDaiAddress,
               0,
               100,
@@ -484,9 +484,12 @@ describe("Maker Integration Test", function () {
             );
     
             txn = await instance.connect(Contracts.accounts[1]).voteResponse(4, 1, false);
-            txn = await instanceMaker.draw(4); //
+            txn = await instanceMaker.draw(4,usdcAddress); //
             txn = await instance.getVotingStatuses(1);
             expect(txn[3].voteStatus).to.equal(136);
+
+
+
 
 
       });

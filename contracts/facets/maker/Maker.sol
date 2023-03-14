@@ -62,15 +62,15 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         return IMakerChainLog(CHAIN_LOG).getAddress("MCD_JUG");
     }
 
-    modifier cdpAllowed(address token) {
+    function cdpAllowed(address token) internal view returns (uint256 cdp) {
         IMakerManager manager = IMakerManager(CDP_MANAGER);
-         MakerStorage storage mt = MakerStorageTracking();
-        uint256 cdp = mt.CDP[token];
+        MakerStorage storage mt = MakerStorageTracking();
+        cdp = mt.CDP[token];
         address owner = manager.owns(cdp);
         address sender = address(this);
         if (IDSProxyRegistry(PROXY_REGISTRY).proxies(sender) != owner && manager.cdpCan(owner, cdp, sender) != 1)
         revert COULD_NOT_PROCESS("Unauthorized sender of cdp");
-        _;
+        return cdp;
     }
 
      modifier checkValidity(uint24 _id) {  
@@ -137,7 +137,6 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         ); 
         VoteProposalLib.checkForwarder(); 
     }
-
 
      function openLockGemAndDraw(
         uint24 _id
@@ -303,18 +302,15 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
 
     function freeETH(
         uint24 _id
-    ) external checkValidity(_id) cdpAllowed(address(1)) payable {
+    ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
         if (vt.voteProposalAttributes[_id].voteType != 134) {revert COULD_NOT_PROCESS('wrong type');}
          vt.voteProposalAttributes[_id].voteStatus =134;
-         
+        uint256 cdp = cdpAllowed(address(1)); 
         uint256 wad = vt.voteProposalAttributes[_id].amount;
         address ethJoin = vt.voteProposalAttributes[_id].tokenID;
-       
-        MakerStorage storage mt = MakerStorageTracking();
-        uint256 cdp = mt.CDP[address(1)];
-           
+                  
         IDSProxy proxy = IDSProxy(_getProxy());
 
           try
@@ -346,9 +342,8 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function freeGem(
-        uint24 _id,
-        address token
-    ) external checkValidity(_id) cdpAllowed(token) payable {
+        uint24 _id
+    ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
         if (vt.voteProposalAttributes[_id].voteType != 135) {revert COULD_NOT_PROCESS('wrong type');}
@@ -356,9 +351,9 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
          
         uint256 wad = vt.voteProposalAttributes[_id].amount;
         address gemJoin = vt.voteProposalAttributes[_id].tokenID;
-       
-        MakerStorage storage mt = MakerStorageTracking();
-        uint256 cdp = mt.CDP[token];
+        address token = vt.voteProposalAttributes[_id].receiver;
+
+         uint256 cdp = cdpAllowed(token);
            
         IDSProxy proxy = IDSProxy(_getProxy());
           try
@@ -390,9 +385,8 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function draw(
-        uint24 _id,
-        address token
-    ) external checkValidity(_id) cdpAllowed(token) payable {
+        uint24 _id
+    ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
         if (vt.voteProposalAttributes[_id].voteType != 136) {revert COULD_NOT_PROCESS('wrong type');}
@@ -400,10 +394,10 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
          
         uint256 wad = vt.voteProposalAttributes[_id].amount;
         address daiJoin = vt.voteProposalAttributes[_id].tokenID;
+        address token = vt.voteProposalAttributes[_id].receiver;
+
+        uint256 cdp = cdpAllowed(token);
        
-        MakerStorage storage mt = MakerStorageTracking();
-        uint256 cdp = mt.CDP[token];
-           
         IDSProxy proxy = IDSProxy(_getProxy());
           
           try
@@ -436,8 +430,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function wipe(
-        uint24 _id,
-        address token
+        uint24 _id
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -446,6 +439,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
          
         uint256 wad = vt.voteProposalAttributes[_id].amount;
         address daiJoin = vt.voteProposalAttributes[_id].tokenID;
+        address token = vt.voteProposalAttributes[_id].receiver;
        
         MakerStorage storage mt = MakerStorageTracking();
         uint256 cdp = mt.CDP[token];
@@ -484,8 +478,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function wipeAll(
-        uint24 _id,
-        address token
+        uint24 _id
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -493,6 +486,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
          vt.voteProposalAttributes[_id].voteStatus =138;
          
         address daiJoin = vt.voteProposalAttributes[_id].tokenID;
+        address token = vt.voteProposalAttributes[_id].receiver;
        
         MakerStorage storage mt = MakerStorageTracking();
         uint256 cdp = mt.CDP[token];
