@@ -18,20 +18,20 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     using SafeERC20 for IERC20;
     error COULD_NOT_PROCESS(string);
 
-    address public immutable PROXY_REGISTRY;
-    address public immutable DAI_TOKEN;
-    address public immutable CHAIN_LOG;
-    address public immutable CDP_MANAGER;
-    address public immutable PROXY_ACTIONS;
+    address public immutable PROXY_REGISTRY_MAKER;
+    address public immutable DAI_TOKEN_MAKER;
+    address public immutable CHAIN_LOG_MAKER;
+    address public immutable CDP_MANAGER_MAKER;
+    address public immutable PROXY_ACTIONS_MAKER;
     
     constructor(MinimalForwarderUpgradeable forwarder, address _PROXY_REGISTRY, address _DAI_TOKEN, 
                     address _CHAIN_LOG, address _CDP_MANAGER, address _PROXY_ACTIONS)
         ERC2771ContextUpgradeable(address(forwarder))
-        {   DAI_TOKEN = _DAI_TOKEN;
-            PROXY_REGISTRY = _PROXY_REGISTRY;
-            CHAIN_LOG=_CHAIN_LOG;
-            CDP_MANAGER = _CDP_MANAGER;
-            PROXY_ACTIONS=_PROXY_ACTIONS;
+        {   DAI_TOKEN_MAKER = _DAI_TOKEN;
+            PROXY_REGISTRY_MAKER = _PROXY_REGISTRY;
+            CHAIN_LOG_MAKER=_CHAIN_LOG;
+            CDP_MANAGER_MAKER = _CDP_MANAGER;
+            PROXY_ACTIONS_MAKER=_PROXY_ACTIONS;
         }
     
     bytes32 constant MT_STORAGE_POSITION =
@@ -59,16 +59,16 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function getMcdJug() public view returns (address) {
-        return IMakerChainLog(CHAIN_LOG).getAddress("MCD_JUG");
+        return IMakerChainLog(CHAIN_LOG_MAKER).getAddress("MCD_JUG");
     }
 
     function cdpAllowed(address token) internal view returns (uint256 cdp) {
-        IMakerManager manager = IMakerManager(CDP_MANAGER);
+        IMakerManager manager = IMakerManager(CDP_MANAGER_MAKER);
         MakerStorage storage mt = MakerStorageTracking();
         cdp = mt.CDP[token];
         address owner = manager.owns(cdp);
         address sender = address(this);
-        if (IDSProxyRegistry(PROXY_REGISTRY).proxies(sender) != owner && manager.cdpCan(owner, cdp, sender) != 1)
+        if (IDSProxyRegistry(PROXY_REGISTRY_MAKER).proxies(sender) != owner && manager.cdpCan(owner, cdp, sender) != 1)
         revert COULD_NOT_PROCESS("Unauthorized sender of cdp");
         return cdp;
     }
@@ -107,11 +107,11 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
 
           try
             proxy.execute{value: value}(
-                PROXY_ACTIONS,
+                PROXY_ACTIONS_MAKER,
                 abi.encodeWithSelector(
                     // selector of "openLockETHAndDraw(address,address,address,address,bytes32,uint256)"
                     0xe685cc04,
-                    CDP_MANAGER,
+                    CDP_MANAGER_MAKER,
                     getMcdJug(),
                     ethJoin,
                     daiJoin,
@@ -165,11 +165,11 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
 
           try
             proxy.execute(
-                PROXY_ACTIONS,
+                PROXY_ACTIONS_MAKER,
                 abi.encodeWithSelector(
                    // selector of "openLockGemAndDraw(address,address,address,address,bytes32,uint256,uint256,bool)"
                     0xdb802a32,
-                    CDP_MANAGER,
+                    CDP_MANAGER_MAKER,
                     getMcdJug(),
                     gemJoin,
                     daiJoin,
@@ -221,11 +221,11 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
 
           try
             proxy.execute{value: value}(
-                PROXY_ACTIONS,
+                PROXY_ACTIONS_MAKER,
                 abi.encodeWithSelector(
                     // selector of "safeLockETH(address,address,uint256,address)"
                     0xee284576,
-                    CDP_MANAGER,
+                    CDP_MANAGER_MAKER,
                     ethJoin,
                     cdp,
                     owner
@@ -270,11 +270,11 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
 
           try
             proxy.execute(
-                PROXY_ACTIONS,
+                PROXY_ACTIONS_MAKER,
                 abi.encodeWithSelector(
                      // selector of "safeLockGem(address,address,uint256,uint256,bool,address)"
                     0xead64729,
-                    CDP_MANAGER,
+                    CDP_MANAGER_MAKER,
                     gemJoin,
                     cdp,
                     wad,
@@ -315,11 +315,11 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
 
           try
             proxy.execute(
-                PROXY_ACTIONS,
+                PROXY_ACTIONS_MAKER,
                 abi.encodeWithSelector(
                     // selector of "freeETH(address,address,uint256,uint256)"
                     0x7b5a3b43,
-                    CDP_MANAGER,
+                    CDP_MANAGER_MAKER,
                     ethJoin,
                     cdp,
                     wad
@@ -358,11 +358,11 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         IDSProxy proxy = IDSProxy(_getProxy());
           try
             proxy.execute(
-                PROXY_ACTIONS,
+                PROXY_ACTIONS_MAKER,
                 abi.encodeWithSelector(
                      // selector of "freeGem(address,address,uint256,uint256)"
                     0x6ab6a491,
-                    CDP_MANAGER,
+                    CDP_MANAGER_MAKER,
                     gemJoin,
                     cdp,
                     wad
@@ -402,11 +402,11 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
           
           try
             proxy.execute(
-                PROXY_ACTIONS,
+                PROXY_ACTIONS_MAKER,
                 abi.encodeWithSelector(
                      // selector of "draw(address,address,address,uint256,uint256)"
                     0x9f6f3d5b,
-                    CDP_MANAGER,
+                    CDP_MANAGER_MAKER,
                     getMcdJug(),
                     daiJoin,
                     cdp,
@@ -445,15 +445,15 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         uint256 cdp = mt.CDP[token];
            
         IDSProxy proxy = IDSProxy(_getProxy());
-         _tokenApprove(DAI_TOKEN, address(proxy), wad);
+         _tokenApprove(DAI_TOKEN_MAKER, address(proxy), wad);
           
           try
             proxy.execute(
-                PROXY_ACTIONS,
+                PROXY_ACTIONS_MAKER,
                 abi.encodeWithSelector(
                      // selector of "wipe(address,address,uint256,uint256)"
                     0x4b666199,
-                    CDP_MANAGER,
+                    CDP_MANAGER_MAKER,
                     daiJoin,
                     cdp,
                     wad
@@ -466,7 +466,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
             revert COULD_NOT_PROCESS("wipe");
         }
 
-        _tokenApproveZero(DAI_TOKEN, address(proxy));
+        _tokenApproveZero(DAI_TOKEN_MAKER, address(proxy));
 
         emit VoteProposalLib.VoteStatus(
             _id,
@@ -492,15 +492,15 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         uint256 cdp = mt.CDP[token];
            
         IDSProxy proxy = IDSProxy(_getProxy());
-        _tokenApprove(DAI_TOKEN, address(proxy), type(uint256).max);
+        _tokenApprove(DAI_TOKEN_MAKER, address(proxy), type(uint256).max);
           
           try
             proxy.execute(
-                PROXY_ACTIONS,
+                PROXY_ACTIONS_MAKER,
                 abi.encodeWithSelector(
                      // selector of "wipeAll(address,address,uint256)"
                     0x036a2395,
-                    CDP_MANAGER,
+                    CDP_MANAGER_MAKER,
                     daiJoin,
                     cdp
                 )
@@ -512,7 +512,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
             revert COULD_NOT_PROCESS("wipeAll");
         }
 
-        _tokenApproveZero(DAI_TOKEN, address(proxy));
+        _tokenApproveZero(DAI_TOKEN_MAKER, address(proxy));
 
         emit VoteProposalLib.VoteStatus(
             _id,
@@ -525,7 +525,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
 
 
      function _getProxy() public view returns (address) {
-        return IDSProxyRegistry(PROXY_REGISTRY).proxies(address(this));
+        return IDSProxyRegistry(PROXY_REGISTRY_MAKER).proxies(address(this));
     }
 
 

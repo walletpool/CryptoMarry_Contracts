@@ -19,7 +19,7 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
 
     error COULD_NOT_PROCESS(string);
     ISwapRouter public immutable ROUTER;
-    IWrappedNativeToken public immutable wrappedNativeToken;
+    IWrappedNativeToken public immutable wrappedNativeTokenUV3;
 
     uint256 private constant PATH_SIZE = 43; // address + address + uint24
     uint256 private constant ADDRESS_SIZE = 20;
@@ -30,7 +30,7 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
         address wrappedNativeToken_
     ) ERC2771ContextUpgradeable(address(forwarder)) {
         ROUTER = _ROUTER;
-        wrappedNativeToken = IWrappedNativeToken(wrappedNativeToken_);
+        wrappedNativeTokenUV3 = IWrappedNativeToken(wrappedNativeToken_);
     }
 
     function executeUniSwap(
@@ -54,7 +54,7 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
 
             // Build params for router call
             ISwapRouter.ExactInputSingleParams memory params;
-            params.tokenIn = address(wrappedNativeToken);
+            params.tokenIn = address(wrappedNativeTokenUV3);
             params.tokenOut = vt.voteProposalAttributes[_id].receiver;
             params.fee = fee;
             params.amountIn = _getBalance(address(0), amountIn);
@@ -76,7 +76,7 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
             ISwapRouter.ExactInputSingleParams memory params;
             address tokenIn = vt.voteProposalAttributes[_id].tokenID;
             params.tokenIn = tokenIn;
-            params.tokenOut = address(wrappedNativeToken);
+            params.tokenOut = address(wrappedNativeTokenUV3);
             params.fee = fee;
             params.amountIn = _getBalance(tokenIn, amountIn);
             params.amountOutMinimum = amountOutMinimum;
@@ -86,7 +86,7 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
             _tokenApprove(tokenIn, address(ROUTER), params.amountIn);
             uint256 amountOut = _exactInputSingle(0, params);
             _tokenApproveZero(tokenIn, address(ROUTER));
-            wrappedNativeToken.withdraw(amountOut);
+            wrappedNativeTokenUV3.withdraw(amountOut);
 
             ///exactInputSingle
         } else if (vt.voteProposalAttributes[_id].voteType == 103) {
@@ -144,7 +144,7 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
 
             if (
                 tokenIn != _getFirstToken(path) ||
-                tokenIn != address(wrappedNativeToken)
+                tokenIn != address(wrappedNativeTokenUV3)
             ) revert COULD_NOT_PROCESS("Wrong path");
             if (tokenOut != _getLastToken(path))
                 revert COULD_NOT_PROCESS("Wrong path");
@@ -175,7 +175,7 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
                 revert COULD_NOT_PROCESS("Wrong path");
             if (
                 tokenOut != _getLastToken(path) ||
-                tokenOut != address(wrappedNativeToken)
+                tokenOut != address(wrappedNativeTokenUV3)
             ) revert COULD_NOT_PROCESS("Wrong path");
 
             // Build params for router call
@@ -188,7 +188,7 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
             _tokenApprove(tokenIn, address(ROUTER), params.amountIn);
             uint256 amountOut = _exactInput(0, params);
             _tokenApproveZero(tokenIn, address(ROUTER));
-            wrappedNativeToken.withdraw(amountOut);
+            wrappedNativeTokenUV3.withdraw(amountOut);
 
             ///exactInput
         } else if (vt.voteProposalAttributes[_id].voteType == 106) {
@@ -244,7 +244,7 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
 
             // Build params for router call
             ISwapRouter.ExactOutputSingleParams memory params;
-            params.tokenIn = address(wrappedNativeToken);
+            params.tokenIn = address(wrappedNativeTokenUV3);
             params.tokenOut = vt.voteProposalAttributes[_id].receiver;
             params.fee = fee;
             params.amountOut = amountOut;
@@ -270,7 +270,7 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
 
             ISwapRouter.ExactOutputSingleParams memory params;
             params.tokenIn = tokenIn;
-            params.tokenOut = address(wrappedNativeToken);
+            params.tokenOut = address(wrappedNativeTokenUV3);
             params.fee = fee;
             params.amountOut = amountOut;
             // if amount == type(uint256).max return balance of Proxy
@@ -285,7 +285,7 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
             );
             _exactOutputSingle(0, params);
             _tokenApproveZero(params.tokenIn, address(ROUTER));
-            wrappedNativeToken.withdraw(params.amountOut);
+            wrappedNativeTokenUV3.withdraw(params.amountOut);
 
             ///exactOutputSingle
         } else if (vt.voteProposalAttributes[_id].voteType == 109) {
@@ -346,7 +346,7 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
 
             if (
                 tokenIn != _getFirstToken(path) ||
-                tokenIn != address(wrappedNativeToken)
+                tokenIn != address(wrappedNativeTokenUV3)
             ) revert COULD_NOT_PROCESS("Wrong path");
             if (tokenOut != _getLastToken(path))
                 revert COULD_NOT_PROCESS("Wrong path");
@@ -378,7 +378,7 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
                 revert COULD_NOT_PROCESS("Wrong path");
             if (
                 tokenOut != _getLastToken(path) ||
-                tokenOut != address(wrappedNativeToken)
+                tokenOut != address(wrappedNativeTokenUV3)
             ) revert COULD_NOT_PROCESS("Wrong path");
 
             // Build params for router call
@@ -392,7 +392,7 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
             _tokenApprove(tokenIn, address(ROUTER), params.amountInMaximum);
             _exactOutput(0, params);
             _tokenApproveZero(tokenIn, address(ROUTER));
-            wrappedNativeToken.withdraw(amountOut);
+            wrappedNativeTokenUV3.withdraw(amountOut);
 
             ///exactOutput
         } else if (vt.voteProposalAttributes[_id].voteType == 112) {
@@ -513,7 +513,7 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
         address msgSender_ = _msgSender();
         VoteProposalLib.enforceMarried();
         VoteProposalLib.enforceUserHasAccess(msgSender_);
-        wrappedNativeToken.withdraw(amount);
+        wrappedNativeTokenUV3.withdraw(amount);
         VoteProposalLib.checkForwarder();
       } 
 
@@ -521,8 +521,8 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
         address msgSender_ = _msgSender();
         VoteProposalLib.enforceMarried();
         VoteProposalLib.enforceUserHasAccess(msgSender_);
-        wrappedNativeToken.deposit{value: amount}(); 
-        emit VoteProposalLib.AddStake(address(this), address(wrappedNativeToken), block.timestamp, amount); 
+        wrappedNativeTokenUV3.deposit{value: amount}(); 
+        emit VoteProposalLib.AddStake(address(this), address(wrappedNativeTokenUV3), block.timestamp, amount); 
         VoteProposalLib.checkForwarder();
         
       } 

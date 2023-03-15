@@ -53,7 +53,7 @@ contract BProtocolFacet is ERC2771ContextUpgradeable, HandlerBase {
         }
     }
 
-    function getCDP(address token) public view returns (uint) {
+    function getCDPBP(address token) public view returns (uint) {
         BProtocolStorage storage bp = BProtocolStorageTracking();
         return bp.CDP[token];
     }

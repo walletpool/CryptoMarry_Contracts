@@ -18,14 +18,13 @@ contract AaveV3Facet is ERC2771ContextUpgradeable, HandlerBase {
     using SafeERC20 for IERC20;
     error COULD_NOT_PROCESS(string);
     
-    address public immutable PROVIDER;
-    uint16 public constant REFERRAL_CODE = 0;
-    address public immutable wrappedNativeToken;
+    address public immutable PROVIDERAV3;
+    address public immutable wrappedNativeTokenAV3;
     
     constructor(MinimalForwarderUpgradeable forwarder, address _provider, address wrappedNativeToken_)
         ERC2771ContextUpgradeable(address(forwarder))
-        {PROVIDER = _provider;
-        wrappedNativeToken = wrappedNativeToken_;}
+        {PROVIDERAV3 = _provider;
+        wrappedNativeTokenAV3 = wrappedNativeToken_;}
 
     function executeAaveV3(
         uint24 _id
@@ -50,8 +49,8 @@ contract AaveV3Facet is ERC2771ContextUpgradeable, HandlerBase {
         vt.voteProposalAttributes[_id].voteStatus =221;
         _amount = _getBalance(NATIVE_TOKEN_ADDRESS, _amount);
 
-        IWrappedNativeToken(wrappedNativeToken).deposit{value: _amount}();        
-         _supply(wrappedNativeToken, _amount);
+        IWrappedNativeToken(wrappedNativeTokenAV3).deposit{value: _amount}();        
+         _supply(wrappedNativeTokenAV3, _amount);
 
         }
 
@@ -63,8 +62,8 @@ contract AaveV3Facet is ERC2771ContextUpgradeable, HandlerBase {
 
         else if (vt.voteProposalAttributes[_id].voteType == 223){
         vt.voteProposalAttributes[_id].voteStatus = 223;
-        uint withdrawAmount = _withdraw(wrappedNativeToken, _amount); 
-        IWrappedNativeToken(wrappedNativeToken).withdraw(withdrawAmount);   
+        uint withdrawAmount = _withdraw(wrappedNativeTokenAV3, _amount); 
+        IWrappedNativeToken(wrappedNativeTokenAV3).withdraw(withdrawAmount);   
         }
         
         else {revert COULD_NOT_PROCESS("Not AaveV3 Type");}
@@ -104,8 +103,8 @@ contract AaveV3Facet is ERC2771ContextUpgradeable, HandlerBase {
             vt.voteProposalAttributes[_id].voteStatus =225;
 
           address onBehalfOf = address(this);
-         _borrow(wrappedNativeToken, _amount, rateMode, onBehalfOf);
-         IWrappedNativeToken(wrappedNativeToken).withdraw(_amount);
+         _borrow(wrappedNativeTokenAV3, _amount, rateMode, onBehalfOf);
+         IWrappedNativeToken(wrappedNativeTokenAV3).withdraw(_amount);
         }
 
          else if (vt.voteProposalAttributes[_id].voteType == 226){
@@ -119,8 +118,8 @@ contract AaveV3Facet is ERC2771ContextUpgradeable, HandlerBase {
           else if (vt.voteProposalAttributes[_id].voteType == 227){
             vt.voteProposalAttributes[_id].voteStatus =227;
             address onBehalfOf = address(this);
-            IWrappedNativeToken(wrappedNativeToken).deposit{value: _amount}();
-            _repay(wrappedNativeToken, _amount, rateMode, onBehalfOf);
+            IWrappedNativeToken(wrappedNativeTokenAV3).deposit{value: _amount}();
+            _repay(wrappedNativeTokenAV3, _amount, rateMode, onBehalfOf);
         }
         
         else {revert COULD_NOT_PROCESS("Not AaveV3 Borrow Type");}
@@ -141,7 +140,7 @@ contract AaveV3Facet is ERC2771ContextUpgradeable, HandlerBase {
         (address pool, ) = _getPoolAndAToken(asset);
         _tokenApprove(asset, pool, amount);
         try
-            IPool(pool).supply(asset, amount, address(this), REFERRAL_CODE)
+            IPool(pool).supply(asset, amount, address(this), 0)
         {} catch Error(string memory reason) {
             revert COULD_NOT_PROCESS(reason); 
         } catch {
@@ -176,14 +175,14 @@ contract AaveV3Facet is ERC2771ContextUpgradeable, HandlerBase {
     ) internal {
 
         (address pool, ) = _getPoolAndAToken(asset);
-       // address pool = IPoolAddressesProvider(PROVIDER).getPool();
+       // address pool = IPoolAddressesProvider(PROVIDERAV3).getPool();
 
         try
             IPool(pool).borrow(
                 asset,
                 amount,
                 rateMode,
-                REFERRAL_CODE,
+                0,
                 onBehalfOf
             )
         {} catch Error(string memory reason) {
@@ -199,7 +198,7 @@ contract AaveV3Facet is ERC2771ContextUpgradeable, HandlerBase {
         address onBehalfOf
     ) internal returns (uint256 remainDebt) {
         (address pool, ) = _getPoolAndAToken(asset);
-       // address pool = IPoolAddressesProvider(PROVIDER).getPool();
+       // address pool = IPoolAddressesProvider(PROVIDERAV3).getPool();
         _tokenApprove(asset, pool, amount);
 
         try
@@ -225,7 +224,7 @@ contract AaveV3Facet is ERC2771ContextUpgradeable, HandlerBase {
         view
         returns (address pool, address aToken)
     {
-        pool = IPoolAddressesProvider(PROVIDER).getPool();
+        pool = IPoolAddressesProvider(PROVIDERAV3).getPool();
         try IPool(pool).getReserveData(underlying) returns (
             DataTypes.ReserveData memory data
         ) {
