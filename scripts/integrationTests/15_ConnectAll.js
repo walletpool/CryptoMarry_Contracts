@@ -472,7 +472,7 @@ cut.push({
   functionSelectors: getSelectors(MakerFacet)
 })
 
-tx = await diamondCut.diamondCut(cut,MakerInit2.address, data2);
+tx = await diamondCut.diamondCut(cut,ZERO_ADDRESS, "0x"); ///!!! Proxy of BP Protocol and Maker already registered. Cannot register twice... 
 receipt = await tx.wait();
 txn = await instance.getAllConnectedApps();
 expect (txn).contain(MakerFacet.address)
