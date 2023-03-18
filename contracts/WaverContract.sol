@@ -168,10 +168,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         address _nftaddress,
         address _waveFactory,
         address _withdrawaddress,
-        address _diamonCut,
-        address _uniswap,
-        address _compound,
-        address _familyDAO
+        address _diamonCut
     ) payable ERC20("CryptoMarry", "LOVE") ERC2771Context(address(forwarder)) {
         claimPolicyDays = 1 hours;
         addressNFT = _nftaddress;
@@ -181,10 +178,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         exchangeRate = 2000;
         withdrawaddress = _withdrawaddress;
         promoAmount = 50 * 1e18;
-        whiteListedAddresses[_diamonCut] = 1;
-        whiteListedAddresses[_uniswap] = 1;
-        whiteListedAddresses[_compound] = 1;
-        whiteListedAddresses[_familyDAO] = 1;   
+        whiteListedAddresses[_diamonCut] = 1; 
     }
 
     error CONTRACT_NOT_AUTHORIZED(address contractAddress);
