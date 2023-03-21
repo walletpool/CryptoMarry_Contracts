@@ -59,10 +59,7 @@ WhiteListAddr.push({
    nftContract.address,
    WaverFactory.address,
    "0xEC3215C0ba03fA75c8291Ce92ace346589483E26",
-   DiamondCutFacet.address,
-   UniSwapFacet.address,
-   CompoundFacet.address,
-   familyDao.address
+   DiamondCutFacet.address
  );
 
 
