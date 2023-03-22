@@ -306,6 +306,7 @@ describe("Testing voting interactions", function () {
           accounts[3].address,
           "0x0000000000000000000000000000000000000000",
           hre.ethers.utils.parseEther("5"),
+          0,
           true
         )
     ).to.changeEtherBalances(

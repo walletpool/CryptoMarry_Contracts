@@ -324,6 +324,7 @@ describe("Testing before marriage interactions", function () {
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
           1,
+          0,
           false
         )
     ).to.reverted;
@@ -336,6 +337,7 @@ describe("Testing before marriage interactions", function () {
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
           1,
+          0,
           false
         )
     ).to.reverted;

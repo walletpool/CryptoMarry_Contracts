@@ -54,6 +54,7 @@ describe("Adding Family Members Testing", function () {
         accounts[0].address,
         "0x0000000000000000000000000000000000000000",
         0,
+        0,
         false
       )
   ).to.reverted;
@@ -64,6 +65,7 @@ describe("Adding Family Members Testing", function () {
         accounts[0].address,
         "0x0000000000000000000000000000000000000000",
         0,
+        0,
         false
       )).to.reverted;
     await expect(
@@ -73,6 +75,7 @@ describe("Adding Family Members Testing", function () {
         accounts[1].address,
         "0x0000000000000000000000000000000000000000",
         0,
+        0,
         false
       )).to.reverted;
     await expect(
@@ -81,6 +84,7 @@ describe("Adding Family Members Testing", function () {
         7,
         accounts[1].address,
         "0x0000000000000000000000000000000000000000",
+        0,
         0,
         false
       )).to.reverted;
@@ -110,6 +114,7 @@ describe("Adding Family Members Testing", function () {
       accounts[2].address,
       "0x0000000000000000000000000000000000000000",
       0,
+      0,
       false
     )
 
@@ -118,6 +123,7 @@ describe("Adding Family Members Testing", function () {
       7,
       accounts[3].address,
       "0x0000000000000000000000000000000000000000",
+      0,
       0,
       false
     )
@@ -136,6 +142,7 @@ describe("Adding Family Members Testing", function () {
       accounts[2].address,
       "0x0000000000000000000000000000000000000000",
       0,
+      0,
       false
     )
 
@@ -144,6 +151,7 @@ describe("Adding Family Members Testing", function () {
       7,
       accounts[3].address,
       "0x0000000000000000000000000000000000000000",
+      0,
       0,
       false
     )
@@ -194,6 +202,7 @@ describe("Adding Family Members Testing", function () {
       accounts[4].address,
       "0x0000000000000000000000000000000000000000",
       0,
+      0,
       false
     )
 
@@ -202,6 +211,7 @@ describe("Adding Family Members Testing", function () {
       7,
       accounts[5].address,
       "0x0000000000000000000000000000000000000000",
+      0,
       0,
       false
     )
@@ -227,6 +237,7 @@ describe("Adding Family Members Testing", function () {
       accounts[6].address,
       "0x0000000000000000000000000000000000000000",
       0,
+      0,
       false
     )
 
@@ -235,6 +246,7 @@ describe("Adding Family Members Testing", function () {
       7,
       accounts[7].address,
       "0x0000000000000000000000000000000000000000",
+      0,
       0,
       false
     )
@@ -307,6 +319,7 @@ describe("Adding Family Members Testing", function () {
         accounts[4].address,
         "0x0000000000000000000000000000000000000000",
         10,
+        0,
         false
       )
   
@@ -316,6 +329,7 @@ describe("Adding Family Members Testing", function () {
         accounts[5].address,
         "0x0000000000000000000000000000000000000000",
         4,
+        0,
         false
       )
   
@@ -340,6 +354,7 @@ describe("Adding Family Members Testing", function () {
         accounts[6].address,
         "0x0000000000000000000000000000000000000000",
         3,
+        0,
         false
       )
   
@@ -349,6 +364,7 @@ describe("Adding Family Members Testing", function () {
         accounts[7].address,
         "0x0000000000000000000000000000000000000000",
         4,
+        0,
         false
       )
   
@@ -411,6 +427,7 @@ describe("Adding Family Members Testing", function () {
         accounts[4].address,
         "0x0000000000000000000000000000000000000000",
         10,
+        0,
         false
       )
   
@@ -420,6 +437,7 @@ describe("Adding Family Members Testing", function () {
         accounts[5].address,
         "0x0000000000000000000000000000000000000000",
         4,
+        0,
         false
       )
   
@@ -444,6 +462,7 @@ describe("Adding Family Members Testing", function () {
         accounts[4].address,
         "0x0000000000000000000000000000000000000000",
         3,
+        0,
         false
       )
   
@@ -453,6 +472,7 @@ describe("Adding Family Members Testing", function () {
         accounts[5].address,
         "0x0000000000000000000000000000000000000000",
         4,
+        0,
         false
       )
   
@@ -517,6 +537,7 @@ describe("Adding Family Members Testing", function () {
         accounts[4].address,
         "0x0000000000000000000000000000000000000000",
         10,
+        0,
         false
       )
   
@@ -526,6 +547,7 @@ describe("Adding Family Members Testing", function () {
         accounts[5].address,
         "0x0000000000000000000000000000000000000000",
         4,
+        0,
         false
       )
   
@@ -551,6 +573,7 @@ describe("Adding Family Members Testing", function () {
         accounts[4].address,
         "0x0000000000000000000000000000000000000000",
         3,
+        0,
         false
       )
   
@@ -560,6 +583,7 @@ describe("Adding Family Members Testing", function () {
         accounts[5].address,
         "0x0000000000000000000000000000000000000000",
         4,
+        0,
         false
       )
   
@@ -606,6 +630,7 @@ describe("Adding Family Members Testing", function () {
         accounts[4].address,
         "0x0000000000000000000000000000000000000000",
         10,
+        0,
         false
       )
   
@@ -615,6 +640,7 @@ describe("Adding Family Members Testing", function () {
         accounts[5].address,
         "0x0000000000000000000000000000000000000000",
         4,
+        0,
         false
       )
   
@@ -643,6 +669,7 @@ describe("Adding Family Members Testing", function () {
       accounts[4].address,
       "0x0000000000000000000000000000000000000000",
       10,
+      0,
       false
     )
 
@@ -652,6 +679,7 @@ describe("Adding Family Members Testing", function () {
       accounts[5].address,
       "0x0000000000000000000000000000000000000000",
       4,
+      0,
       false
     )
 
@@ -689,6 +717,7 @@ describe("Adding Family Members Testing", function () {
         accounts[4].address,
         "0x0000000000000000000000000000000000000000",
         10,
+        0,
         false
       )
   
@@ -698,6 +727,7 @@ describe("Adding Family Members Testing", function () {
         accounts[5].address,
         "0x0000000000000000000000000000000000000000",
         4,
+        0,
         false
       )
   
@@ -722,6 +752,7 @@ describe("Adding Family Members Testing", function () {
       accounts[4].address,
       "0x0000000000000000000000000000000000000000",
       10,
+      0,
       false
     )).to.reverted
 
@@ -731,6 +762,7 @@ describe("Adding Family Members Testing", function () {
       accounts[5].address,
       "0x0000000000000000000000000000000000000000",
       4,
+      0,
       false
     )).to.reverted
 
@@ -740,6 +772,7 @@ describe("Adding Family Members Testing", function () {
       accounts[6].address,
       "0x0000000000000000000000000000000000000000",
       10,
+       0,
       false
     )
 
@@ -749,6 +782,7 @@ describe("Adding Family Members Testing", function () {
       accounts[7].address,
       "0x0000000000000000000000000000000000000000",
       4,
+      0,
       false
     )
    
@@ -765,6 +799,7 @@ describe("Adding Family Members Testing", function () {
       accounts[4].address,
       "0x0000000000000000000000000000000000000000",
       2,
+      0,
       false
     )
 
@@ -774,6 +809,7 @@ describe("Adding Family Members Testing", function () {
       accounts[5].address,
       "0x0000000000000000000000000000000000000000",
       2,
+      0,
       false
     )
 
@@ -793,6 +829,7 @@ describe("Adding Family Members Testing", function () {
         accounts[4].address,
         "0x0000000000000000000000000000000000000000",
         2,
+        0,
         false
       )
   
@@ -802,6 +839,7 @@ describe("Adding Family Members Testing", function () {
         accounts[5].address,
         "0x0000000000000000000000000000000000000000",
         2,
+        0,
         false
       )
   
@@ -834,6 +872,7 @@ describe("Adding Family Members Testing", function () {
       accounts[4].address,
       "0x0000000000000000000000000000000000000000",
       4,
+      0,
       false
     )
 
@@ -843,6 +882,7 @@ describe("Adding Family Members Testing", function () {
       accounts[5].address,
       "0x0000000000000000000000000000000000000000",
       4,
+      0,
       false
     )
 
@@ -863,6 +903,7 @@ describe("Adding Family Members Testing", function () {
         accounts[4].address,
         "0x0000000000000000000000000000000000000000",
         2,
+        0,
         false
       )
     
@@ -895,6 +936,7 @@ describe("Adding Family Members Testing", function () {
       accounts[4].address,
       "0x0000000000000000000000000000000000000000",
       2,
+      0,
       false
     )
 
@@ -904,6 +946,7 @@ describe("Adding Family Members Testing", function () {
       accounts[5].address,
       "0x0000000000000000000000000000000000000000",
       2,
+      0,
       false
     )
 
@@ -923,6 +966,7 @@ describe("Adding Family Members Testing", function () {
         accounts[4].address,
         "0x0000000000000000000000000000000000000000",
         2,
+        0,
         false
       )
   
@@ -932,6 +976,7 @@ describe("Adding Family Members Testing", function () {
         accounts[5].address,
         "0x0000000000000000000000000000000000000000",
         2,
+        0,
         false
       )
   
@@ -958,6 +1003,7 @@ describe("Adding Family Members Testing", function () {
           accounts[5].address,
           "0x0000000000000000000000000000000000000000",
           2,
+          0,
           false
         )).to.reverted;
   });

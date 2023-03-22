@@ -39,6 +39,7 @@ describe("Voting with family members", function () {
       accounts[4].address,
       "0x0000000000000000000000000000000000000000",
       3,
+      0,
       false
     )
 
@@ -48,6 +49,7 @@ describe("Voting with family members", function () {
       accounts[5].address,
       "0x0000000000000000000000000000000000000000",
       3,
+      0,
       false
     )
 
@@ -89,6 +91,7 @@ describe("Voting with family members", function () {
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
         4,
+        0,
         false
       );
     txn = await instance
@@ -99,6 +102,7 @@ describe("Voting with family members", function () {
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
         4,
+        0,
         false
       );
     expect(await WavePortal7.balanceOf(accounts[4].address)).to.equal(
@@ -124,6 +128,7 @@ describe("Voting with family members", function () {
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
         4,
+        0,
         false
       );
   
@@ -152,6 +157,7 @@ describe("Voting with family members", function () {
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
         4,
+        0,
         false
       );
     txn = await instance
@@ -178,6 +184,7 @@ describe("Voting with family members", function () {
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
         4,
+        0,
         false
       );
     txn =await  instance
@@ -217,6 +224,7 @@ describe("Voting with family members", function () {
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
         4,
+        0,
         false
       );
     txn = await instance
@@ -240,6 +248,7 @@ describe("Voting with family members", function () {
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
         4,
+        0,
         false      
         );
     txn = await instance
@@ -269,6 +278,7 @@ describe("Voting with family members", function () {
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
           0,
+          0,
           false
         )
     ).to.reverted;
@@ -287,6 +297,7 @@ describe("Voting with family members", function () {
         accounts[3].address,
         "0x0000000000000000000000000000000000000000",
         hre.ethers.utils.parseEther("5"),
+        0,
         false,        
       );
     txn = await instance

@@ -39,6 +39,7 @@ describe("Divorce Settlement Functions Assymetric - Proposer - 20%, Proposed - 8
       accounts[4].address,
       "0x0000000000000000000000000000000000000000",
       4,
+      0,
       false
     )
 
@@ -48,6 +49,7 @@ describe("Divorce Settlement Functions Assymetric - Proposer - 20%, Proposed - 8
       accounts[5].address,
       "0x0000000000000000000000000000000000000000",
       4,
+      0,
       false
     )
 
@@ -81,6 +83,7 @@ describe("Divorce Settlement Functions Assymetric - Proposer - 20%, Proposed - 8
         4,
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
+        0,
         0,
         false
       );

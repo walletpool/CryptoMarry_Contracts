@@ -39,6 +39,7 @@ describe("Divorce Settlement Functions", function () {
       accounts[4].address,
       "0x0000000000000000000000000000000000000000",
       4,
+      0,
       false
     )
 
@@ -48,6 +49,7 @@ describe("Divorce Settlement Functions", function () {
       accounts[5].address,
       "0x0000000000000000000000000000000000000000",
       4,
+      0,
       false
     )
 
@@ -90,6 +92,7 @@ describe("Divorce Settlement Functions", function () {
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       0,
+      0,
       false
       );
 
@@ -128,6 +131,7 @@ describe("Divorce Settlement Functions", function () {
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       0,
+      0,
       false
       );
 
@@ -148,6 +152,7 @@ describe("Divorce Settlement Functions", function () {
       4,
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
+      0,
       0,
       false
       );
@@ -176,6 +181,7 @@ describe("Divorce Settlement Functions", function () {
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
         0,
+        0,
         false
       );
     txn = await instance
@@ -198,6 +204,7 @@ describe("Divorce Settlement Functions", function () {
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
           0,
+          0,
           false
         )
     ).to.reverted;
@@ -209,6 +216,7 @@ describe("Divorce Settlement Functions", function () {
           1,
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
+          0,
           0,
           false
         )
@@ -222,6 +230,7 @@ describe("Divorce Settlement Functions", function () {
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
           0,
+          0,
           false
         )
     ).to.reverted;
@@ -233,6 +242,7 @@ describe("Divorce Settlement Functions", function () {
           1,
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
+          0,
           0,
           false
         )
@@ -249,6 +259,7 @@ describe("Divorce Settlement Functions", function () {
         4,
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
+        0,
         0,
         false
       );
@@ -291,6 +302,7 @@ describe("Divorce Settlement Functions", function () {
         accounts[3].address,
         "0x0000000000000000000000000000000000000000",
         hre.ethers.utils.parseEther("5"),
+         0,
         false
       );
 
@@ -312,6 +324,7 @@ describe("Divorce Settlement Functions", function () {
         4,
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
+        0,
         0,
         false
       );
@@ -376,6 +389,7 @@ describe("Divorce Settlement Functions", function () {
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       0,
+      0,
       false
     );
 
@@ -438,6 +452,7 @@ describe("Divorce Settlement Functions", function () {
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       0,
+      0,
       false
     );
 
@@ -479,6 +494,7 @@ describe("Divorce Settlement Functions", function () {
       4,
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
+      0,
       0,
       false
     );
@@ -532,6 +548,7 @@ describe("Divorce Settlement Functions", function () {
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       0,
+       0,
       false
     );
 
