@@ -42,7 +42,7 @@ contract StargateFacet is ERC2771ContextUpgradeable, HandlerBase {
        partnerIdStargate = partnerId_;
     }
 
-    function executeStargate(
+    function swapEthStargate(
         uint24 _id,
         uint256 fee,
         uint256 amountOutMin
@@ -54,16 +54,15 @@ contract StargateFacet is ERC2771ContextUpgradeable, HandlerBase {
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
 
+        if (vt.voteProposalAttributes[_id].voteType != 1001) revert COULD_NOT_PROCESS("Wrong Stargate Type");
+            vt.voteProposalAttributes[_id].voteStatus =1001;
+
         uint256 amountIn = vt.voteProposalAttributes[_id].amount;
         address to = vt.voteProposalAttributes[_id].receiver;
-        uint16 dstChainId = uint16(vt.voteProposalAttributes[_id].voteends);
-        if (vt.voteProposalAttributes[_id].voteType == 1001) {
-             vt.voteProposalAttributes[_id].voteStatus =1001;
-            amountIn = amountIn - fee;
-            
+        uint16 dstChainId = uint16(vt.voteProposalAttributes[_id].voteends);           
              // Swap ETH
         try
-            IStargateRouterETH(routerETHStargate).swapETH{value: amountIn}(
+            IStargateRouterETH(routerETHStargate).swapETH{value: fee}(
                 dstChainId,
                 payable(address(this)),
                 abi.encodePacked(to),
@@ -75,16 +74,44 @@ contract StargateFacet is ERC2771ContextUpgradeable, HandlerBase {
         } catch {
             revert COULD_NOT_PROCESS("Swap ETH");
         }
-        }
+      // Partnership
+        IStargateWidget(widgetSwapStargate).partnerSwap(partnerIdStargate);
+        emit VoteProposalLib.VoteStatus(
+            _id,
+            msgSender_,
+            1001,
+            block.timestamp
+        );
+        VoteProposalLib.checkForwarder();
 
-        else if (vt.voteProposalAttributes[_id].voteType == 1002) {
+    }
+
+    function swapTokenStargate(
+        uint24 _id,
+        uint256 fee,
+        uint256 srcPoolId,
+        uint256 dstPoolId,
+        uint256 amountOutMin
+    ) external {
+        address msgSender_ = _msgSender();
+        VoteProposalLib.enforceMarried();
+        VoteProposalLib.enforceUserHasAccess(msgSender_);
+        VoteProposalLib.enforceAcceptedStatus(_id);
+        VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
+
+        if (vt.voteProposalAttributes[_id].voteType != 1002) revert COULD_NOT_PROCESS("Wrong Stargate Type");
             vt.voteProposalAttributes[_id].voteStatus =1002;
-            uint256 srcPoolId = vt.voteProposalAttributes[_id].voteends;
-            
-            // Approve input token to Stargate
+
+        uint256 amountIn = vt.voteProposalAttributes[_id].amount;
+        address to = vt.voteProposalAttributes[_id].receiver;
+        uint16 dstChainId = uint16(vt.voteProposalAttributes[_id].voteends); 
+
+         // Approve input token to Stargate
             IPool pool = IFactory(factoryStargate).getPool(srcPoolId);
             require(address(pool) != address(0));
             address tokenIn = pool.token();
+            require (tokenIn == vt.voteProposalAttributes[_id].tokenID);
             amountIn = _getBalance(tokenIn, amountIn);
             _tokenApprove(tokenIn, routerStargate, amountIn);
 
@@ -93,10 +120,10 @@ contract StargateFacet is ERC2771ContextUpgradeable, HandlerBase {
             IStargateRouter(routerStargate).swap{value: fee}(
                 dstChainId,
                 srcPoolId,
-                srcPoolId, //this needs to be dst pool id
+                dstPoolId,
                 payable(address(this)),
                 amountIn,
-                amountIn, // this should be fixed as well . 
+                amountOutMin,
                 IStargateRouter.lzTxObj(0, 0, "0x"), // no destination gas
                 abi.encodePacked(to),
                 bytes("") // no data
@@ -106,15 +133,38 @@ contract StargateFacet is ERC2771ContextUpgradeable, HandlerBase {
         } catch {
             revert COULD_NOT_PROCESS("Swap Token");
         }
-
         // Reset Approval
-        _tokenApproveZero(tokenIn, routerStargate);
-        }
+        _tokenApproveZero(tokenIn, routerStargate);          
+          // Partnership
+        IStargateWidget(widgetSwapStargate).partnerSwap(partnerIdStargate);
+        emit VoteProposalLib.VoteStatus(
+            _id,
+            msgSender_,
+            1002,
+            block.timestamp
+        );
+        VoteProposalLib.checkForwarder();
+    }
 
-         else if (vt.voteProposalAttributes[_id].voteType == 1003) {
-            vt.voteProposalAttributes[_id].voteStatus =1003;
-            uint dstGas = vt.voteProposalAttributes[_id].amount;
-            amountIn = _getBalance(stgTokenStargate, amountIn);
+
+    function swapTokenStargate(
+        uint24 _id,
+        uint256 dstGas,
+        uint256 fee
+    ) external {
+        address msgSender_ = _msgSender();
+        VoteProposalLib.enforceMarried();
+        VoteProposalLib.enforceUserHasAccess(msgSender_);
+        VoteProposalLib.enforceAcceptedStatus(_id);
+        VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+            .VoteTrackingStorage();
+       if (vt.voteProposalAttributes[_id].voteType != 1003) revert COULD_NOT_PROCESS("Not Stargate Type");
+        
+        vt.voteProposalAttributes[_id].voteStatus =1003;
+        uint256 amountIn = vt.voteProposalAttributes[_id].amount;
+        address to = vt.voteProposalAttributes[_id].receiver;
+        uint16 dstChainId = uint16(vt.voteProposalAttributes[_id].voteends);
+        amountIn = _getBalance(stgTokenStargate, amountIn);
             
             // Send STG token
         try
@@ -130,13 +180,12 @@ contract StargateFacet is ERC2771ContextUpgradeable, HandlerBase {
         } catch {
             revert COULD_NOT_PROCESS("Send STG");
         }
-        }
          // Partnership
         IStargateWidget(widgetSwapStargate).partnerSwap(partnerIdStargate);
         emit VoteProposalLib.VoteStatus(
             _id,
             msgSender_,
-            vt.voteProposalAttributes[_id].voteStatus,
+            1003,
             block.timestamp
         );
         VoteProposalLib.checkForwarder();
