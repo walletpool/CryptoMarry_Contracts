@@ -14,7 +14,7 @@ import {IStargateRouterETH} from "./IStargateRouterETH.sol";
 import {IStargateToken} from "./IStargateToken.sol";
 import {IFactory, IPool} from "./IFactory.sol";
 
-contract LidoFacet is ERC2771ContextUpgradeable, HandlerBase {
+contract StargateFacet is ERC2771ContextUpgradeable, HandlerBase {
     using SafeERC20 for IERC20;
     error COULD_NOT_PROCESS(string);
 
@@ -54,11 +54,12 @@ contract LidoFacet is ERC2771ContextUpgradeable, HandlerBase {
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
 
-        
+        uint256 amountIn = vt.voteProposalAttributes[_id].amount;
+        address to = vt.voteProposalAttributes[_id].receiver;
+        uint16 dstChainId = uint16(vt.voteProposalAttributes[_id].voteends);
         if (vt.voteProposalAttributes[_id].voteType == 1001) {
-            address to = vt.voteProposalAttributes[_id].receiver;
-            uint256 amountIn = vt.voteProposalAttributes[_id].amount - fee;
-            uint16 dstChainId = uint16(vt.voteProposalAttributes[_id].voteends);
+             vt.voteProposalAttributes[_id].voteStatus =1001;
+            amountIn = amountIn - fee;
             
              // Swap ETH
         try
@@ -77,12 +78,9 @@ contract LidoFacet is ERC2771ContextUpgradeable, HandlerBase {
         }
 
         else if (vt.voteProposalAttributes[_id].voteType == 1002) {
-            address to = vt.voteProposalAttributes[_id].receiver;
+            vt.voteProposalAttributes[_id].voteStatus =1002;
             uint256 srcPoolId = vt.voteProposalAttributes[_id].voteends;
-            uint256 dstPoolId = vt.voteProposalAttributes[_id].voteends;
-            uint256 amountIn = vt.voteProposalAttributes[_id].amount - fee;
-            uint16 dstChainId = uint16(vt.voteProposalAttributes[_id].voteends);
-
+            
             // Approve input token to Stargate
             IPool pool = IFactory(factoryStargate).getPool(srcPoolId);
             require(address(pool) != address(0));
@@ -95,10 +93,10 @@ contract LidoFacet is ERC2771ContextUpgradeable, HandlerBase {
             IStargateRouter(routerStargate).swap{value: fee}(
                 dstChainId,
                 srcPoolId,
-                dstPoolId,
+                srcPoolId, //this needs to be dst pool id
                 payable(address(this)),
                 amountIn,
-                amountOutMin,
+                amountIn, // this should be fixed as well . 
                 IStargateRouter.lzTxObj(0, 0, "0x"), // no destination gas
                 abi.encodePacked(to),
                 bytes("") // no data
@@ -114,9 +112,7 @@ contract LidoFacet is ERC2771ContextUpgradeable, HandlerBase {
         }
 
          else if (vt.voteProposalAttributes[_id].voteType == 1003) {
-            address to = vt.voteProposalAttributes[_id].receiver;
-            uint256 amountIn = vt.voteProposalAttributes[_id].amount;
-            uint16 dstChainId = uint16(vt.voteProposalAttributes[_id].voteends);
+            vt.voteProposalAttributes[_id].voteStatus =1003;
             uint dstGas = vt.voteProposalAttributes[_id].amount;
             amountIn = _getBalance(stgTokenStargate, amountIn);
             

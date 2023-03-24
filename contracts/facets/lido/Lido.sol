@@ -36,7 +36,8 @@ contract LidoFacet is ERC2771ContextUpgradeable, HandlerBase {
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
 
-        if (vt.voteProposalAttributes[_id].voteType != 899) revert COULD_NOT_PROCESS("Not Uniswap Type");
+        if (vt.voteProposalAttributes[_id].voteType != 899) revert COULD_NOT_PROCESS("Not Lido Type");
+        vt.voteProposalAttributes[_id].voteStatus =899;
         uint256 amountIn = vt.voteProposalAttributes[_id].amount;
           // if amount == type(uint256).max return balance of Proxy
         amountIn = _getBalance(NATIVE_TOKEN_ADDRESS, amountIn);
