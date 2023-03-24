@@ -5,7 +5,6 @@ import {VoteProposalLib} from "../../libraries/VotingStatusLib.sol";
 import {IDiamondCut} from "../../interfaces/IDiamondCut.sol";
 import {LibDiamond} from "../../libraries/LibDiamond.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-
 import "@gnus.ai/contracts-upgradeable-diamond/metatx/MinimalForwarderUpgradeable.sol";
 import "@gnus.ai/contracts-upgradeable-diamond/metatx/ERC2771ContextUpgradeable.sol";
 import "../handlerBase.sol";
@@ -46,7 +45,7 @@ contract StargateFacet is ERC2771ContextUpgradeable, HandlerBase {
         uint24 _id,
         uint256 fee,
         uint256 amountOutMin
-    ) external {
+    ) external payable {
         address msgSender_ = _msgSender();
         VoteProposalLib.enforceMarried();
         VoteProposalLib.enforceUserHasAccess(msgSender_);
@@ -58,11 +57,12 @@ contract StargateFacet is ERC2771ContextUpgradeable, HandlerBase {
             vt.voteProposalAttributes[_id].voteStatus =1001;
 
         uint256 amountIn = vt.voteProposalAttributes[_id].amount;
+        uint256 value =  vt.voteProposalAttributes[_id].amount + fee;
         address to = vt.voteProposalAttributes[_id].receiver;
-        uint16 dstChainId = uint16(vt.voteProposalAttributes[_id].voteends);           
+        uint16 dstChainId = uint16(vt.voteProposalAttributes[_id].voteends);     
              // Swap ETH
         try
-            IStargateRouterETH(routerETHStargate).swapETH{value: fee}(
+            IStargateRouterETH(routerETHStargate).swapETH{value: value}(
                 dstChainId,
                 payable(address(this)),
                 abi.encodePacked(to),
@@ -147,7 +147,7 @@ contract StargateFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
 
-    function swapTokenStargate(
+    function sendTokenStargate(
         uint24 _id,
         uint256 dstGas,
         uint256 fee
