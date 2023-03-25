@@ -10,7 +10,6 @@ const networks = require('./addresses.json');
 const net = hre.config.cometInstance;
 const { deployTest } = require('../deployForTest');
 const { getSelectors, FacetCutAction } = require('../libraries/diamond.js');
-const { zeroPad } = require("ethers/lib/utils.js");
 
 const wethAbi = [
     'function deposit() payable',
@@ -278,6 +277,8 @@ describe("Stargate Integration Test", function () {
         txn = await instance.getVotingStatuses(1);
         expect(txn[0].voteStatus).to.equal(1001);
 
+
+
       });
 
       it('Users can swap Token on Stargate', async () => {
@@ -293,6 +294,7 @@ describe("Stargate Integration Test", function () {
 
         const signer = provider.getSigner(Contracts.accounts[0].address);
         const stargateRouter = new ethers.Contract(STARGATE_ROUTER_ADDRESS, StargateRouterAbi, signer);
+        const usdc = new ethers.Contract(usdcAddress, stdErc20Abi, signer);
 
         await seedWithBaseToken(instance.address, ethers.utils.parseUnits('10000',6));
         const STARGATE_DESTINATION_CHAIN_ID = 110
@@ -331,6 +333,7 @@ describe("Stargate Integration Test", function () {
         txn = await instanceStargate.swapTokenStargate(1,fee,1,1,amountOutMin); // voteID
         txn = await instance.getVotingStatuses(1);
         expect(txn[0].voteStatus).to.equal(1002);
+        expect (await usdc.callStatic.balanceOf(instance.address)).to.equal(ethers.utils.parseUnits('9900',6))
 
       });
 
