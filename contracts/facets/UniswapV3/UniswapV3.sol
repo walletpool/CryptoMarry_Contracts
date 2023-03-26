@@ -509,21 +509,4 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
         return path.toAddress(path.length - ADDRESS_SIZE);
     }
 
-     function withdrawWeth(uint amount) external{
-        address msgSender_ = _msgSender();
-        VoteProposalLib.enforceMarried();
-        VoteProposalLib.enforceUserHasAccess(msgSender_);
-        wrappedNativeTokenUV3.withdraw(amount);
-        VoteProposalLib.checkForwarder();
-      } 
-
-    function depositETH(uint amount) external payable{
-        address msgSender_ = _msgSender();
-        VoteProposalLib.enforceMarried();
-        VoteProposalLib.enforceUserHasAccess(msgSender_);
-        wrappedNativeTokenUV3.deposit{value: amount}(); 
-        emit VoteProposalLib.AddStake(address(this), address(wrappedNativeTokenUV3), block.timestamp, amount); 
-        VoteProposalLib.checkForwarder();
-        
-      } 
 }

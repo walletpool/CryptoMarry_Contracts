@@ -317,7 +317,8 @@ const familyDao = await deploy("FamilyDAOFacet", forwarder.address);
   const WaverImplementation = await deploy(
     "WaverIDiamond",
     forwarder.address,
-    DiamondCutFacet.address
+    DiamondCutFacet.address,
+    wethAddress
   );
 
   console.log(

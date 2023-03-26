@@ -52,6 +52,11 @@ interface WaverContract {
         address proposed
     ) external;
 }
+interface IWrappedNativeTokenInstance {
+    function deposit() external payable;
+    function withdraw(uint256 wad) external;
+}
+
 
 /*Interface for the NFT Split Contract*/
 
@@ -78,11 +83,13 @@ contract WaverIDiamond is
     address immutable diamondcut;
     address private immutable _trustedForwarder;
     /*Constructor to connect Forwarder Address*/
-    constructor(MinimalForwarderUpgradeable forwarder, address _diamondcut)
+    IWrappedNativeTokenInstance public immutable wrappedNativeToken;
+    constructor(MinimalForwarderUpgradeable forwarder, address _diamondcut, IWrappedNativeTokenInstance _wrappedNativeToken )
         initializer
         ERC2771ContextUpgradeable(address(forwarder))
     {diamondcut = _diamondcut;
-    _trustedForwarder= address(forwarder);}
+    _trustedForwarder= address(forwarder);
+    wrappedNativeToken = _wrappedNativeToken;}
 
     /**
      * @notice Initialization function of the proxy contract
@@ -414,6 +421,17 @@ error VOTE_ID_NOT_FOUND();
              vt.voteProposalAttributes[_id].voteStatus = 14;
              updateThreshold(vt.voteProposalAttributes[_id].amount, vt);
              
+        }
+         //Wrapping Native Token 
+        else if (vt.voteProposalAttributes[_id].voteType == 10){
+             vt.voteProposalAttributes[_id].voteStatus = 15;
+        wrappedNativeToken.deposit{value: _amount}(); 
+        emit VoteProposalLib.AddStake(address(this), address(wrappedNativeToken), block.timestamp, _amount); 
+        }
+         //Unwrapping Native Token  
+        else if (vt.voteProposalAttributes[_id].voteType == 11){
+             vt.voteProposalAttributes[_id].voteStatus = 16;
+             wrappedNativeToken.withdraw(_amount);
         }
         else {
             revert VOTE_ID_NOT_FOUND();

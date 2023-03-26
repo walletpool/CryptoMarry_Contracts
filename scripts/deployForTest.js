@@ -47,7 +47,7 @@ WhiteListAddr.push({
  );
  const nftContract = await deploy("nftmint2", nftViewContract.address);
 
- const WaverImplementation = await deploy("WaverIDiamond",forwarder.address, DiamondCutFacet.address);
+ const WaverImplementation = await deploy("WaverIDiamond",forwarder.address, DiamondCutFacet.address,"0xE592427A0AEce92De3Edee1F18E0157C05861564");
 
  const WaverFactory = await deploy(
    "WaverFactory",
