@@ -43,7 +43,7 @@ const jsonRpcUrl = 'http://127.0.0.1:8545';
 const providerUrl = hre.config.networks.hardhat.forking.url;
 const blockNumber = hre.config.networks.hardhat.forking.blockNumber;
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-const STARGATE_PARTNER_ID= "0x0013";
+const STARGATE_PARTNER_ID= "0x0010";
 
 let Contracts = {}
 

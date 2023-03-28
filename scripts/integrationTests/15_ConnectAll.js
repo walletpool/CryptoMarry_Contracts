@@ -9,7 +9,6 @@ const networks = require('./addresses.json');
 const net = hre.config.cometInstance;
 const { deployTest } = require('../deployForTest');
 const { getSelectors,getSelector, FacetCutAction } = require('../libraries/diamond.js');
-const { zeroPad } = require("ethers/lib/utils.js");
 
 const wethAbi = [
     'function deposit() payable',
@@ -36,23 +35,6 @@ const wethAbi = [
     'function borrowBalanceOf(address account) returns (uint256)',
     'function collateralBalanceOf(address account, address asset) external view returns (uint128)',
   ];
-
-  const IMakerVatAbi = [
-    'function can(address, address) external view returns (uint)',
-    'function ilks(bytes32) external view returns (uint, uint, uint, uint, uint)',
-    'function dai(address) external view returns (uint)',
-    'function urns(bytes32, address) external view returns (uint, uint)',
-    'function frob(bytes32, address, address, address, int, int) external',
-    'function hope(address) external',
-    'function move(address, address, uint) external',
-  ]
-
-  const IMakerGemJoin = [
-    "function dec() external view returns (uint)",
-    "function gem() external view returns (address)",
-    "function join(address, uint) external payable",
-    "function exit(address, uint) external",
-  ]
 
 
 const jsonRpcUrl = 'http://127.0.0.1:8545';
@@ -159,7 +141,15 @@ describe("Integration Test of All Apps", function () {
       MakerCDPManagerAddress = networks[net].MakerCDPManager
       MakerProxyActionsAddress = networks[net].MakerProxyActions
       AugustusAddress = networks[net].AUGUSTUS_SWAPPER;
-      TokenProxy = networks[net].TOKEN_TRANSFER_PROXY
+      TokenProxy = networks[net].TOKEN_TRANSFER_PROXY;
+      LidoProxyAddress = networks[net].LIDO_PROXY;
+      stethAddress = networks[net].STETH;
+      STARGATE_ROUTER_ADDRESS = networks[net].STARGATE_ROUTER;
+      STARGATE_ROUTER_ETH_ADDRESS =  networks[net].STARGATE_ROUTER_ETH;
+      STARGATE_FACTORY_ADDRESS= networks[net].STARGATE_FACTORY;
+      STARGATE_WIDGET_SWAP_ADDRESS= networks[net].STARGATE_WIDGET_SWAP;
+      STARGATE_TOKEN_ADDRESS = networks[net].STARGATE_TOKEN;
+      STARGATE_PARTNER_ID= "0x0010";
 
     });
   
@@ -285,7 +275,30 @@ describe("Integration Test of All Apps", function () {
             Status: 1
           })
 
+          //14. Lido
 
+          LidoFacet = await deploy('LidoFacet',Contracts.forwarder.address, ZERO_ADDRESS, LidoProxyAddress);
+
+          WhiteListAddr.push({
+            ContractAddress: LidoFacet.address,
+            Status: 1
+          })
+
+          //15. Stargate
+
+          StargateFacet = await deploy('StargateFacet',Contracts.forwarder.address,
+              STARGATE_ROUTER_ADDRESS,
+              STARGATE_ROUTER_ETH_ADDRESS,
+              STARGATE_TOKEN_ADDRESS,
+              STARGATE_FACTORY_ADDRESS,
+              STARGATE_WIDGET_SWAP_ADDRESS,
+              STARGATE_PARTNER_ID
+        );
+      
+      WhiteListAddr.push({
+        ContractAddress: StargateFacet.address,
+        Status: 1
+      })
 
 
     txn = await Contracts.WavePortal7.whiteListAddr(WhiteListAddr);
@@ -503,8 +516,34 @@ tx = await diamondCut.diamondCut(cut,ZERO_ADDRESS, "0x");
 receipt = await tx.wait();
 txn = await instance.getAllConnectedApps();
 expect (txn).contain(OneInchV5Facet.address)
-
 Apps.push(OneInchV5Facet);
+
+//Lido
+cut = []
+cut.push({
+  facetAddress: LidoFacet.address,
+  action: FacetCutAction.Add,
+  functionSelectors: getSelectors(LidoFacet)
+})
+tx = await diamondCut.diamondCut(cut,ZERO_ADDRESS, "0x");
+receipt = await tx.wait();
+txn = await instance.getAllConnectedApps();
+expect (txn).contain(LidoFacet.address)
+Apps.push(LidoFacet);
+
+//Stargate
+cut = []
+cut.push({
+  facetAddress: StargateFacet.address,
+  action: FacetCutAction.Add,
+  functionSelectors: getSelectors(StargateFacet)
+})
+tx = await diamondCut.diamondCut(cut,ZERO_ADDRESS, "0x");
+receipt = await tx.wait();
+txn = await instance.getAllConnectedApps();
+expect (txn).contain(StargateFacet.address)
+Apps.push(StargateFacet);
+
       
       let remove = []; 
       for (const App of Apps) {
