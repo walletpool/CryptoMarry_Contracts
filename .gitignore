@@ -25,3 +25,4 @@ scripts/deployNftSwap.js
 scripts/deploySingle copy.js
 scripts/deploySingle.js
 scripts/params.js
+gas-report copy 2.txt

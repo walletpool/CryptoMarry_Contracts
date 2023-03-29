@@ -25,7 +25,7 @@ describe("Testing Diamond Facets", function () {
 
   async function deployTokenFixture() {
   
-    const {WavePortal7, WaverImplementation,nftContract,accounts, nftSplit,diamondInit}  = await deployTest();
+    const {WavePortal7,nftContract,accounts, nftSplit,diamondInit}  = await deployTest();
 
     txn = await WavePortal7.propose(
       accounts[1].address,
@@ -53,7 +53,7 @@ describe("Testing Diamond Facets", function () {
       }
     );
     txn = await WavePortal7.checkMarriageStatus(2);
-    const instance = await WaverImplementation.attach(txn[0].marriageContract);
+    const instance = await hre.ethers.getContractAt("WaverIDiamond", txn[0].marriageContract);
 
     console.log('Deploying facets');
   const FacetNames = [
@@ -92,7 +92,7 @@ describe("Testing Diamond Facets", function () {
 
 
    txn = await WavePortal7.connect(accounts[2]).checkMarriageStatus(1);
-   const instance2 = await WaverImplementation.attach(txn[0].marriageContract);
+   const instance2 = await hre.ethers.getContractAt("WaverIDiamond", txn[0].marriageContract);
 
   DiamondCutFacet = await ethers.getContractAt('DiamondCutFacet', instance.address)
   diamondLoupeFacet = await ethers.getContractAt('DiamondLoupeFacet', instance.address)
@@ -100,7 +100,7 @@ describe("Testing Diamond Facets", function () {
   CompoundFacet = await ethers.getContractAt('CompoundFacet', instance.address)
 
    
-    return { WavePortal7, WaverImplementation, accounts,instance,instance2,DiamondCutFacet,diamondLoupeFacet,UniSwapFacet,CompoundFacet };
+    return { WavePortal7, accounts,instance,instance2,DiamondCutFacet,diamondLoupeFacet,UniSwapFacet,CompoundFacet };
   }
 
   it("Four facets have to be registered", async function () {

@@ -30,6 +30,9 @@ import {VoteProposalLib} from "./libraries/VotingStatusLib.sol";
 interface WaverContract {
     function addFamilyMember(address, uint256, uint256) external;
 
+    function diamondCutAddress() external view returns (address);
+    function metaForwarder() external view returns (address);
+
     function cancel(uint256 , address _proposed, address _proposer ) external;
 
     function deleteFamilyMember(address, uint) external;
@@ -73,36 +76,14 @@ interface nftSplitInstance {
 }
 
 contract WaverIDiamond is
-    Initializable,
     SecuredTokenTransfer,
     DefaultCallbackHandler,
     ERC2771ContextUpgradeable,
     ReentrancyGuardUpgradeable
 {
-    string public constant VERSION = "1.0.2"; //Removed CM fees 
-    address immutable diamondcut;
-    address private immutable _trustedForwarder;
+    //string public constant VERSION = "1.0.3"; //Create 2 Implementation
     /*Constructor to connect Forwarder Address*/
-    IWrappedNativeTokenInstance public immutable wrappedNativeToken;
-    constructor(MinimalForwarderUpgradeable forwarder, address _diamondcut, IWrappedNativeTokenInstance _wrappedNativeToken )
-        initializer
-        ERC2771ContextUpgradeable(address(forwarder))
-    {diamondcut = _diamondcut;
-    _trustedForwarder= address(forwarder);
-    wrappedNativeToken = _wrappedNativeToken;}
-
-    /**
-     * @notice Initialization function of the proxy contract
-     * @dev Initialization params are passed from the main contract.
-     * @param _addressWaveContract Address of the main contract.
-     * @param _id Marriage ID assigned by the main contract.
-     * @param _proposer Address of the prpoposer.
-     * @param _proposer Address of the proposed.
-     * @param _policyDays Cooldown before dissolution
-     * @param _divideShare the share that will be divided among partners upon dissolution.
-     */
-
-    function initialize(
+    constructor(
         address payable _addressWaveContract,
         uint256 _id,
         address _proposer,
@@ -110,12 +91,18 @@ contract WaverIDiamond is
         uint256 _policyDays,
         uint256 _divideShare,
         uint256 _threshold
-    ) public initializer {
-        VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+
+    )
+        ERC2771ContextUpgradeable(WaverContract(_addressWaveContract).metaForwarder())
+    {
+     VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
         unchecked {
             vt.voteid++;
         }
+        WaverContract wContract = WaverContract(_addressWaveContract);
+        vt.trustedForwarder = wContract.metaForwarder();
+
         vt.addressWaveContract = _addressWaveContract;
         vt.marriageStatus = VoteProposalLib.MarriageStatus.Proposed;
         vt.hasAccess[_proposer] = true;
@@ -125,8 +112,9 @@ contract WaverIDiamond is
         vt.policyDays = _policyDays;
         vt.setDeadline = 1 days;
         vt.divideShare = _divideShare;
-        vt.trustedForwarder = _trustedForwarder;
+        
         vt.threshold = _threshold;
+        
 
          LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
          ds.waveAddress=_addressWaveContract;
@@ -139,7 +127,7 @@ contract WaverIDiamond is
         functionSelectors[0] = IDiamondCut.diamondCut.selector;
 
         cut[0] = IDiamondCut.FacetCut({
-            facetAddress: diamondcut,
+            facetAddress: wContract.diamondCutAddress(),
             action: IDiamondCut.FacetCutAction.Add,
             functionSelectors: functionSelectors
         });
@@ -425,13 +413,14 @@ error VOTE_ID_NOT_FOUND();
          //Wrapping Native Token 
         else if (vt.voteProposalAttributes[_id].voteType == 10){
              vt.voteProposalAttributes[_id].voteStatus = 15;
-        wrappedNativeToken.deposit{value: _amount}(); 
-        emit VoteProposalLib.AddStake(address(this), address(wrappedNativeToken), block.timestamp, _amount); 
+             IWrappedNativeTokenInstance(vt.voteProposalAttributes[_id].tokenID).deposit{value: _amount}(); 
+       
+        emit VoteProposalLib.AddStake(address(this), vt.voteProposalAttributes[_id].tokenID, block.timestamp, _amount); 
         }
          //Unwrapping Native Token  
         else if (vt.voteProposalAttributes[_id].voteType == 11){
              vt.voteProposalAttributes[_id].voteStatus = 16;
-             wrappedNativeToken.withdraw(_amount);
+             IWrappedNativeTokenInstance(vt.voteProposalAttributes[_id].tokenID).withdraw(_amount);
         }
         else {
             revert VOTE_ID_NOT_FOUND();

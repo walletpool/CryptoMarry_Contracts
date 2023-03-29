@@ -11,7 +11,7 @@ const { deployTest } = require('../scripts/deployForTest');
 
 describe("Adding Family Members Testing", function () {
   async function deployTokenFixture() {
-    const {WavePortal7, WaverImplementation,nftContract,accounts, nftSplit}  = await deployTest();
+    const {WavePortal7,nftContract,accounts, nftSplit}  = await deployTest();
     let txn;
     txn = await WavePortal7.propose(
       accounts[1].address,
@@ -30,7 +30,7 @@ describe("Adding Family Members Testing", function () {
 
     txn = await WavePortal7.checkMarriageStatus(1);
 
-    const instance = await WaverImplementation.attach(txn[0].marriageContract);
+    const instance = await hre.ethers.getContractAt("WaverIDiamond", txn[0].marriageContract);
 
     txn = await instance.connect(accounts[0])._claimToken();
     txn = await instance.connect(accounts[1])._claimToken();
@@ -40,7 +40,6 @@ describe("Adding Family Members Testing", function () {
       instance,
       accounts,
       nftContract,
-      WaverImplementation,
     };
   }
 
@@ -178,7 +177,7 @@ describe("Adding Family Members Testing", function () {
   });
 
   it("Invited family members can decline inviation ", async function () {
-    const { WavePortal7, instance, accounts, WaverImplementation } =
+    const { WavePortal7, instance, accounts,  } =
       await loadFixture(deployTokenFixture);
 
     txn = await WavePortal7.connect(accounts[2]).propose(
@@ -227,8 +226,8 @@ describe("Adding Family Members Testing", function () {
  
 
     txn = await WavePortal7.connect(accounts[2]).checkMarriageStatus(1);
+    const instance2 = await hre.ethers.getContractAt("WaverIDiamond", txn[0].marriageContract);
 
-    const instance2 = await WaverImplementation.attach(txn[0].marriageContract);
 
 
     txn = await instance2.connect(accounts[2]).createProposal(
@@ -296,7 +295,7 @@ describe("Adding Family Members Testing", function () {
   });
 
   it("Invited family members can accept inviation", async function () {
-    const { WavePortal7, instance, accounts, WaverImplementation } =
+    const { WavePortal7, instance, accounts,  } =
       await loadFixture(deployTokenFixture);
 
       txn = await WavePortal7.connect(accounts[2]).propose(
@@ -344,10 +343,9 @@ describe("Adding Family Members Testing", function () {
    
   
       txn = await WavePortal7.connect(accounts[2]).checkMarriageStatus(1);
-  
-      const instance2 = await WaverImplementation.attach(txn[0].marriageContract);
-  
-  
+      const instance2 = await hre.ethers.getContractAt("WaverIDiamond", txn[0].marriageContract);
+
+    
       txn = await instance2.connect(accounts[2]).createProposal(
         0x7,
         7,
@@ -404,7 +402,7 @@ describe("Adding Family Members Testing", function () {
   });
 
   it("Partners can invite family members from other families", async function () {
-    const { WavePortal7, instance, accounts, WaverImplementation } =
+    const { WavePortal7, instance, accounts,  } =
       await loadFixture(deployTokenFixture);
 
       txn = await WavePortal7.connect(accounts[2]).propose(
@@ -453,7 +451,7 @@ describe("Adding Family Members Testing", function () {
   
       txn = await WavePortal7.connect(accounts[2]).checkMarriageStatus(1);
   
-      const instance2 = await WaverImplementation.attach(txn[0].marriageContract);
+      const instance2 = await hre.ethers.getContractAt("WaverIDiamond", txn[0].marriageContract);
   
   
       txn = await instance2.connect(accounts[2]).createProposal(
@@ -514,7 +512,7 @@ describe("Adding Family Members Testing", function () {
   });
 
   it("Partners can invite family members that declined others invitation", async function () {
-    const { WavePortal7, instance, accounts, WaverImplementation } =
+    const { WavePortal7, instance, accounts,  } =
       await loadFixture(deployTokenFixture);
 
       txn = await WavePortal7.connect(accounts[2]).propose(
@@ -564,7 +562,7 @@ describe("Adding Family Members Testing", function () {
   
       txn = await WavePortal7.connect(accounts[2]).checkMarriageStatus(1);
   
-      const instance2 = await WaverImplementation.attach(txn[0].marriageContract);
+      const instance2 = await hre.ethers.getContractAt("WaverIDiamond", txn[0].marriageContract);
   
   
       txn = await instance2.connect(accounts[2]).createProposal(
@@ -621,7 +619,7 @@ describe("Adding Family Members Testing", function () {
   });
 
   it("Invited Family Members cannot claim LOVE token before joining", async function () {
-    const { WavePortal7, instance, accounts, WaverImplementation } =
+    const { WavePortal7, instance, accounts,  } =
       await loadFixture(deployTokenFixture);
 
       txn = await instance.connect(accounts[0]).createProposal(
@@ -708,7 +706,7 @@ describe("Adding Family Members Testing", function () {
   });
 
   it("Invited Family Members can add other members ", async function () {
-    const { WavePortal7, instance, accounts, WaverImplementation } =
+    const { WavePortal7, instance, accounts,  } =
       await loadFixture(deployTokenFixture);
 
       txn = await instance.connect(accounts[0]).createProposal(
@@ -744,7 +742,7 @@ describe("Adding Family Members Testing", function () {
 
     txn = await WavePortal7.connect(accounts[4]).checkMarriageStatus(1);
 
-    const instance2 = await WaverImplementation.attach(txn[0].marriageContract);
+    const instance2 = await hre.ethers.getContractAt("WaverIDiamond", txn[0].marriageContract);
 
     await expect(instance2.connect(accounts[4]).createProposal(
       0x7,

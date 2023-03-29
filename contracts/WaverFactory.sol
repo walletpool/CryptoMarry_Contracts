@@ -1,26 +1,20 @@
 // SPDX-License-Identifier: BSL
 pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import "./WaverImplementationDiamond.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "./WaverBeacon.sol";
 
 /// [BSL License]
 /// @title Proxy contract factory.
 /// @notice A proxy contracts are created through the main contract.
 /// @author Ismailov Altynbek <altyni@gmail.com>
 
-contract WaverFactory is Ownable {
-    WaverBeacon internal immutable thisWaverBeacon; //Beacon that routes to implementation addresses.
+contract WaverFactory  {
     address public WaverContractAddress; //Address of the main contract
-
-    mapping(uint256 => address) public MarriageID; //Mapping of the proxy contract addresses by ID.
-
+    address internal owner;
     /* Address of the proxy implementation has to be passed to the Factory*/
-    constructor(address _implementation) {
-        thisWaverBeacon = new WaverBeacon(_implementation);
+    constructor() {
         WaverContractAddress = msg.sender;
+        owner = msg.sender;
     }
 
     /**
@@ -28,31 +22,15 @@ contract WaverFactory is Ownable {
      * @param _mainContract the address of the main contract.
      */
 
-    function changeAddress(address _mainContract) public onlyOwner {
+    function changeAddress(address _mainContract) public {
+        require(owner == msg.sender);
         WaverContractAddress = _mainContract;
-    }
-
-    /**
-     * @notice View function to get the address of the beacon.
-     */
-
-    function getBeacon() public view returns (address) {
-        return address(thisWaverBeacon);
-
-        /**
-         * @notice Getting the current address of the current implementation.
-         */
-    }
-
-    function getimplementation() public view returns (address) {
-        return thisWaverBeacon.implementation();
     }
 
     /**
      * @notice A method for creating proxy contracts.   
      * @dev Only the main contract address can create proxy contracts. Beacon proxy is created with 
-     the current implementation. 
-     * @param _addressWaveContract Address of the main contract.   
+     the current implementation.   
      * @param id Marriage ID assigned by the main contract.
      * @param _waver Address of the prpoposer.
      * @param _proposed Address of the proposed.
@@ -60,7 +38,7 @@ contract WaverFactory is Ownable {
      */
 
     function newMarriage(
-        address _addressWaveContract,
+        bytes32 name,
         uint256 id,
         address _waver,
         address _proposed,
@@ -68,24 +46,62 @@ contract WaverFactory is Ownable {
         uint256 _divideShare,
         uint256 _threshold
     ) public returns (address) {
-        require(WaverContractAddress == msg.sender, "ACCESS DENIED");
-        bytes memory dataOfnewMarriage = abi.encodeWithSelector(
-            WaverIDiamond(payable(address(0))).initialize.selector,
-            _addressWaveContract,
-            id,
-            _waver,
-            _proposed,
-            _policyDays,
-            _divideShare,
-            _threshold
-        );
+        require(WaverContractAddress == msg.sender);
 
-        BeaconProxy NewMarriageBeaconProxy = new BeaconProxy(
-            address(thisWaverBeacon),
-            dataOfnewMarriage
-        );
-
-        MarriageID[id] = address(NewMarriageBeaconProxy);
-        return address(NewMarriageBeaconProxy);
+        address _newMarriage = getVaultAddress(id,_waver,_proposed,_policyDays,_divideShare,_threshold, name);
+       
+        new WaverIDiamond{salt: name}(
+                    payable(msg.sender),
+                    id,
+                    _waver,
+                    _proposed,
+                    _policyDays,
+                    _divideShare,
+                    _threshold
+                );
+       
+        return _newMarriage;
     }
+
+      function getVaultAddress(
+        uint256 _id,
+        address _waver,
+        address _proposed,
+        uint256 _policyDays,
+        uint256 _divideShare,
+        uint256 _threshold,
+        bytes32 salt
+    ) public view returns (address vault) {
+        // Compute `CREATE2` address of vault
+        return
+            address(
+                uint160(
+                    uint256(
+                        keccak256(
+                            abi.encodePacked(
+                                bytes1(0xff),
+                                address(this),
+                                salt,
+                                keccak256(
+                                    abi.encodePacked(
+                                        type(WaverIDiamond).creationCode,
+                                        abi.encode(
+                                            payable(WaverContractAddress),
+                                            _id,
+                                            _waver,
+                                            _proposed,
+                                            _policyDays,
+                                            _divideShare,
+                                            _threshold
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+         }
+
+
 }

@@ -12,7 +12,6 @@ describe("Testing voting interactions", function () {
   async function deployTokenFixture() {
     const {
       WavePortal7,
-      WaverImplementation,
       nftContract,
       accounts,
       nftSplit,
@@ -36,7 +35,7 @@ describe("Testing voting interactions", function () {
 
     txn = await WavePortal7.checkMarriageStatus(1);
 
-    const instance = await WaverImplementation.attach(txn[0].marriageContract);
+    const instance = await hre.ethers.getContractAt("WaverIDiamond", txn[0].marriageContract);
 
     txn = await instance.connect(accounts[0])._claimToken();
     txn = await instance.connect(accounts[1])._claimToken();

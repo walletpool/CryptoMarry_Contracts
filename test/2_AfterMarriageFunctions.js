@@ -11,7 +11,7 @@ const { deployTest } = require('../scripts/deployForTest');
 
 describe("Testing after marriage interactions", function () {
   async function deployTokenFixture() {
-    const {WavePortal7, WaverImplementation,nftContract,accounts, nftSplit}  = await deployTest();
+    const {WavePortal7,nftContract,accounts, nftSplit}  = await deployTest();
     let txn;
     txn = await WavePortal7.propose(
       accounts[1].address,
@@ -30,7 +30,7 @@ describe("Testing after marriage interactions", function () {
 
     txn = await WavePortal7.checkMarriageStatus(1);
 
-    const instance = await WaverImplementation.attach(txn[0].marriageContract);
+    const instance = await hre.ethers.getContractAt("WaverIDiamond", txn[0].marriageContract);
 
     txn = await instance.connect(accounts[0])._claimToken();
     txn = await instance.connect(accounts[1])._claimToken();

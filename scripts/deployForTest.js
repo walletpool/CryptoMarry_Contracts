@@ -47,11 +47,10 @@ WhiteListAddr.push({
  );
  const nftContract = await deploy("nftmint2", nftViewContract.address);
 
- const WaverImplementation = await deploy("WaverIDiamond",forwarder.address, DiamondCutFacet.address,"0xE592427A0AEce92De3Edee1F18E0157C05861564");
+ //const WaverImplementation = await deploy("WaverIDiamond",forwarder.address, DiamondCutFacet.address,"0xE592427A0AEce92De3Edee1F18E0157C05861564");
 
  const WaverFactory = await deploy(
-   "WaverFactory",
-   WaverImplementation.address
+   "WaverFactory"
  );
  const WavePortal7 = await deploy(
    "WavePortal7",
@@ -59,7 +58,8 @@ WhiteListAddr.push({
    nftContract.address,
    WaverFactory.address,
    "0xEC3215C0ba03fA75c8291Ce92ace346589483E26",
-   DiamondCutFacet.address
+   DiamondCutFacet.address,
+   "0xE592427A0AEce92De3Edee1F18E0157C05861564"
  );
 
 
@@ -97,7 +97,7 @@ WhiteListAddr.push({
    "0x3c6c696e6561724772616469656e742069643d2270222078313d2230222078323d22313131222079313d223330222079323d22323022206772616469656e74556e6974733d227573657253706163654f6e557365223e3c73746f702073746f702d636f6c6f723d222346463542393922206f66667365743d22313025222f3e3c73746f702073746f702d636f6c6f723d222346463534343722206f66667365743d22323025222f3e3c73746f702073746f702d636f6c6f723d222346463742323122206f66667365743d22343025222f3e3c73746f702073746f702d636f6c6f723d222345414643333722206f66667365743d22363025222f3e3c73746f702073746f702d636f6c6f723d222334464342364222206f66667365743d22383025222f3e3c73746f702073746f702d636f6c6f723d222335314637464522206f66667365743d2231303025222f3e3c2f6c696e6561724772616469656e743e"
  );
 
-  return { WavePortal7, WaverImplementation,nftContract, accounts,nftSplit, diamondInit, diamondLoupeFacet, DiamondCutFacet , CompoundFacet, forwarder };
+  return { WavePortal7,nftContract, accounts,nftSplit, diamondInit, diamondLoupeFacet, DiamondCutFacet , CompoundFacet, forwarder };
 }
 
 }

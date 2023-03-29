@@ -41,7 +41,7 @@ let Contracts = {}
 
 let jsonRpcServer, deployment, cometAddress, myContractFactory, baseAssetAddress, 
 wethAddress, txn,CompoundV3FacetUSDC, instance,
-WavePortal7, WaverImplementation,nftContract,nftSplit, diamondInit, diamondLoupeFacet, DiamondCutFacet , CompoundFacet;
+WavePortal7,nftContract,nftSplit, diamondInit, diamondLoupeFacet, DiamondCutFacet , CompoundFacet;
 
 const mnemonic = hre.network.config.accounts.mnemonic;
 const addresses = [];
@@ -142,7 +142,7 @@ describe("Compound III Integration Test", function () {
       );
       txn = await Contracts.WavePortal7.connect(Contracts.accounts[1]).response(1, 0, 1);
       txn = await Contracts.WavePortal7.checkMarriageStatus(1);
-      instance = await Contracts.WaverImplementation.attach(txn[0].marriageContract);
+      instance = await hre.ethers.getContractAt("WaverIDiamond", txn[0].marriageContract);
   
       txn = await instance.connect(Contracts.accounts[0])._claimToken();
       txn = await instance.connect(Contracts.accounts[1])._claimToken();
