@@ -16,7 +16,7 @@ describe("Divorce Settlement Functions Assymetric - Proposer - 90%, Proposed - 1
 
     txn = await WavePortal7.propose(
       accounts[1].address,
-       "0x49206c6f766520796f7520736f206d75636821", 
+       "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       9,
