@@ -201,6 +201,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
      error USER_ALREADY_EXISTS_IN_CM(address user);
      error INALID_SHARE_PROPORTION(uint share);
      error PLATFORM_TEMPORARILY_PAUSED();
+     error NAME_TAKEN();
     /**
      * @notice Proposal and separate contract is created with given params.
      * @dev Proxy contract is created for each proposal. Most functions of the proxy contract will be available if proposal is accepted.
@@ -222,8 +223,8 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
         if (pauseAddresses[address(this)]==1) {revert PLATFORM_TEMPORARILY_PAUSED();}
         if (msgSender == _proposed) {revert YOU_CANNOT_PROPOSE_YOURSELF(msgSender);}
         if (_divideShare > 10) {revert INALID_SHARE_PROPORTION (_divideShare);}
+        if (names[_name][msgSender] != address(0)) {revert NAME_TAKEN();}
         require(_threshold == 1 || _threshold == 2);
-        require(names[_name][msgSender] == address(0));
 
         accountIDJournal[msgSender].push(id);
         accountIDJournal[_proposed].push(id);

@@ -56,11 +56,11 @@ describe("Testing before marriage interactions", function () {
         value: hre.ethers.utils.parseEther("10"),
       }
     );
+    newaddress = await WavePortal7.getAddressForCounterfactualWallet("0x7465737400000000000000000000000000000000000000000000000000000000",accounts[0].address,accounts[1].address)
     txn = await WavePortal7.checkMarriageStatus(1);
     const instance = await WaverImplementation.attach(txn[0].marriageContract);
-
+    expect (txn[0].marriageContract).to.equal(newaddress);
     expect(await instance.getMarriageStatus()).to.equal(0);
-
     expect(await hre.ethers.provider.getBalance(instance.address)).to.equal(
       hre.ethers.utils.parseEther("10")
     );
