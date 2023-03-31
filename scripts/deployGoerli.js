@@ -16,7 +16,7 @@ function sleep(milliseconds) {
 
 async function main() {
   console.log("Construction started.....");
-  const net =  "usdc-goerli";
+  const net = "usdc-goerli";
   cometAddress = networks[net].comet;
   wethAddress = networks[net].WETH;
   CompAddress = networks[net].comptroller;
@@ -25,7 +25,6 @@ async function main() {
   MakerChainLogAddress = networks[net].MakerChainLog;
   BPCDPManagerAddress = networks[net].BPCDPManager;
   BPProxyActionsAddress = networks[net].BPProxyActions;
-
   UniswapRouterAddress = networks[net].uniswapRouter;
   UniswapRouterV2Address = networks[net].uniswapV2Router;
   SushiSwapRouterAddress = networks[net].SushiSwapRouter;
@@ -34,6 +33,14 @@ async function main() {
   AaveV3ProviderAddress = networks[net].aaveV3Provider;
   MakerCDPManagerAddress = networks[net].MakerCDPManager;
   MakerProxyActionsAddress = networks[net].MakerProxyActions;
+  LidoProxyAddress = networks[net].LIDO_PROXY;
+  STARGATE_ROUTER_ADDRESS = networks[net].STARGATE_ROUTER;
+  STARGATE_ROUTER_ETH_ADDRESS = networks[net].STARGATE_ROUTER_ETH;
+  STARGATE_FACTORY_ADDRESS = networks[net].STARGATE_FACTORY;
+  STARGATE_WIDGET_SWAP_ADDRESS = networks[net].STARGATE_WIDGET_SWAP;
+  STARGATE_TOKEN_ADDRESS = networks[net].STARGATE_TOKEN;
+  STARGATE_PARTNER_ID = "0x0010";
+  ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
   const forwarder = await deploy("MinimalForwarder");
 
@@ -55,7 +62,7 @@ async function main() {
   );
 
   //Deploying Facts
-
+    console.log("COMET",cometAddress )
   //1.CompoundV3
   CompoundV3FacetUSDC = await deploy(
     "CompoundV3FacetUSDC",
@@ -159,7 +166,6 @@ async function main() {
     Status: 1,
   });
 
-
   console.log(
     "QuickSwapV2Facet deployed:",
     QuickSwapV2Facet.address,
@@ -185,7 +191,6 @@ async function main() {
     AaveV2Facet.deployTransaction.gasLimit
   );
 
-
   //8.AaveV3
   AaveV3Facet = await deploy(
     "AaveV3Facet",
@@ -199,12 +204,11 @@ async function main() {
     Status: 1,
   });
 
-   console.log(
+  console.log(
     "AaveV3Facet deployed:",
     AaveV3Facet.address,
     AaveV3Facet.deployTransaction.gasLimit
   );
-
 
   //9.Yearn
 
@@ -282,7 +286,39 @@ async function main() {
   //   Status: 1,
   // });
 
-const familyDao = await deploy("FamilyDAOFacet", forwarder.address);
+  //14. Lido
+
+  LidoFacet = await deploy(
+    "LidoFacet",
+    forwarder.address,
+    ZERO_ADDRESS,
+    LidoProxyAddress
+  );
+
+  WhiteListAddr.push({
+    ContractAddress: LidoFacet.address,
+    Status: 1,
+  });
+
+  //15. Stargate
+
+  StargateFacet = await deploy(
+    "StargateFacet",
+    forwarder.address,
+    STARGATE_ROUTER_ADDRESS,
+    STARGATE_ROUTER_ETH_ADDRESS,
+    STARGATE_TOKEN_ADDRESS,
+    STARGATE_FACTORY_ADDRESS,
+    STARGATE_WIDGET_SWAP_ADDRESS,
+    STARGATE_PARTNER_ID
+  );
+
+  WhiteListAddr.push({
+    ContractAddress: StargateFacet.address,
+    Status: 1,
+  });
+
+  const familyDao = await deploy("FamilyDAOFacet", forwarder.address);
   console.log(
     "FamilyDAO contract deployed:",
     familyDao.address,
@@ -328,22 +364,11 @@ const familyDao = await deploy("FamilyDAOFacet", forwarder.address);
   );
 
   sleep(1000);
-  const WaverFactory = await deploy(
-    "WaverFactory",
-    WaverImplementation.address
-  );
-
-  console.log(
-    "Wave Factory Contract deployed:",
-    WaverFactory.address,
-    WaverFactory.deployTransaction.gasLimit
-  );
-  sleep(1000);
   const WavePortal7 = await deploy(
     "WavePortal7",
     forwarder.address,
     nftContract.address,
-    WaverFactory.address,
+    WaverImplementation.address,
     "0xEC3215C0ba03fA75c8291Ce92ace346589483E26",
     DiamondCutFacet.address
   );
@@ -377,13 +402,14 @@ const familyDao = await deploy("FamilyDAOFacet", forwarder.address);
         AaveV3Facet: AaveV3Facet.address,
         YearnFacet: YearnFacet.address,
         MakerFacet: MakerFacet.address,
-        MakerInit2: MakerInit2.address, 
+        MakerInit2: MakerInit2.address,
+        LidoFacet: LidoFacet.address,
+        StargateFacet: StargateFacet.address,
         familyDao: familyDao.address,
         nftViewContract: nftViewContract.address,
         nftContract: nftContract.address,
         MinimalForwarder: forwarder.address,
         WaverImplementation: WaverImplementation.address,
-        WaverFactory: WaverFactory.address,
         WavePortal: WavePortal7.address,
         nftSplit: nftSplit.address,
       },
@@ -404,10 +430,6 @@ const familyDao = await deploy("FamilyDAOFacet", forwarder.address);
 
   txn = await nftContract.changeMainAddress(WavePortal7.address);
   console.log("NFT Address updated");
-  txn.wait(1);
-
-  txn = await WaverFactory.changeAddress(WavePortal7.address);
-  console.log("Wavefactory Main Address updated");
   txn.wait(1);
 
   txn = await WavePortal7.changeaddressNFT(
