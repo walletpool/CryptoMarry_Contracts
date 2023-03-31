@@ -152,6 +152,7 @@ contract WaverIDiamond is
       The ETH balance of the contract will be sent to the proposer.   
      *@dev Once trigerred the access to the proxy contract will not be possible from the CM Frontend. Access is preserved 
      from the custom fronted such as Remix.   
+     *@dev mobile
      */
 
     function cancel() external {
@@ -205,6 +206,7 @@ contract WaverIDiamond is
      * @param _receiver Address of the receiver who will be receiving indicated amounts. 
      * @param _tokenID Address of the ERC20, ERC721 or other tokens. 
      * @param _amount The amount of token that is being sent. Alternatively can be used as NFT ID. 
+     *@dev mobile
      */
 
     function createProposal(
@@ -281,6 +283,7 @@ contract WaverIDiamond is
      There is no explicit ways of identifying votes for or against the vote. 
      * @param _id Vote ID, that is being voted for/against. 
      * @param responsetype Voting response for/against
+     *@dev mobile
      */
 
     function voteResponse(
@@ -328,6 +331,7 @@ contract WaverIDiamond is
      * @notice The vote can be cancelled by the proposer if it has not been passed.
      * @dev once cancelled the proposal cannot be voted or executed.
      * @param _id Vote ID, that is being voted for/against.
+     *@dev mobile
      */
 
     function cancelVoting(uint24 _id) external {
@@ -353,6 +357,7 @@ error VOTE_ID_NOT_FOUND();
      * @notice If the proposal has been passed, depending on vote type, the proposal is executed.
      * @dev  Two external protocols are used Uniswap and Compound.
      * @param _id Vote ID, that is being voted for/against.
+     *@dev mobile
      */
 
     function executeVoting(uint24 _id) public nonReentrant {
@@ -452,6 +457,7 @@ error VOTE_ID_NOT_FOUND();
     }
       /**
      * @notice A view function to monitor balance
+     *@dev mobile
      */
 
     function balance() external view returns (uint ETHBalance) {
@@ -475,6 +481,11 @@ error VOTE_ID_NOT_FOUND();
         updateThreshold(_threshold, vt);
         if (vt.familyMembers > 50) {revert TOO_MANY_MEMBERS();}
     }
+     /**
+     * @notice This function settles balances in case of divorce for native token
+     * @dev mobile
+     * @param _id the ID of the proposal for divorce
+     */
 
     function settleDivorce(uint24 _id) external nonReentrant{
         address msgSender_ = _msgSender();
@@ -509,6 +520,7 @@ error VOTE_ID_NOT_FOUND();
     /**
      * @notice Once divorced, partners can split ERC20 tokens owned by the proxy contract.
      * @dev Each partner/or other family member can call this function to transfer ERC20 to respective wallets.
+     * @dev mobile
      * @param _tokenID the address of the ERC20 token that is being split.
      */
 
@@ -531,6 +543,7 @@ error VOTE_ID_NOT_FOUND();
     /**
      * @notice Before partner user accepts invitiation, initiator can claim ERC20 tokens back.
      * @dev Only Initiator can claim ERC20 tokens
+     * @dev mobile
      * @param _tokenID the address of the ERC20 token.
      */
 
@@ -550,6 +563,7 @@ error VOTE_ID_NOT_FOUND();
      Two identical copies of ERC721 will be created by the NFT Splitter contract creating a new ERC1155 token.
       The token will be marked as "Copy". 
      To retreive the original copy, the owner needs to have both copies of the NFT. 
+     * @dev mobile
 
      * @param _tokenAddr the address of the ERC721 token that is being split. 
      * @param _tokenID the ID of the ERC721 token that is being split
@@ -608,7 +622,10 @@ error VOTE_ID_NOT_FOUND();
 
     /* Checking and Querying the voting data*/
 
-    /* This view function returns how many votes has been created*/
+    /* This view function returns how many votes has been created
+    * @dev mobile
+    */
+    
     function getVoteLength() external view returns (uint256) {
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -620,6 +637,7 @@ error VOTE_ID_NOT_FOUND();
      * @dev Since there is no limit for the number of voting proposals, the proposals are paginated. 
      Web queries page number to get voting statuses. Each page has 20 vote proposals. 
      * @param _pagenumber A page number queried.   
+     * @dev mobile
      */
 
     function getVotingStatuses(uint24 _pagenumber)
@@ -655,14 +673,17 @@ error VOTE_ID_NOT_FOUND();
         }
         return votings;
     }
-    /* Getter of Family Members Number*/
+    /* Getter of Family Members Number
+    * @dev mobile*/
     function getFamilyMembersNumber() external view returns (uint256) {
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
         return vt.familyMembers;
     }
   
-      /* Getter of cooldown before divorce*/
+      /* Getter of different utility contstants
+      * @dev mobile
+      */
 
     function getPolicies() external view 
     returns (uint policyDays, uint marryDate, uint divideShare, uint setDeadline, address proposer, address proposed, uint threshold) 
@@ -679,6 +700,14 @@ error VOTE_ID_NOT_FOUND();
                 );
     }
 
+    /**
+     * @notice This function is used to mint NFTs, Depending on the ID the type of NFT will be minted 
+     * @param logoID ID of logo
+     * @param BackgroundID ID of Background 
+     * @param MainID ID misc. 
+     * @param value Love tokens to be sent to buy the NFT
+     * @dev mobile
+     */
 
     function _mintCertificate(
         uint256 logoID,
@@ -705,6 +734,12 @@ error VOTE_ID_NOT_FOUND();
          VoteProposalLib.checkForwarder();
     }
 
+     /**
+     * @notice This function is used to claim LOVE tokens
+     * @dev mobile
+     */
+
+
     function _claimToken() external {
         address msgSender_ = _msgSender();
          VoteProposalLib.enforceUserHasAccess(msgSender_);
@@ -722,6 +757,7 @@ error VOTE_ID_NOT_FOUND();
      * @notice A function to add string name for an Address 
      * @dev Names are used for better UI/UX. 
      * @param _name String name
+     * @dev mobile
      */
  
 
@@ -740,7 +776,9 @@ error VOTE_ID_NOT_FOUND();
         return vt.nameAddress[_named];
     }
 
- /* Getter of marriage status*/
+ /* Getter of marriage status
+ * @dev mobile 
+ */
     function getMarriageStatus()
         external
         view
@@ -751,7 +789,8 @@ error VOTE_ID_NOT_FOUND();
         return vt.marriageStatus;
     }
 
-    /* Checker of whether Module (Facet) is connected*/
+    /* Checker of whether Module (Facet) is connected
+    * @dev mobile*/
     function checkAppConnected(address appAddress)
         external
         view
@@ -761,7 +800,8 @@ error VOTE_ID_NOT_FOUND();
         return ds.connectedApps[appAddress];
     }
 
-    /* Sends all connected modules*/
+    /* Sends all connected modules
+    * @dev mobile*/
     function getAllConnectedApps()
         external
         view
