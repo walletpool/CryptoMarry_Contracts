@@ -77,7 +77,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     uint256 public saleCap; //Maximum cap of a LOVE token Sale
     uint256 public minPricePolicy; //Minimum price for NFTs
     uint256 public exchangeRate; // Exchange rate for LOVE tokens for 1 ETH
-    string public constant VERSION = "1.0.2";// Updates: 06.02.2023
+    string public constant VERSION = "VER-1.0.3";// Updates: 06.02.2023
 
     /**
     1. Changed monetization scheme from 1% of transaction amount to 12% of gas fee
@@ -266,7 +266,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
     }
 
     function newSalt(bytes32 _name, address msgSender, address _proposed) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(keccak256(abi.encodePacked(msgSender, _proposed)), _name));
+        return keccak256(abi.encodePacked(keccak256(abi.encodePacked(msgSender,_proposed, VERSION)), _name));
     }
 
     function getAddressForCounterfactualWallet(
