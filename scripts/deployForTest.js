@@ -49,15 +49,11 @@ WhiteListAddr.push({
 
  const WaverImplementation = await deploy("WaverIDiamond",forwarder.address, DiamondCutFacet.address,"0xE592427A0AEce92De3Edee1F18E0157C05861564");
 
- const WaverFactory = await deploy(
-   "WaverFactory",
-   WaverImplementation.address
- );
  const WavePortal7 = await deploy(
    "WavePortal7",
    forwarder.address,
    nftContract.address,
-   WaverFactory.address,
+   WaverImplementation.address,
    "0xEC3215C0ba03fA75c8291Ce92ace346589483E26",
    DiamondCutFacet.address
  );
@@ -72,8 +68,6 @@ WhiteListAddr.push({
  txn = await nftViewContract.changeMainAddress(WavePortal7.address);
 
  txn = await nftContract.changeMainAddress(WavePortal7.address);
-
-  txn = await WaverFactory.changeAddress(WavePortal7.address);
 
   txn = await WavePortal7.changeaddressNFT(nftContract.address,nftSplit.address);
   txn = await WavePortal7.whiteListAddr(WhiteListAddr);

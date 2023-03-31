@@ -26,7 +26,7 @@ describe("Testing before marriage interactions", function () {
     await expect(
       WavePortal7.propose(
       accounts[0].address, 
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,
@@ -46,7 +46,7 @@ describe("Testing before marriage interactions", function () {
 
     txn = await WavePortal7.propose(
       accounts[1].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,
@@ -56,11 +56,11 @@ describe("Testing before marriage interactions", function () {
         value: hre.ethers.utils.parseEther("10"),
       }
     );
+    newaddress = await WavePortal7.getAddressForCounterfactualWallet("0x7465737400000000000000000000000000000000000000000000000000000000",accounts[0].address,accounts[1].address)
     txn = await WavePortal7.checkMarriageStatus(1);
     const instance = await WaverImplementation.attach(txn[0].marriageContract);
-
+    expect (txn[0].marriageContract).to.equal(newaddress);
     expect(await instance.getMarriageStatus()).to.equal(0);
-
     expect(await hre.ethers.provider.getBalance(instance.address)).to.equal(
       hre.ethers.utils.parseEther("10")
     );
@@ -75,7 +75,7 @@ describe("Testing before marriage interactions", function () {
 
     txn = await WavePortal7.propose(
       accounts[1].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,
@@ -93,16 +93,16 @@ describe("Testing before marriage interactions", function () {
 
   });
 
-  it("User can propose 30 times and retreive pages", async function () {
+  it("User can propose 8 times and retreive pages", async function () {
     const { WavePortal7, WaverImplementation, accounts } = await loadFixture(
       deployTokenFixture
     );
     let txn;
-    for (let i=0; i<30; i++) {
+    for (let i=0; i<8; i++) {
 
     txn = await WavePortal7.propose(
       accounts[1].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      `0x746573740000000000000000000000000000000000000000000000000000000${i}`, 
       0, 
       86400,
       5,
@@ -113,7 +113,7 @@ describe("Testing before marriage interactions", function () {
       }
     ); }
     txn = await WavePortal7.checkMarriageStatus(1);
-    const instance = await WaverImplementation.attach(txn[29].marriageContract);
+    const instance = await WaverImplementation.attach(txn[7].marriageContract);
     expect(await instance.getMarriageStatus()).to.equal(0);
     expect(await hre.ethers.provider.getBalance(instance.address)).to.equal(
       hre.ethers.utils.parseEther("10")
@@ -128,7 +128,7 @@ describe("Testing before marriage interactions", function () {
     for (let i=0; i<2; i++) {
     txn = await WavePortal7.propose(
       accounts[1].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      `0x746573740000000000000000000000000000000000000000000000000000000${i}`, 
       0, 
       86400,
       5,
@@ -171,7 +171,7 @@ describe("Testing before marriage interactions", function () {
 
     txn = await WavePortal7.propose(
       accounts[1].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,
@@ -201,7 +201,7 @@ describe("Testing before marriage interactions", function () {
     let txn;
     txn = await WavePortal7.propose(
       accounts[1].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,
@@ -252,7 +252,7 @@ describe("Testing before marriage interactions", function () {
 
     txn = await WavePortal7.propose(
       accounts[1].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,
@@ -301,7 +301,7 @@ describe("Testing before marriage interactions", function () {
 
     txn = await WavePortal7.propose(
       accounts[1].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,
@@ -319,7 +319,7 @@ describe("Testing before marriage interactions", function () {
       instance
         .connect(accounts[0])
         .createProposal(
-          "0x49206c6f766520796f7520736f206d75636821",
+          "0x7465737400000000000000000000000000000000000000000000000000000000",
           1,
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
@@ -349,7 +349,7 @@ describe("Testing before marriage interactions", function () {
 
     txn = await WavePortal7.propose(
       accounts[1].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,
@@ -383,7 +383,7 @@ describe("Testing before marriage interactions", function () {
 
     txn = await WavePortal7.propose(
       accounts[1].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,
@@ -395,7 +395,7 @@ describe("Testing before marriage interactions", function () {
     );
     txn =  WavePortal7.connect(accounts[3]).propose(
       accounts[0].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,
@@ -409,7 +409,7 @@ describe("Testing before marriage interactions", function () {
    
     txn = WavePortal7.connect(accounts[3]).propose(
       accounts[1].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,
@@ -427,7 +427,7 @@ describe("Testing before marriage interactions", function () {
 
     txn = await WavePortal7.propose(
       accounts[1].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,
@@ -440,7 +440,7 @@ describe("Testing before marriage interactions", function () {
 
     txn = await WavePortal7.connect(accounts[0]).propose(
       accounts[3].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000001", 
       0, 
       86400,
       5,
@@ -453,7 +453,7 @@ describe("Testing before marriage interactions", function () {
 
     txn = await WavePortal7.connect(accounts[1]).propose(
       accounts[3].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,
@@ -473,7 +473,7 @@ describe("Testing before marriage interactions", function () {
     for (let i = 0; i<3; i++) {
     txn = await WavePortal7.propose(
       accounts[1].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      `0x746573740000000000000000000000000000000000000000000000000000000${i}`, 
       0, 
       86400,
       5,
@@ -506,7 +506,7 @@ describe("Testing before marriage interactions", function () {
 
     txn = await WavePortal7.propose(
       accounts[1].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,
@@ -542,7 +542,7 @@ describe("Testing before marriage interactions", function () {
 
     txn = await WavePortal7.propose(
       accounts[1].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,
@@ -567,7 +567,7 @@ describe("Testing before marriage interactions", function () {
 
     txn = await WavePortal7.propose(
       accounts[1].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,
@@ -590,7 +590,7 @@ describe("Testing before marriage interactions", function () {
 
     txn = await WavePortal7.propose(
       accounts[1].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,
@@ -615,7 +615,7 @@ describe("Testing before marriage interactions", function () {
 
     txn = await WavePortal7.propose(
       accounts[1].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,
@@ -652,7 +652,7 @@ describe("Testing before marriage interactions", function () {
 
     txn = await WavePortal7.propose(
       accounts[1].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,
@@ -664,7 +664,7 @@ describe("Testing before marriage interactions", function () {
     );
     txn = await WavePortal7.connect(accounts[2]).propose(
       accounts[3].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,
@@ -676,7 +676,7 @@ describe("Testing before marriage interactions", function () {
     );
     txn = await WavePortal7.connect(accounts[4]).propose(
       accounts[5].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       5,

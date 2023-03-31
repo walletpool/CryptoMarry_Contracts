@@ -10,19 +10,16 @@ pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/utils/Base64.sol";
 
-
 /* This function is to retreive the messages that are to be included in the NFT*/
 abstract contract WaverContractM {
-    function messages(address) external view virtual returns (bytes memory);
+    function getName(uint256 id) external view virtual returns (bytes32);
 }
 
 /* This function is to retreive ENS names onchain*/
 abstract contract ReverseRecords {
-    function getNames(address[] calldata addresses)
-        external
-        view
-        virtual
-        returns (string[] memory r);
+    function getNames(
+        address[] calldata addresses
+    ) external view virtual returns (string[] memory r);
 }
 
 contract nftview {
@@ -56,13 +53,16 @@ contract nftview {
         uint256 additionalGraphicsID; //ID of NFT element
     }
     error CONTRACT_NOT_AUTHORIZED(address contractAddress);
+
     /**
      * @notice Changing the address of the ENS resolver;
      * @param _ensaddress an Address of ENS resolver
      */
 
     function changeENSAddress(address _ensaddress) external {
-        if (owner != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
+        if (owner != msg.sender) {
+            revert CONTRACT_NOT_AUTHORIZED(msg.sender);
+        }
         addressENS = _ensaddress;
     }
 
@@ -72,11 +72,9 @@ contract nftview {
      * @param addresses a list of addresses to be resolved
      */
 
-    function reverseResolve(address[] memory addresses)
-        internal
-        view
-        returns (string[] memory r)
-    {
+    function reverseResolve(
+        address[] memory addresses
+    ) internal view returns (string[] memory r) {
         ReverseRecords reverserecords = ReverseRecords(addressENS);
         r = reverserecords.getNames(addresses);
         return r;
@@ -90,7 +88,9 @@ contract nftview {
      */
 
     function addheartPatterns(uint256 _id, bytes memory _pattern) external {
-        if (owner != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
+        if (owner != msg.sender) {
+            revert CONTRACT_NOT_AUTHORIZED(msg.sender);
+        }
         heartPatterns[_id] = _pattern;
     }
 
@@ -101,10 +101,13 @@ contract nftview {
      *  @param _pattern Byte code of the pattern
      */
 
-    function addadditionalGraphics(uint256 _id, bytes memory _pattern)
-        external
-    {
-        if (owner != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
+    function addadditionalGraphics(
+        uint256 _id,
+        bytes memory _pattern
+    ) external {
+        if (owner != msg.sender) {
+            revert CONTRACT_NOT_AUTHORIZED(msg.sender);
+        }
         additionalGraphics[_id] = _pattern;
     }
 
@@ -116,7 +119,9 @@ contract nftview {
      */
 
     function addcertBackground(uint256 _id, bytes memory _pattern) external {
-        if (owner != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
+        if (owner != msg.sender) {
+            revert CONTRACT_NOT_AUTHORIZED(msg.sender);
+        }
         certBackground[_id] = _pattern;
     }
 
@@ -126,7 +131,9 @@ contract nftview {
      */
 
     function changeOwner(address _addAddresses) external {
-       if (owner != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
+        if (owner != msg.sender) {
+            revert CONTRACT_NOT_AUTHORIZED(msg.sender);
+        }
         owner = _addAddresses;
     }
 
@@ -135,7 +142,9 @@ contract nftview {
      * @param _nftmainAddress an Address of the ERC721 contract.
      */
     function changenftmainAddress(address _nftmainAddress) external {
-        if (owner != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
+        if (owner != msg.sender) {
+            revert CONTRACT_NOT_AUTHORIZED(msg.sender);
+        }
         nftmainAddress = _nftmainAddress;
     }
 
@@ -145,7 +154,9 @@ contract nftview {
      */
 
     function changeMainAddress(address _mainAddress) external {
-        if (owner != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
+        if (owner != msg.sender) {
+            revert CONTRACT_NOT_AUTHORIZED(msg.sender);
+        }
         mainAddress = _mainAddress;
     }
 
@@ -155,11 +166,10 @@ contract nftview {
      * @param _address Address to be resolved
      * @param ensStatus a switch that checks if partner opted to show ENS name.
      */
-    function getAddr(address _address, uint8 ensStatus)
-        internal
-        view
-        returns (string memory)
-    {
+    function getAddr(
+        address _address,
+        uint8 ensStatus
+    ) internal view returns (string memory) {
         string memory Addr;
         address[] memory _addr = new address[](1);
 
@@ -175,11 +185,9 @@ contract nftview {
 
     /* Utility function that transforms address to trimmed string address */
 
-    function addressToString(address addr)
-        private
-        pure
-        returns (string memory)
-    {
+    function addressToString(
+        address addr
+    ) private pure returns (string memory) {
         // Cast address to byte array
         bytes memory addressBytes = abi.encodePacked(addr);
         // Byte array for the new string
@@ -219,11 +227,9 @@ contract nftview {
     }
 
     /* Utility function that transforms UINT to string number */
-    function uint2str(uint256 _i)
-        internal
-        pure
-        returns (string memory _uintAsString)
-    {
+    function uint2str(
+        uint256 _i
+    ) internal pure returns (string memory _uintAsString) {
         if (_i == 0) {
             return "0";
         }
@@ -246,11 +252,9 @@ contract nftview {
     }
 
     /* Utility function that transforms UINT balance to a formatted string number */
-    function generateStake(uint256 _stake)
-        private
-        pure
-        returns (string memory)
-    {
+    function generateStake(
+        uint256 _stake
+    ) private pure returns (string memory) {
         uint256 wholepart = _stake / 1e18;
         uint256 tenth = _stake / 1e17 - wholepart * 10;
         uint256 hundredth = _stake / 1e16 - wholepart * 100 - tenth * 10;
@@ -272,17 +276,18 @@ contract nftview {
     function getURI(
         CertificateAttributes calldata charAttributes
     ) public view returns (string memory) {
+        if (nftmainAddress != msg.sender) {
+            revert CONTRACT_NOT_AUTHORIZED(msg.sender);
+        }
 
-        if (nftmainAddress != msg.sender) {revert CONTRACT_NOT_AUTHORIZED(msg.sender);}
-       
-        string memory Messagetext;
+        string memory nameText;
 
         if (charAttributes.heartPatternsID >= 1) {
             WaverContractM _wavercContract = WaverContractM(mainAddress);
-            Messagetext = string(
+            nameText = string(
                 abi.encodePacked(
                     '{"trait_type": "Proposers note", "value": "',
-                    _wavercContract.messages(charAttributes.marriageContract),
+                    _wavercContract.getName(charAttributes.id),
                     '"},'
                 )
             );
@@ -333,9 +338,9 @@ contract nftview {
                     )
                 ),
                 '", "attributes":[',
-                string(Messagetext),
+                string(nameText),
                 ' {"trait_type": "Status", "value": "',
-                charAttributes.Status==1? "Established": "Terminated",
+                charAttributes.Status == 1 ? "Established" : "Terminated",
                 '"}]}'
             )
         );

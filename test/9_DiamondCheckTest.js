@@ -29,7 +29,7 @@ describe("Testing Diamond Facets", function () {
 
     txn = await WavePortal7.propose(
       accounts[1].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       9,
@@ -42,7 +42,7 @@ describe("Testing Diamond Facets", function () {
 
     txn = await WavePortal7.connect(accounts[2]).propose(
       accounts[3].address,
-      "0x49206c6f766520796f7520736f206d75636821", 
+      "0x7465737400000000000000000000000000000000000000000000000000000000", 
       0, 
       86400,
       9,

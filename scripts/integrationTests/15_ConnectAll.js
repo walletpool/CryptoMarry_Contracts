@@ -305,7 +305,7 @@ describe("Integration Test of All Apps", function () {
 
       txn = await Contracts.WavePortal7.connect(Contracts.accounts[0]).propose(
         Contracts.accounts[1].address,
-         "0x49206c6f766520796f7520736f206d75636821", 
+         "0x7465737400000000000000000000000000000000000000000000000000000000", 
         0, 
         86400,
         5,
