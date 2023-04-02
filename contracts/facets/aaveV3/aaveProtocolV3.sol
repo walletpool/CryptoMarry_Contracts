@@ -11,7 +11,7 @@ import "@gnus.ai/contracts-upgradeable-diamond/metatx/ERC2771ContextUpgradeable.
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 import "./IPool.sol";
-import "./IWrappedNativeToken.sol";
+import "../UniswapV3/IWrappedNativeToken.sol";
 import "../handlerBase.sol";
 
 contract AaveV3Facet is ERC2771ContextUpgradeable, HandlerBase {

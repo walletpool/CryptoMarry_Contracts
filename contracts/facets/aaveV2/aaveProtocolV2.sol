@@ -10,7 +10,7 @@ import "@gnus.ai/contracts-upgradeable-diamond/metatx/MinimalForwarderUpgradeabl
 import "@gnus.ai/contracts-upgradeable-diamond/metatx/ERC2771ContextUpgradeable.sol";
 
 import "./ILendingPoolV2.sol";
-import "./IWrappedNativeToken.sol";
+import "../UniswapV3/IWrappedNativeToken.sol";
 import "./ILendingPoolAddressesProviderV2.sol";
 import "../handlerBase.sol";
 

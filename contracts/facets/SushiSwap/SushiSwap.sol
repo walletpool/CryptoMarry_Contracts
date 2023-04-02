@@ -9,7 +9,7 @@ import "@gnus.ai/contracts-upgradeable-diamond/metatx/MinimalForwarderUpgradeabl
 import "@gnus.ai/contracts-upgradeable-diamond/metatx/ERC2771ContextUpgradeable.sol";
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import "./SushiSwapLibrary.sol";
-import "./IUniswapV2Router02.sol";
+import "../UniswapV2/IUniswapV2Router02.sol";
 import "../handlerBase.sol"; 
 
 contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {

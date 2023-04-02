@@ -10,7 +10,7 @@ import "@gnus.ai/contracts-upgradeable-diamond/metatx/ERC2771ContextUpgradeable.
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import "../handlerBase.sol";
 import "./IDSProxy.sol";
-import "./IMaker.sol";
+import "../maker/IMaker.sol";
 
 ////Need to thoroughly test this integration. Need to write init function to handle build in Proxy Factory. 
 
