@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 
 import {ILendingPoolAddressesProviderV2} from "./ILendingPoolAddressesProviderV2.sol";
-import {DataTypesV2} from "./libraries/DataTypes.sol";
+import {DataTypesV2} from "./libraries/DataTypesV2.sol";
 
 interface ILendingPoolV2 {
   /**
@@ -358,7 +358,7 @@ interface ILendingPoolV2 {
   function getConfiguration(address asset)
     external
     view
-    returns (DataTypes.ReserveConfigurationMap memory);
+    returns (DataTypesV2.ReserveConfigurationMap memory);
 
   /**
    * @dev Returns the configuration of the user across all the reserves
@@ -368,7 +368,7 @@ interface ILendingPoolV2 {
   function getUserConfiguration(address user)
     external
     view
-    returns (DataTypes.UserConfigurationMap memory);
+    returns (DataTypesV2.UserConfigurationMap memory);
 
   /**
    * @dev Returns the normalized income normalized income of the reserve
@@ -389,7 +389,7 @@ interface ILendingPoolV2 {
    * @param asset The address of the underlying asset of the reserve
    * @return The state of the reserve
    **/
-  function getReserveData(address asset) external view returns (DataTypes.ReserveData memory);
+  function getReserveData(address asset) external view returns (DataTypesV2.ReserveData memory);
 
   function finalizeTransfer(
     address asset,

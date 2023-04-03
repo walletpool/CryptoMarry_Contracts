@@ -5,5 +5,5 @@ pragma solidity ^0.8.0;
 import "./IPoolStargate.sol";
 
 interface IFactory {
-   function getPool(uint256 poolId) external view returns(IPool); 
+   function getPool(uint256 poolId) external view returns(IPoolStargate); 
 }

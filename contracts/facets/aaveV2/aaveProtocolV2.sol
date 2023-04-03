@@ -220,10 +220,10 @@ contract AaveV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         }
         _tokenApproveZero(asset, pool);
 
-        DataTypes.ReserveData memory reserve =
+        DataTypesV2.ReserveData memory reserve =
             ILendingPoolV2(pool).getReserveData(asset);
-        remainDebt = DataTypes.InterestRateMode(rateMode) ==
-            DataTypes.InterestRateMode.STABLE
+        remainDebt = DataTypesV2.InterestRateMode(rateMode) ==
+            DataTypesV2.InterestRateMode.STABLE
             ? IERC20(reserve.stableDebtTokenAddress).balanceOf(onBehalfOf)
             : IERC20(reserve.variableDebtTokenAddress).balanceOf(onBehalfOf);
     }
@@ -236,7 +236,7 @@ contract AaveV2Facet is ERC2771ContextUpgradeable, HandlerBase {
     {
         pool = ILendingPoolAddressesProviderV2(PROVIDERAV2).getLendingPool();
         try ILendingPoolV2(pool).getReserveData(underlying) returns (
-            DataTypes.ReserveData memory data
+            DataTypesV2.ReserveData memory data
         ) {
             aToken = data.aTokenAddress;
              if (aToken == address(0)) {

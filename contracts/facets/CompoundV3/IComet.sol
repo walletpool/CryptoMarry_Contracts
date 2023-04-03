@@ -52,7 +52,7 @@ interface CometRewards {
   function claim(address comet, address src, bool shouldAccrue) external;
 }
 
-interface ERC20 {
+interface ERC20Comet{
   function approve(address spender, uint256 amount) external returns (bool);
   function decimals() external view returns (uint);
 }

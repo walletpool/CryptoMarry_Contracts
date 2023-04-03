@@ -7,11 +7,9 @@ import {LibDiamond} from "../../libraries/LibDiamond.sol";
 import "@gnus.ai/contracts-upgradeable-diamond/metatx/MinimalForwarderUpgradeable.sol";
 import "@gnus.ai/contracts-upgradeable-diamond/metatx/ERC2771ContextUpgradeable.sol";
 import "./IComet.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../handlerBase.sol";
 
 contract CompoundV3FacetUSDC is ERC2771ContextUpgradeable, HandlerBase {
-    using SafeERC20 for IERC20;
     error COULD_NOT_PROCESS();
 
     address public immutable cometAddress_USDC;
@@ -251,7 +249,7 @@ contract CompoundV3FacetUSDC is ERC2771ContextUpgradeable, HandlerBase {
     function getTvlUSDC() public view returns (uint256) {
         Comet comet = Comet(cometAddress_USDC);
 
-        uint256 baseScale = 10**ERC20(cometAddress_USDC).decimals();
+        uint256 baseScale = 10**ERC20Comet(cometAddress_USDC).decimals();
         uint256 basePrice = getCompoundPriceUSDC(comet.baseTokenPriceFeed());
         uint256 totalSupplyBase = comet.totalSupply();
 
@@ -264,7 +262,7 @@ contract CompoundV3FacetUSDC is ERC2771ContextUpgradeable, HandlerBase {
                 asset.asset
             );
             uint256 price = getCompoundPriceUSDC(asset.priceFeed);
-            uint256 scale = 10**ERC20(asset.asset).decimals();
+            uint256 scale = 10**ERC20Comet(asset.asset).decimals();
 
             tvlUsd += (tc.totalSupplyAsset * price) / scale;
         }

@@ -228,7 +228,7 @@ contract CompoundV3FacetWETH is ERC2771ContextUpgradeable, HandlerBase {
     function getTvlWETH() public view returns (uint256) {
         Comet comet = Comet(cometAddressWETH);
 
-        uint256 baseScale = 10**ERC20(cometAddressWETH).decimals();
+        uint256 baseScale = 10**ERC20Comet(cometAddressWETH).decimals();
         uint256 basePrice = getCompoundPriceWETH(comet.baseTokenPriceFeed());
         uint256 totalSupplyBase = comet.totalSupply();
 
@@ -241,7 +241,7 @@ contract CompoundV3FacetWETH is ERC2771ContextUpgradeable, HandlerBase {
                 asset.asset
             );
             uint256 price = getCompoundPriceWETH(asset.priceFeed);
-            uint256 scale = 10**ERC20(asset.asset).decimals();
+            uint256 scale = 10**ERC20Comet(asset.asset).decimals();
 
             tvlUsd += (tc.totalSupplyAsset * price) / scale;
         }

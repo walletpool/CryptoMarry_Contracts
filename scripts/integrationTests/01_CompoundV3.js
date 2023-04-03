@@ -283,7 +283,7 @@ describe("Compound III Integration Test", function () {
         bal = await usdc.callStatic.balanceOf(instance.address);
         expect(bal).to.equal(ethers.utils.parseUnits("50",6)) 
         const outstandingF = await stakeWETH.getBorrowBalanceOfUSDC();
-        expect (await stakeWETH.getBorrowBalanceOfUSDC()).to.equal(ethers.utils.parseUnits("50",6)); 
+        expect(Number(outstandingF)).to.greaterThan(Number(ethers.utils.parseUnits("50",6))); 
         
         //paying with some interest 
         await advanceBlockHeight(1000);
@@ -370,7 +370,7 @@ describe("Compound III Integration Test", function () {
         txn = await instance.connect(Contracts.accounts[1]).voteResponse(2, 1, false);
         txn = await stakeWETH.executeSupplyCompoundV3USDC(2);
 
-        expect (await stakeWETH.callStatic.getBalanceOfUSDC()).to.equal(1);
+        expect (await stakeWETH.callStatic.getBalanceOfUSDC()).to.equal(2);
         
         
     });

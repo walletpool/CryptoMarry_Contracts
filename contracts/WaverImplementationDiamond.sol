@@ -81,14 +81,14 @@ contract WaverIDiamond is
 {
     string public constant VERSION = "1.0.2"; //Removed CM fees 
     address immutable diamondcut;
-    address private immutable _trustedForwarder;
+    address private immutable _diamondForwarder;
     /*Constructor to connect Forwarder Address*/
     IWrappedNativeTokenInstance public immutable wrappedNativeToken;
     constructor(MinimalForwarderUpgradeable forwarder, address _diamondcut, IWrappedNativeTokenInstance _wrappedNativeToken )
         initializer
         ERC2771ContextUpgradeable(address(forwarder))
     {diamondcut = _diamondcut;
-    _trustedForwarder= address(forwarder);
+    _diamondForwarder= address(forwarder);
     wrappedNativeToken = _wrappedNativeToken;}
 
     /**
@@ -125,7 +125,7 @@ contract WaverIDiamond is
         vt.policyDays = _policyDays;
         vt.setDeadline = 1 days;
         vt.divideShare = _divideShare;
-        vt.trustedForwarder = _trustedForwarder;
+        vt.trustedForwarder = _diamondForwarder;
         vt.threshold = _threshold;
 
          LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();

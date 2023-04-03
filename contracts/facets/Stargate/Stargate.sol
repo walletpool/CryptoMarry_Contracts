@@ -11,7 +11,7 @@ import "../handlerBase.sol";
 import {IStargateRouter, IStargateWidget} from "./IStargateRouter.sol";
 import {IStargateRouterETH} from "./IStargateRouterETH.sol";
 import {IStargateToken} from "./IStargateToken.sol";
-import {IFactory, IPool} from "./IFactory.sol";
+import {IFactory, IPoolStargate} from "./IFactory.sol";
 
 contract StargateFacet is ERC2771ContextUpgradeable, HandlerBase {
     using SafeERC20 for IERC20;
@@ -108,7 +108,7 @@ contract StargateFacet is ERC2771ContextUpgradeable, HandlerBase {
         uint16 dstChainId = uint16(vt.voteProposalAttributes[_id].voteends); 
 
          // Approve input token to Stargate
-            IPool pool = IFactory(factoryStargate).getPool(srcPoolId);
+            IPoolStargate pool = IFactory(factoryStargate).getPool(srcPoolId);
             require(address(pool) != address(0));
             address tokenIn = pool.token();
             require (tokenIn == vt.voteProposalAttributes[_id].tokenID);
