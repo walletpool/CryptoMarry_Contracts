@@ -23,7 +23,7 @@ contract ParaSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
         TOKEN_TRANSFER_PROXY= _TOKEN_TRANSFER_PROXY;}
 
     function executeParaSwap(
-        uint24 _id,
+        uint256 _id,
         bytes calldata data
     ) external payable {
        address msgSender_ = _msgSender();   

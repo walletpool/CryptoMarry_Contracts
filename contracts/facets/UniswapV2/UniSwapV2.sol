@@ -23,7 +23,7 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         {UNISWAPV2_ROUTER = _UNISWAPV2_ROUTER;}
 
 
- modifier checkValidity(uint24 _id) {  
+ modifier checkValidity(uint256 _id) {  
             VoteProposalLib.enforceMarried();
             VoteProposalLib.enforceUserHasAccess(_msgSender());
             VoteProposalLib.enforceAcceptedStatus(_id);    
@@ -32,7 +32,7 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
 
     //Adding ETH as a liquidity
     function UniAddLiquidityETH(
-        uint24 _id,
+        uint256 _id,
         uint256 amountETHMin,
         uint256 amountTokenMin
     ) external payable checkValidity(_id) {
@@ -85,7 +85,7 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
 
 
     function uniAddLiquidity(
-        uint24 _id,
+        uint256 _id,
         uint256 amountAMin,
         uint256 amountBMin
     ) external payable checkValidity(_id){
@@ -140,7 +140,7 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
      function uniRemoveLiquidityETH(
-        uint24 _id,
+        uint256 _id,
         uint256 amountTokenMin,
         uint256 amountETHMin
     ) external payable checkValidity(_id) returns (
@@ -198,7 +198,7 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
      function uniRemoveLiquidity(
-        uint24 _id,
+        uint256 _id,
         uint256 amountAMin,
         uint256 amountBMin
     ) external payable checkValidity(_id) returns (
@@ -258,7 +258,7 @@ contract UniSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
     
 
     function executeUniV2Swap(
-        uint24 _id,
+        uint256 _id,
          uint256 requiredAmount,
          address[] calldata path
     ) external payable returns (uint256 resp){

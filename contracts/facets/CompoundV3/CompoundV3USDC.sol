@@ -29,7 +29,7 @@ contract CompoundV3FacetUSDC is ERC2771ContextUpgradeable, HandlerBase {
         BASE_INDEX_SCALE_USDC = Comet(cometAddress_USDC).baseIndexScale();
     }
 
-    function executeSupplyCompoundV3USDC(uint24 _id) external {
+    function executeSupplyCompoundV3USDC(uint256 _id) external {
         address msgSender_ = _msgSender();
 
         VoteProposalLib.enforceMarried();

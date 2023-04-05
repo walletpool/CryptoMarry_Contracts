@@ -27,7 +27,7 @@ contract AaveV3Facet is ERC2771ContextUpgradeable, HandlerBase {
         wrappedNativeTokenAV3 = wrappedNativeToken_;}
 
     function executeAaveV3(
-        uint24 _id
+        uint256 _id
     ) external {
        address msgSender_ = _msgSender();   
         VoteProposalLib.enforceMarried();
@@ -78,7 +78,7 @@ contract AaveV3Facet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
      function executeAaveV3BorrowRepay(
-        uint24 _id,
+        uint256 _id,
          uint256 rateMode
     ) external {
        address msgSender_ = _msgSender();   

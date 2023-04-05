@@ -90,7 +90,7 @@ contract FamilyDAOFacet is ERC2771ContextUpgradeable{
      */
 
     function voteResponseDao(
-        uint24 _id,
+        uint256 _id,
         uint256 _numTokens,
         uint8 responsetype
     ) external {
@@ -136,7 +136,7 @@ contract FamilyDAOFacet is ERC2771ContextUpgradeable{
      * @param _id Vote ID, that is being voted for/against.
      */
 
-    function endVotingByTime(uint24 _id) external {
+    function endVotingByTime(uint256 _id) external {
         address msgSender_ = _msgSender();
         VoteProposalLib.enforceOnlyPartners(msgSender_);
         VoteProposalLib.enforceProposedStatus(_id);

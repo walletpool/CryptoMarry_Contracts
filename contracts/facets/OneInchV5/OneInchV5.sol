@@ -21,7 +21,7 @@ contract OneInchV5Facet is ERC2771ContextUpgradeable, HandlerBase {
         {oneInchRouter = _oneInchRouter;}
 
     function executeOneInchSwap(
-        uint24 _id,
+        uint256 _id,
         bytes calldata data
     ) external payable returns (uint256 returnAmount){
        address msgSender_ = _msgSender();   

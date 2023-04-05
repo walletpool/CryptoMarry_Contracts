@@ -572,7 +572,7 @@ contract WavePortal7 is ERC20, ERC2771Context, Ownable {
        ReturnAccounts[]
             memory returnAccounts = new ReturnAccounts[](size);
 
-        for (uint24 i = 0; i < size; i++) {
+        for (uint256 i = 0; i < size; i++) {
             uint IDs = accountIDJournal[msg.sender][start + i];
             Wave storage waver =  proposalAttributes[IDs];
             returnAccounts[i] = ReturnAccounts({

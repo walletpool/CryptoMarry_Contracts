@@ -23,7 +23,7 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
         {sushiSwapRouter = _sushiSwapRouter;}
 
 
- modifier checkValidity(uint24 _id) {  
+ modifier checkValidity(uint256 _id) {  
             VoteProposalLib.enforceMarried();
             VoteProposalLib.enforceUserHasAccess(_msgSender());
             VoteProposalLib.enforceAcceptedStatus(_id);    
@@ -32,7 +32,7 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
 
 
     function sushiAddLiquidityETH(
-        uint24 _id,
+        uint256 _id,
         uint256 amountTokenMin,
         uint256 amountETHMin
     ) external payable checkValidity(_id) returns (
@@ -90,7 +90,7 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function sushiAddLiquidity(
-        uint24 _id,
+        uint256 _id,
         uint256 amountAMin,
         uint256 amountBMin
     ) external payable checkValidity(_id){
@@ -145,7 +145,7 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
      function sushiRemoveLiquidityETH(
-        uint24 _id,
+        uint256 _id,
         uint256 amountTokenMin,
         uint256 amountETHMin
     ) external payable checkValidity(_id) returns (
@@ -202,7 +202,7 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
      function sushiRemoveLiquidity(
-        uint24 _id,
+        uint256 _id,
         uint256 amountAMin,
         uint256 amountBMin
     ) external payable checkValidity(_id) returns (
@@ -262,7 +262,7 @@ contract SushiSwapFacet is ERC2771ContextUpgradeable, HandlerBase {
     
 
     function executeSushiSwap(
-        uint24 _id,
+        uint256 _id,
          uint256 requiredAmount,
          address[] calldata path
     ) external payable returns (uint256 resp){

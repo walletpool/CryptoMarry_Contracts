@@ -287,7 +287,7 @@ contract WaverIDiamond is
      */
 
     function voteResponse(
-        uint24 _id,
+        uint256 _id,
         uint8 responsetype,
         bool execute
     ) external {
@@ -334,7 +334,7 @@ contract WaverIDiamond is
      *@dev mobile
      */
 
-    function cancelVoting(uint24 _id) external {
+    function cancelVoting(uint256 _id) external {
         address msgSender_ = _msgSender();
         VoteProposalLib.enforceProposedStatus(_id);
         VoteProposalLib.enforceOnlyProposer(_id, msgSender_);
@@ -360,7 +360,7 @@ error VOTE_ID_NOT_FOUND();
      *@dev mobile
      */
 
-    function executeVoting(uint24 _id) public nonReentrant {
+    function executeVoting(uint256 _id) public nonReentrant {
         address msgSender_ = _msgSender();
         VoteProposalLib.enforceMarried();
         VoteProposalLib.enforceUserHasAccess(msgSender_);
@@ -487,7 +487,7 @@ error VOTE_ID_NOT_FOUND();
      * @param _id the ID of the proposal for divorce
      */
 
-    function settleDivorce(uint24 _id) external nonReentrant{
+    function settleDivorce(uint256 _id) external nonReentrant{
         address msgSender_ = _msgSender();
         VoteProposalLib.enforceMarried();
         VoteProposalLib.enforceOnlyPartners(msgSender_);
@@ -640,7 +640,7 @@ error VOTE_ID_NOT_FOUND();
      * @dev mobile
      */
 
-    function getVotingStatuses(uint24 _pagenumber)
+    function getVotingStatuses(uint256 _pagenumber)
         external
         view
         returns (VoteProposalLib.VoteProposal[] memory)
@@ -649,10 +649,10 @@ error VOTE_ID_NOT_FOUND();
 
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
-        uint24 length = vt.voteid - 1;
-        uint24 page = length / 20;
-        uint24 size = 0;
-        uint24 start = 0;
+        uint256 length = vt.voteid - 1;
+        uint256 page = length / 20;
+        uint256 size = 0;
+        uint256 start = 0;
         if (_pagenumber * 20 > length) {
             size = length % 20;
             if (size == 0 && page != 0) {
@@ -668,7 +668,7 @@ error VOTE_ID_NOT_FOUND();
         VoteProposalLib.VoteProposal[]
             memory votings = new VoteProposalLib.VoteProposal[](size);
 
-        for (uint24 i = 0; i < size; i++) {
+        for (uint256 i = 0; i < size; i++) {
             votings[i] = vt.voteProposalAttributes[start + i];
         }
         return votings;

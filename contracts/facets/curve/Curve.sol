@@ -116,7 +116,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
         VoteProposalLib.checkForwarder();
     }
     
-   modifier checkValidity(uint24 _id) {  
+   modifier checkValidity(uint256 _id) {  
             VoteProposalLib.enforceMarried();
             VoteProposalLib.enforceUserHasAccess(_msgSender());
             VoteProposalLib.enforceAcceptedStatus(_id);    
@@ -124,7 +124,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function executeCurveExchange(
-        uint24 _id,
+        uint256 _id,
         address handler,
         int128 i,
         int128 j,
@@ -168,7 +168,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
 
      /// @notice Curve exchange with uint256 ij
      function exchangeUint256(
-        uint24 _id,
+        uint256 _id,
         address handler,
         uint256 i,
         uint256 j,
@@ -215,7 +215,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
 
     /// @notice Curve exchange with uint256 ij and ether flag
      function exchangeUint256Ether(
-        uint24 _id,
+        uint256 _id,
         address handler,
         uint256 i,
         uint256 j,
@@ -261,7 +261,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
 
 
     function exchangeUnderlying(
-        uint24 _id,
+        uint256 _id,
         address handler,
         int128 i,
         int128 j,
@@ -303,7 +303,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function exchangeUnderlyingFactoryZap(
-        uint24 _id,
+        uint256 _id,
         address handler,
         address pool,
         int128 i,
@@ -347,7 +347,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
      function exchangeUnderlyingUint256(
-        uint24 _id,
+        uint256 _id,
         address handler,
         uint256 i,
         uint256 j,
@@ -432,7 +432,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
 
 
    function addLiquidity(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) returns (uint){
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -543,7 +543,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
 
 
    function addLiquidityUnderlying(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) returns (uint){
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -658,7 +658,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function addLiquidityFactoryZap(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) returns (uint){
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -812,7 +812,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
   function removeLiquidityOneCoin(
-        uint24 _id,
+        uint256 _id,
         address handler,
         int128 i,
         uint256 minAmount
@@ -854,7 +854,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function removeLiquidityOneCoinUint256(
-        uint24 _id,
+        uint256 _id,
         address handler,
         uint256 i,
         uint256 minAmount
@@ -896,7 +896,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function removeLiquidityOneCoinUnderlying(
-        uint24 _id,
+        uint256 _id,
         address handler,
         int128 i,
         uint256 minAmount
@@ -939,7 +939,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function removeLiquidityOneCoinUnderlyingUint256(
-        uint24 _id,
+        uint256 _id,
         address handler,
         uint256 i,
         uint256 minAmount
@@ -982,7 +982,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function removeLiquidityOneCoinFactoryZap(
-        uint24 _id,
+        uint256 _id,
         address handler,
         int128 i,
         uint256 minAmount
@@ -1096,7 +1096,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
 
 
     function depositCurve(
-        uint24 _id
+        uint256 _id
     ) external payable checkValidity(_id){
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -1131,7 +1131,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
 
 
      function withdrawCurve(
-        uint24 _id
+        uint256 _id
     ) external payable checkValidity(_id) returns (uint){
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();

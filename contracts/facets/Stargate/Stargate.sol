@@ -42,7 +42,7 @@ contract StargateFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function swapEthStargate(
-        uint24 _id,
+        uint256 _id,
         uint256 fee,
         uint256 amountOutMin
     ) external payable {
@@ -87,7 +87,7 @@ contract StargateFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function swapTokenStargate(
-        uint24 _id,
+        uint256 _id,
         uint256 fee,
         uint256 srcPoolId,
         uint256 dstPoolId,
@@ -148,7 +148,7 @@ contract StargateFacet is ERC2771ContextUpgradeable, HandlerBase {
 
 
     function sendTokenStargate(
-        uint24 _id,
+        uint256 _id,
         uint256 dstGas,
         uint256 fee
     ) external {

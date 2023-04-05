@@ -24,7 +24,7 @@ library VoteProposalLib {
         uint8 familyDao;
         uint16 voteType;
         uint16 voteStatus;
-        uint24 id;
+        uint256 id;
         address proposer;
         address receiver;
         address tokenID;
@@ -36,7 +36,7 @@ library VoteProposalLib {
     }
 
     event VoteStatus(
-        uint24 indexed id,
+        uint256 indexed id,
         address sender,
         uint16 voteStatus,
         uint256 timestamp
@@ -45,7 +45,7 @@ library VoteProposalLib {
     struct VoteTracking {
         uint8 familyMembers;
         MarriageStatus marriageStatus;
-        uint24 voteid; //Tracking voting proposals by VOTEID
+        uint256 voteid; //Tracking voting proposals by VOTEID
         address proposer;
         address proposed;
         address payable addressWaveContract;
@@ -60,8 +60,8 @@ library VoteProposalLib {
         uint256 promoDays;
         address[] subAccounts; //an Array of Subaccounts;
         mapping(address => bool) hasAccess; //Addresses that are alowed to use Proxy contract
-        mapping(uint24 => VoteProposal) voteProposalAttributes; //Storage of voting proposals
-        mapping(uint24 => mapping(address => bool)) votingStatus; // Tracking whether address has voted for particular voteid
+        mapping(uint256 => VoteProposal) voteProposalAttributes; //Storage of voting proposals
+        mapping(uint256 => mapping(address => bool)) votingStatus; // Tracking whether address has voted for particular voteid
         mapping(uint256 => uint256) indexBook; //Keeping track of indexes
         mapping(uint256 => address) addressBook; //To keep Addresses inside
         mapping(address => uint256) subAccountIndex; //To keep track of subAccounts
@@ -84,7 +84,7 @@ library VoteProposalLib {
 
     error ALREADY_VOTED();
 
-    function enforceNotVoted(uint24 _voteid, address msgSender_) internal view {
+    function enforceNotVoted(uint256 _voteid, address msgSender_) internal view {
         if (VoteTrackingStorage().votingStatus[_voteid][msgSender_] == true) {
             revert ALREADY_VOTED();
         }
@@ -92,7 +92,7 @@ library VoteProposalLib {
 
     error VOTE_IS_CLOSED();
 
-    function enforceProposedStatus(uint24 _voteid) internal view {
+    function enforceProposedStatus(uint256 _voteid) internal view {
         if (
             VoteTrackingStorage().voteProposalAttributes[_voteid].voteStatus !=
             1
@@ -103,7 +103,7 @@ library VoteProposalLib {
 
     error VOTE_IS_NOT_PASSED();
 
-    function enforceAcceptedStatus(uint24 _voteid) internal view {
+    function enforceAcceptedStatus(uint256 _voteid) internal view {
         if (
             VoteTrackingStorage().voteProposalAttributes[_voteid].voteStatus !=
             2 &&
@@ -116,7 +116,7 @@ library VoteProposalLib {
 
     error VOTE_PROPOSER_ONLY();
 
-    function enforceOnlyProposer(uint24 _voteid, address msgSender_)
+    function enforceOnlyProposer(uint256 _voteid, address msgSender_)
         internal
         view
     {
@@ -130,7 +130,7 @@ library VoteProposalLib {
 
     error NOT_DAO_VOTE();
 
-    function enforceFamilyDAO(uint256 _familyDao, uint24 _voteid)
+    function enforceFamilyDAO(uint256 _familyDao, uint256 _voteid)
         internal
         view
     {
@@ -144,7 +144,7 @@ library VoteProposalLib {
 
     error DEADLINE_NOT_PASSED();
 
-    function enforceDeadlinePassed(uint24 _voteid) internal view {
+    function enforceDeadlinePassed(uint256 _voteid) internal view {
         if (
             VoteTrackingStorage().voteProposalAttributes[_voteid].voteends >
             block.timestamp

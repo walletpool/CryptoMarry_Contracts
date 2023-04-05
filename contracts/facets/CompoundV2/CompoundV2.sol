@@ -25,7 +25,7 @@ contract CompoundV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         COMPTROLLER = _COMPTROLLER;
     }
 
-    function compoundV2Supply(uint24 _id) external {
+    function compoundV2Supply(uint256 _id) external {
         address msgSender_ = _msgSender();
         VoteProposalLib.enforceMarried();
         VoteProposalLib.enforceUserHasAccess(msgSender_);
@@ -183,7 +183,7 @@ contract CompoundV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         VoteProposalLib.checkForwarder();
     }
 
-    function compoundV2BorrowRepay(uint24 _id) external {
+    function compoundV2BorrowRepay(uint256 _id) external {
         address msgSender_ = _msgSender();
         VoteProposalLib.enforceMarried();
         VoteProposalLib.enforceUserHasAccess(msgSender_);

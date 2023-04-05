@@ -12,7 +12,7 @@ contract SocialChange {
     /* Changing Address of a Partner who lost account*/
 
      function executeChangePartnerAddress(
-        uint24 _id
+        uint256 _id
     ) external {
         VoteProposalLib.enforceMarried();
         VoteProposalLib.enforceUserHasAccess(msg.sender);

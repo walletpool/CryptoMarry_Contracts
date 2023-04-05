@@ -73,7 +73,7 @@ contract BProtocolFacet is ERC2771ContextUpgradeable, HandlerBase {
         return cdp;
     }
 
-     modifier checkValidity(uint24 _id) {  
+     modifier checkValidity(uint256 _id) {  
             VoteProposalLib.enforceMarried();
             VoteProposalLib.enforceUserHasAccess(_msgSender());
             VoteProposalLib.enforceAcceptedStatus(_id);    
@@ -81,7 +81,7 @@ contract BProtocolFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function openLockETHAndDrawBP(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -137,7 +137,7 @@ contract BProtocolFacet is ERC2771ContextUpgradeable, HandlerBase {
 
 
      function openLockGemAndDrawBP(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -197,7 +197,7 @@ contract BProtocolFacet is ERC2771ContextUpgradeable, HandlerBase {
 
 
      function safeLockETHBP(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -245,7 +245,7 @@ contract BProtocolFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
      function safeLockGemBP(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -298,7 +298,7 @@ contract BProtocolFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function freeETHBP(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -341,7 +341,7 @@ contract BProtocolFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function freeGemBP(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -383,7 +383,7 @@ contract BProtocolFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function drawBP(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -427,7 +427,7 @@ contract BProtocolFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function wipeBP(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -475,7 +475,7 @@ contract BProtocolFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function wipeAllBP(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();

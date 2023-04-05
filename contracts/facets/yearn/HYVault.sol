@@ -20,7 +20,7 @@ contract YearnFacet is ERC2771ContextUpgradeable, HandlerBase{
         {}
 
     function executeYearn(
-        uint24 _id
+        uint256 _id
     ) external returns (uint result) {
        address msgSender_ = _msgSender();   
         VoteProposalLib.enforceMarried();

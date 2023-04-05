@@ -23,7 +23,7 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         {QUICKSWAPV2_ROUTER = _QUICKSWAPV2_ROUTER;}
 
 
- modifier checkValidity(uint24 _id) {  
+ modifier checkValidity(uint256 _id) {  
             VoteProposalLib.enforceMarried();
             VoteProposalLib.enforceUserHasAccess(_msgSender());
             VoteProposalLib.enforceAcceptedStatus(_id);    
@@ -32,7 +32,7 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
 
 
     function quickAddLiquidityETH(
-        uint24 _id,
+        uint256 _id,
         uint256 amountTokenMin,
         uint256 amountETHMin
     ) external payable checkValidity(_id) returns (
@@ -90,7 +90,7 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function quickAddLiquidity(
-        uint24 _id,
+        uint256 _id,
         uint256 amountAMin,
         uint256 amountBMin
     ) external payable checkValidity(_id){
@@ -145,7 +145,7 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
      function quickRemoveLiquidityETH(
-        uint24 _id,
+        uint256 _id,
         uint256 amountTokenMin,
         uint256 amountETHMin
     ) external payable checkValidity(_id) returns (
@@ -202,7 +202,7 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
      function quickRemoveLiquidity(
-        uint24 _id,
+        uint256 _id,
         uint256 amountAMin,
         uint256 amountBMin
     ) external payable checkValidity(_id) returns (
@@ -262,7 +262,7 @@ contract QuickSwapV2Facet is ERC2771ContextUpgradeable, HandlerBase {
     
 
     function executeQuickSwap(
-        uint24 _id,
+        uint256 _id,
          uint256 requiredAmount,
          address[] calldata path
     ) external payable returns (uint256 resp){

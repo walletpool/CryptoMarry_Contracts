@@ -66,7 +66,7 @@ contract CurveDAOFacet is ERC2771ContextUpgradeable, HandlerBase {
         return IERC20(CRV_TOKEN).balanceOf(user) - beforeCRVBalance;
     }
 
-     modifier checkValidity(uint24 _id) {  
+     modifier checkValidity(uint256 _id) {  
             VoteProposalLib.enforceMarried();
             VoteProposalLib.enforceUserHasAccess(_msgSender());
             VoteProposalLib.enforceAcceptedStatus(_id);    
@@ -74,7 +74,7 @@ contract CurveDAOFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function depositCurve(
-        uint24 _id
+        uint256 _id
     ) external payable checkValidity(_id){
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -109,7 +109,7 @@ contract CurveDAOFacet is ERC2771ContextUpgradeable, HandlerBase {
 
 
      function withdrawCurve(
-        uint24 _id
+        uint256 _id
     ) external payable checkValidity(_id) returns (uint){
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();

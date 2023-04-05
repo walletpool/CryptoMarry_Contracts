@@ -32,7 +32,7 @@ contract CompoundV3FacetWETH is ERC2771ContextUpgradeable, HandlerBase {
         BASE_INDEX_SCALE_WETH = Comet(cometAddressWETH).baseIndexScale();
     }
 
-    function executeSupplyCompoundV3WETH(uint24 _id) external {
+    function executeSupplyCompoundV3WETH(uint256 _id) external {
         address msgSender_ = _msgSender();
 
         VoteProposalLib.enforceMarried();

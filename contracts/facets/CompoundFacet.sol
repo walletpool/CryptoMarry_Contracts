@@ -29,7 +29,7 @@ contract CompoundFacet is ERC2771ContextUpgradeable{
         {}
 
      function executeInvest(
-        uint24 _id
+        uint256 _id
     ) external {
        address msgSender_ = _msgSender();
       

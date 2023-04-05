@@ -34,7 +34,7 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function executeUniSwap(
-        uint24 _id,
+        uint256 _id,
         uint256 amountOutMinimum,
         uint24 fee,
         uint160 sqrtPriceLimitX96
@@ -122,7 +122,7 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function executeUniSwapMulti(
-        uint24 _id,
+        uint256 _id,
         bytes memory path,
         uint256 amountOutMinimum
     ) external {
@@ -224,7 +224,7 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function executeUniSwapOutput(
-        uint24 _id,
+        uint256 _id,
         uint256 amountInMaximum,
         uint24 fee,
         uint160 sqrtPriceLimitX96
@@ -324,7 +324,7 @@ contract UniSwapV3Facet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function executeUniSwapMultiOutput(
-        uint24 _id,
+        uint256 _id,
         bytes memory path,
         uint256 amountInMaximum
     ) external {

@@ -73,7 +73,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
         return cdp;
     }
 
-     modifier checkValidity(uint24 _id) {  
+     modifier checkValidity(uint256 _id) {  
             VoteProposalLib.enforceMarried();
             VoteProposalLib.enforceUserHasAccess(_msgSender());
             VoteProposalLib.enforceAcceptedStatus(_id);    
@@ -81,7 +81,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function openLockETHAndDraw(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) payable returns (uint256 cdp){
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -139,7 +139,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
      function openLockGemAndDraw(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -200,7 +200,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
 
 
      function safeLockETH(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -248,7 +248,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
      function safeLockGem(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -301,7 +301,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function freeETH(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -342,7 +342,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function freeGem(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -385,7 +385,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function draw(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -430,7 +430,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function wipe(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
@@ -478,7 +478,7 @@ contract MakerFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function wipeAll(
-        uint24 _id
+        uint256 _id
     ) external checkValidity(_id) payable {
          VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();

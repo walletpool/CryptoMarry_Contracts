@@ -27,7 +27,7 @@ contract LidoFacet is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function executeSubmitLido(
-        uint24 _id
+        uint256 _id
     ) external payable returns (uint256 stTokenAmount) {
         address msgSender_ = _msgSender();
         VoteProposalLib.enforceMarried();
