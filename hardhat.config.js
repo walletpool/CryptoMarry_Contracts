@@ -92,6 +92,10 @@ gasReporter: {
       url: process.env.GOERLI_ALCHEMY_URL,
       accounts: [process.env.DEPLOY_ACCOUNT_GOERLI],
     },
+    sepolia: {
+      url: process.env.SEPOLIA_ALCHEMY_URL,
+      accounts: [process.env.DEPLOY_ACCOUNT_GOERLI],
+    },
     mainnet: {
       url: process.env.MAINNET_ALCHEMY_URL,
       accounts: [process.env.DEPLOY_ACCOUNT_MAINNET],
