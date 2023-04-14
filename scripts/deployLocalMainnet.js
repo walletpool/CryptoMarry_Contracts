@@ -575,7 +575,7 @@ async function main() {
    //Swapping ETH to USDC 
    txn = await instance.connect(accounts[5]).
    createProposal(
-     0x2,
+    '0x50726f706f73616c202300000000000000000000000000000000000000000000',
      101,
      usdcAddress,
      "0x0000000000000000000000000000000000000000",
@@ -586,13 +586,13 @@ async function main() {
    txn = await instance.connect(accounts[6]).voteResponse(1, 1, false);
 
    const swapETH = await ethers.getContractAt('UniSwapV3Facet', instance.address);
-   txn = await swapETH.connect(accounts[5]).executeUniSwap(1,ethers.utils.parseUnits('15000',6),3000,0);
+   txn = await swapETH.connect(accounts[5]).executeUniSwap(1,ethers.utils.parseUnits('20000',6),3000,0);
 
    console.log("Swapping ETH to cETH...")
      //Supplying ETH
      txn = await instance.connect(accounts[5]).
      createProposal(
-       0x2,
+      '0x50726f706f73616c202300000000000000000000000000000000000000000000',
        810,
        CETHAddress,
        "0x0000000000000000000000000000000000000000",
@@ -610,7 +610,7 @@ async function main() {
      //Supplying USDC
      txn = await instance.connect(accounts[5])
      .createProposal(
-       0x2,
+      '0x50726f706f73616c202300000000000000000000000000000000000000000000',
        811,
        CUSDCAddress,
        usdcAddress,
