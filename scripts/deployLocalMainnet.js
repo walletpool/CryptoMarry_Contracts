@@ -4,6 +4,7 @@ const networks = require("./integrationTests/addresses.json");
 const {
   callExternalApi,
 } = require('./libraries/utils');
+const { getSelectors, FacetCutAction } = require('./libraries/diamond.js')
 
 async function deploy(name, ...params) {
   const Contract = await ethers.getContractFactory(name);
@@ -20,22 +21,27 @@ function sleep(milliseconds) {
 
 async function main() {
   console.log("Construction started.....");
-  const accounts = config.networks.hardhat.accounts;
+  const accounts = await ethers.getSigners();
+  const accountsPriv = config.networks.hardhat.accounts;
+  
   let index = 5; // first wallet, increment for next wallets
-  const wallet1 = ethers.Wallet.fromMnemonic(accounts.mnemonic, accounts.path + `/${index}`);
+  const wallet1 = ethers.Wallet.fromMnemonic(accountsPriv.mnemonic, accountsPriv.path + `/${index}`);
   const privateKey1 = wallet1.privateKey
 
    index = 6; // first wallet, increment for next wallets
-  const wallet2 = ethers.Wallet.fromMnemonic(accounts.mnemonic, accounts.path + `/${index}`);
+  const wallet2 = ethers.Wallet.fromMnemonic(accountsPriv.mnemonic, accountsPriv.path + `/${index}`);
   const privateKey2 = wallet2.privateKey
 
   console.log('HH private keys',privateKey1,privateKey2)
 
   const net = "usdc-mainnet";
   cometAddress = networks[net].comet;
+  usdcAddress = networks[net].USDC;
   wethAddress = networks[net].WETH;
   CompAddress = networks[net].comptroller;
   daiAddress = networks[net].DAI;
+  CETHAddress= networks[net].CETH;
+  CUSDCAddress= networks[net].CUSDC;
   MakerProxyRegistryAddress = networks[net].MakerProxyRegistry;
   MakerChainLogAddress = networks[net].MakerChainLog;
   BPCDPManagerAddress = networks[net].BPCDPManager;
@@ -525,6 +531,98 @@ async function main() {
   txn.wait(2);
 
   console.log("Construction completed!");
+
+  console.log("Creating Accounts....")
+  txn = await WavePortal7.connect(accounts[5]).propose(
+     accounts[6].address,
+     "0x7465737400000000000000000000000000000000000000000000000000000000", 
+    0, 
+    86400,
+    5,
+    1,
+    {
+      value: hre.ethers.utils.parseEther("100"),
+    }
+  );
+
+  txn = await WavePortal7.connect(accounts[6]).response(1, 0, 1);
+
+  txn = await WavePortal7.connect(accounts[5]).checkMarriageStatus(1);
+  instance = await WaverImplementation.attach(txn[0].marriageContract);
+
+  console.log("Connecting Apps...")
+  ///Connecting Compound and Uniswap V3
+  const cut = []
+  let tx;
+  let receipt;
+  cut.push({
+      facetAddress: CompoundV2Facet.address,
+      action: FacetCutAction.Add,
+      functionSelectors: getSelectors(CompoundV2Facet)
+    })
+    cut.push({
+      facetAddress: UniSwapV3Facet.address,
+      action: FacetCutAction.Add,
+      functionSelectors: getSelectors(UniSwapV3Facet)
+    })
+
+  const diamondCut = await ethers.getContractAt('DiamondCutFacet', instance.address);
+  
+  tx = await diamondCut.connect(accounts[5]).diamondCut(cut,ZERO_ADDRESS, "0x");
+  receipt = await tx.wait();
+
+  console.log("Swapping ETH to USDC...")
+   //Swapping ETH to USDC 
+   txn = await instance.connect(accounts[5]).
+   createProposal(
+     0x2,
+     101,
+     usdcAddress,
+     "0x0000000000000000000000000000000000000000",
+     ethers.utils.parseEther('10'),
+     100,
+     false
+   );
+   txn = await instance.connect(accounts[6]).voteResponse(1, 1, false);
+
+   const swapETH = await ethers.getContractAt('UniSwapV3Facet', instance.address);
+   txn = await swapETH.connect(accounts[5]).executeUniSwap(1,ethers.utils.parseUnits('15000',6),3000,0);
+
+   console.log("Swapping ETH to cETH...")
+     //Supplying ETH
+     txn = await instance.connect(accounts[5]).
+     createProposal(
+       0x2,
+       810,
+       CETHAddress,
+       "0x0000000000000000000000000000000000000000",
+       ethers.utils.parseEther('10'),
+       100,
+       false
+     );
+
+     txn = await instance.connect(accounts[6]).voteResponse(2, 1, false);
+
+     const stakeETH = await ethers.getContractAt('CompoundV2Facet', instance.address);
+     txn = await stakeETH.connect(accounts[5]).compoundV2Supply(2);
+
+     console.log("Swapping USDC to cUSDC...")
+     //Supplying USDC
+     txn = await instance.connect(accounts[5])
+     .createProposal(
+       0x2,
+       811,
+       CUSDCAddress,
+       usdcAddress,
+       ethers.utils.parseUnits('10000',6),
+       100,
+       false
+     );
+
+     txn = await instance.connect(accounts[6]).voteResponse(3, 1, false);
+     const stakeUSDC = await ethers.getContractAt('CompoundV2Facet', instance.address);
+     txn = await stakeUSDC.connect(accounts[6]).compoundV2Supply(3);
+     console.log("Account setup completed!")
 }
 if (require.main === module) {
   main()
