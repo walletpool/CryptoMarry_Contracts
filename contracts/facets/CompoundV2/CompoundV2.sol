@@ -154,6 +154,7 @@ contract CompoundV2Facet is ERC2771ContextUpgradeable, HandlerBase {
             uint256 afterTokenAmount = IERC20(token).balanceOf(address(this));
             if (afterTokenAmount == beforeTokenAmount)
                 revert COULD_NOT_PROCESS("NoRedeemedU");
+                
         } else if (vt.voteProposalAttributes[_id].voteType == 815) {
             vt.voteProposalAttributes[_id].voteStatus = 815;
 
@@ -300,14 +301,12 @@ contract CompoundV2Facet is ERC2771ContextUpgradeable, HandlerBase {
         else if (vt.voteProposalAttributes[_id].voteType == 819) {
             vt.voteProposalAttributes[_id].voteStatus = 819;
             ICEther compound = ICEther(vt.voteProposalAttributes[_id].tokenID);
-            address token = vt.voteProposalAttributes[_id].receiver;
 
             uint256 debt = compound.borrowBalanceCurrent(address(this));
 
             if (_amount < debt) {
                 debt = _amount;
             }
-
             try compound.repayBorrow{value: debt}() {} catch Error(
                 string memory reason
             ) {
@@ -315,7 +314,6 @@ contract CompoundV2Facet is ERC2771ContextUpgradeable, HandlerBase {
             } catch {
                 revert COULD_NOT_PROCESS("repayBorrowERC");
             }
-            _tokenApproveZero(token, address(compound));
             uint256 debtEnd = compound.borrowBalanceCurrent(address(this));
 
             if (debtEnd == debt) revert COULD_NOT_PROCESS("repayError");
