@@ -46,39 +46,63 @@ contract CompoundV3FacetUSDC is ERC2771ContextUpgradeable, HandlerBase {
         //supply ETH
         if (vt.voteProposalAttributes[_id].voteType == 800){
              vt.voteProposalAttributes[_id].voteStatus = 800;
+             uint256 beforeTokenAmount = getcollateralBalanceOfUSDC(weth9Address_COMP);
              _amount = _getBalance(address(0), _amount);
              IWrappedNativeToken(weth9Address_COMP).deposit{value: _amount}();
              supplyToken(weth9Address_COMP, _amount);
+
+              uint256 afterTokenAmount = getcollateralBalanceOfUSDC(weth9Address_COMP);
+            if (afterTokenAmount == beforeTokenAmount)
+                revert COULD_NOT_PROCESS("ErrorSupply");
         }
 
-        //Supply Token 
+        //Supply non USDC Token 
         else if (vt.voteProposalAttributes[_id].voteType == 801) {
             vt.voteProposalAttributes[_id].voteStatus = 801;
             address tokenIn = vt.voteProposalAttributes[_id].tokenID;
+            uint256 beforeTokenAmount = getcollateralBalanceOfUSDC(tokenIn);
              _amount = _getBalance(tokenIn, _amount);
             supplyToken(tokenIn, _amount);
+             uint256 afterTokenAmount = getcollateralBalanceOfUSDC(tokenIn);
+            if (afterTokenAmount == beforeTokenAmount)
+                revert COULD_NOT_PROCESS("ErrorSupply");
+
+
+        } //Supply USDC
+        else if (vt.voteProposalAttributes[_id].voteType == 802) {
+            vt.voteProposalAttributes[_id].voteStatus = 802;
+            address tokenIn = vt.voteProposalAttributes[_id].tokenID;
+            uint256 beforeTokenAmount = IERC20(tokenIn).balanceOf(address(this));
+             _amount = _getBalance(tokenIn, _amount);
+            supplyToken(tokenIn, _amount);
+             uint256 afterTokenAmount = IERC20(tokenIn).balanceOf(address(this));
+            if (afterTokenAmount == beforeTokenAmount)
+                revert COULD_NOT_PROCESS("ErrorSupply");
 
        //withdraw ETH
-        } else if (vt.voteProposalAttributes[_id].voteType == 802) {
-            vt.voteProposalAttributes[_id].voteStatus = 802;
+        }else if (vt.voteProposalAttributes[_id].voteType == 803) {
+            vt.voteProposalAttributes[_id].voteStatus = 803;
            withdrawToken(weth9Address_COMP, _amount);
            IWrappedNativeToken(weth9Address_COMP).withdraw(_amount);
 
         //withdraw Token
-        } else if (vt.voteProposalAttributes[_id].voteType == 803) {
-            vt.voteProposalAttributes[_id].voteStatus = 803;
+        } else if (vt.voteProposalAttributes[_id].voteType == 804) {
+            vt.voteProposalAttributes[_id].voteStatus = 804;
             address tokenOut = vt.voteProposalAttributes[_id].tokenID;
            withdrawToken(tokenOut, _amount);
 
         //repayFullBorrow
-        } else if (vt.voteProposalAttributes[_id].voteType == 804) {
-            vt.voteProposalAttributes[_id].voteStatus = 804;
+        } else if (vt.voteProposalAttributes[_id].voteType == 805) {
+            vt.voteProposalAttributes[_id].voteStatus = 805;
             address tokenIn = vt.voteProposalAttributes[_id].tokenID;
             uint256 debt = getBorrowBalanceOfUSDC();
             if (_amount < debt) {
                 debt = _amount;
             }
-            supplyToken(tokenIn, debt);
+             supplyToken(tokenIn, debt);
+            uint256 afterDebt = getBorrowBalanceOfUSDC();
+            if (afterDebt == debt)
+                revert COULD_NOT_PROCESS("ErrorPayingDebt");
         }
         else {
             revert COULD_NOT_PROCESS("WrongType");
@@ -93,19 +117,16 @@ contract CompoundV3FacetUSDC is ERC2771ContextUpgradeable, HandlerBase {
     }
 
     function supplyToken(address tokenIn, uint256 _amount) internal {
-         uint256 beforeTokenAmount = getcollateralBalanceOfUSDC(tokenIn);
+         
             _tokenApprove(tokenIn, cometAddress_USDC, _amount);
             try Comet(cometAddress_USDC).supply(tokenIn, _amount) {
             } catch Error(string memory reason) {
                 revert COULD_NOT_PROCESS(reason);
             } catch {
-                revert COULD_NOT_PROCESS("ErrorSupply");
+                revert COULD_NOT_PROCESS("Error801");
             }
            
             _tokenApproveZero(tokenIn, cometAddress_USDC);
-            uint256 afterTokenAmount = getcollateralBalanceOfUSDC(tokenIn);
-            if (afterTokenAmount == beforeTokenAmount)
-                revert COULD_NOT_PROCESS("ErrorSupply");
 
     }
 
@@ -217,24 +238,24 @@ contract CompoundV3FacetUSDC is ERC2771ContextUpgradeable, HandlerBase {
      * Get the amount of base asset that can be borrowed by an account
      *     scaled up by 10 ^ 8
      */
-    function getBorrowableAmountUSDC(address account) public view returns (int256) {
+    function getBorrowableAmountUSDC() public view returns (int256) {
         Comet comet = Comet(cometAddress_USDC);
         uint8 numAssets = comet.numAssets();
-        uint16 assetsIn = comet.userBasic(account).assetsIn;
+        uint16 assetsIn = comet.userBasic(address(this)).assetsIn;
         uint64 si = comet.totalsBasic().baseSupplyIndex;
         uint64 bi = comet.totalsBasic().baseBorrowIndex;
         address baseTokenPriceFeed = comet.baseTokenPriceFeed();
 
         int256 liquidity = int256(
-            (presentValueUSDC(comet.userBasic(account).principal, si, bi) *
-                int256(getCompoundPriceUSDC(baseTokenPriceFeed))) / int256(1e8)
+            (presentValueUSDC(comet.userBasic(address(this)).principal, si, bi) *
+                int256(getCompoundPriceUSDC(baseTokenPriceFeed))) * int256(1e4)
         );
 
         for (uint8 i = 0; i < numAssets; i++) {
             if (isInAssetUSDC(assetsIn, i)) {
                 CometStructs.AssetInfo memory asset = comet.getAssetInfo(i);
                 uint256 newAmount = (uint256(
-                    comet.userCollateral(account, asset.asset).balance
+                    comet.userCollateral(address(this), asset.asset).balance
                 ) * getCompoundPriceUSDC(asset.priceFeed)) / 1e8;
                 liquidity += int256(
                     (newAmount * asset.borrowCollateralFactor) / 1e18
@@ -316,27 +337,61 @@ contract CompoundV3FacetUSDC is ERC2771ContextUpgradeable, HandlerBase {
 
         return tvlUsd;
     }
+    error InvalidInt256();
+    //Math 
+     function signed256(uint256 n) internal pure returns (int256) {
+        if (n > uint256(type(int256).max)) revert InvalidInt256();
+        return int256(n);
+    }
 
-
-    function presentValueUSDC(
-        int104 principalValue_,
-        uint64 baseSupplyIndex_,
-        uint64 baseBorrowIndex_
-    ) internal view returns (int104) {
+     /**
+     * @dev The positive present supply balance if positive or the negative borrow balance if negative
+     */
+    function presentValueUSDC(int104 principalValue_, 
+    uint64 baseSupplyIndex_,
+    uint64 baseBorrowIndex_) internal view returns (int256) {
         if (principalValue_ >= 0) {
-            return
-                int104(
-                    (uint104(principalValue_) * baseSupplyIndex_) /
-                        uint64(BASE_INDEX_SCALE_USDC)
-                );
+            return signed256(presentValueSupply(baseSupplyIndex_, uint104(principalValue_)));
         } else {
-            return
-                -int104(
-                    (uint104(principalValue_) * baseBorrowIndex_) /
-                        uint64(BASE_INDEX_SCALE_USDC)
-                );
+            return -signed256(presentValueBorrow(baseBorrowIndex_, uint104(-principalValue_)));
         }
     }
+
+    /**
+     * @dev The principal amount projected forward by the supply index
+     */
+    function presentValueSupply(uint64 baseSupplyIndex_, uint104 principalValue_) internal view returns (uint256) {
+        return uint256(principalValue_) * baseSupplyIndex_ / uint64(BASE_INDEX_SCALE_USDC);
+    }
+
+    /**
+     * @dev The principal amount projected forward by the borrow index
+     */
+    function presentValueBorrow(uint64 baseBorrowIndex_, uint104 principalValue_) internal view returns (uint256) {
+        return uint256(principalValue_) * baseBorrowIndex_ / uint64(BASE_INDEX_SCALE_USDC);
+    }
+
+
+
+    // function presentValueUSDC(
+    //     int104 principalValue_,
+    //     uint64 baseSupplyIndex_,
+    //     uint64 baseBorrowIndex_
+    // ) internal view returns (int104) {
+    //     if (principalValue_ >= 0) {
+    //         return
+    //             int104(
+    //                 (uint104(principalValue_) * baseSupplyIndex_) /
+    //                     uint64(BASE_INDEX_SCALE_USDC)
+    //             );
+    //     } else {
+    //         return
+    //             -int104(
+    //                 (uint104(principalValue_) * baseBorrowIndex_) /
+    //                     uint64(BASE_INDEX_SCALE_USDC)
+    //             );
+    //     }
+    // }
 
     function isInAssetUSDC(uint16 assetsIn, uint8 assetOffset)
         internal
