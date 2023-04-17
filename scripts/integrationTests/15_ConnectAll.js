@@ -169,7 +169,7 @@ describe("Integration Test of All Apps", function () {
         Status: 1
       })
     //1.CompoundV3
-    CompoundV3FacetUSDC = await deploy('CompoundV3FacetUSDC',Contracts.forwarder.address,cometAddress);
+    CompoundV3FacetUSDC = await deploy('CompoundV3FacetUSDC',Contracts.forwarder.address,cometAddress, wethAddress);
       
     WhiteListAddr.push({
         ContractAddress: CompoundV3FacetUSDC.address,

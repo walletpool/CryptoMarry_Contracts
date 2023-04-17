@@ -6,13 +6,15 @@ import {IDiamondCut} from "../../interfaces/IDiamondCut.sol";
 import {LibDiamond} from "../../libraries/LibDiamond.sol";
 import "@gnus.ai/contracts-upgradeable-diamond/metatx/MinimalForwarderUpgradeable.sol";
 import "@gnus.ai/contracts-upgradeable-diamond/metatx/ERC2771ContextUpgradeable.sol";
+import "../UniswapV3/IWrappedNativeToken.sol";
 import "./IComet.sol";
 import "../handlerBase.sol";
 
 contract CompoundV3FacetUSDC is ERC2771ContextUpgradeable, HandlerBase {
-    error COULD_NOT_PROCESS();
+    error COULD_NOT_PROCESS(string);
 
     address public immutable cometAddress_USDC;
+    address public immutable weth9Address_COMP;
     uint256 internal constant DAYS_PER_YEAR = 365;
     uint256 internal constant SECONDS_PER_DAY = 60 * 60 * 24;
     uint256 internal constant SECONDS_PER_YEAR = SECONDS_PER_DAY * DAYS_PER_YEAR;
@@ -21,10 +23,11 @@ contract CompoundV3FacetUSDC is ERC2771ContextUpgradeable, HandlerBase {
     uint256 public immutable BASE_MANTISSA_USDC;
     uint256 public immutable BASE_INDEX_SCALE_USDC;
 
-    constructor(MinimalForwarderUpgradeable forwarder, address _cometAddress)
+    constructor(MinimalForwarderUpgradeable forwarder, address _cometAddress, address _weth9Address_COMP)
         ERC2771ContextUpgradeable(address(forwarder))
     {
         cometAddress_USDC = _cometAddress;
+        weth9Address_COMP = _weth9Address_COMP;
         BASE_MANTISSA_USDC = Comet(cometAddress_USDC).baseScale();
         BASE_INDEX_SCALE_USDC = Comet(cometAddress_USDC).baseIndexScale();
     }
@@ -40,31 +43,45 @@ contract CompoundV3FacetUSDC is ERC2771ContextUpgradeable, HandlerBase {
 
         uint256 _amount = vt.voteProposalAttributes[_id].amount;
 
-        //supply
-        if (vt.voteProposalAttributes[_id].voteType == 800) {
-            vt.voteProposalAttributes[_id].voteStatus = 800;
-            address tokenIn = vt.voteProposalAttributes[_id].tokenID;
-            _amount = _getBalance(tokenIn, _amount);
-            _tokenApprove(tokenIn, cometAddress_USDC, _amount);
-            Comet(cometAddress_USDC).supply(tokenIn, _amount);
-            _tokenApproveZero(tokenIn, cometAddress_USDC);
-       //withdraw (or borrow)
-        } else if (vt.voteProposalAttributes[_id].voteType == 801) {
-            vt.voteProposalAttributes[_id].voteStatus = 801;
-            address tokenOut = vt.voteProposalAttributes[_id].tokenID;
-            Comet(cometAddress_USDC).withdraw(tokenOut, _amount);
+        //supply ETH
+        if (vt.voteProposalAttributes[_id].voteType == 800){
+             vt.voteProposalAttributes[_id].voteStatus = 800;
+             _amount = _getBalance(address(0), _amount);
+             IWrappedNativeToken(weth9Address_COMP).deposit{value: _amount}();
+             supplyToken(weth9Address_COMP, _amount);
+        }
 
-        //repayFullBorrow
+        //Supply Token 
+        else if (vt.voteProposalAttributes[_id].voteType == 801) {
+            vt.voteProposalAttributes[_id].voteStatus = 801;
+            address tokenIn = vt.voteProposalAttributes[_id].tokenID;
+             _amount = _getBalance(tokenIn, _amount);
+            supplyToken(tokenIn, _amount);
+
+       //withdraw ETH
         } else if (vt.voteProposalAttributes[_id].voteType == 802) {
             vt.voteProposalAttributes[_id].voteStatus = 802;
+           withdrawToken(weth9Address_COMP, _amount);
+           IWrappedNativeToken(weth9Address_COMP).withdraw(_amount);
+
+        //withdraw Token
+        } else if (vt.voteProposalAttributes[_id].voteType == 803) {
+            vt.voteProposalAttributes[_id].voteStatus = 803;
+            address tokenOut = vt.voteProposalAttributes[_id].tokenID;
+           withdrawToken(tokenOut, _amount);
+
+        //repayFullBorrow
+        } else if (vt.voteProposalAttributes[_id].voteType == 804) {
+            vt.voteProposalAttributes[_id].voteStatus = 804;
             address tokenIn = vt.voteProposalAttributes[_id].tokenID;
-            _amount = _getBalance(tokenIn, _amount);
-            _tokenApprove(tokenIn, cometAddress_USDC, _amount);
-            Comet(cometAddress_USDC).supply(tokenIn, _amount);
-            _tokenApproveZero(tokenIn, cometAddress_USDC);
+            uint256 debt = getBorrowBalanceOfUSDC();
+            if (_amount < debt) {
+                debt = _amount;
+            }
+            supplyToken(tokenIn, debt);
         }
         else {
-            revert COULD_NOT_PROCESS();
+            revert COULD_NOT_PROCESS("WrongType");
         }
         emit VoteProposalLib.VoteStatus(
             _id,
@@ -73,6 +90,36 @@ contract CompoundV3FacetUSDC is ERC2771ContextUpgradeable, HandlerBase {
             block.timestamp
         );
         VoteProposalLib.checkForwarder();
+    }
+
+    function supplyToken(address tokenIn, uint256 _amount) internal {
+         uint256 beforeTokenAmount = getcollateralBalanceOfUSDC(tokenIn);
+            _tokenApprove(tokenIn, cometAddress_USDC, _amount);
+            try Comet(cometAddress_USDC).supply(tokenIn, _amount) {
+            } catch Error(string memory reason) {
+                revert COULD_NOT_PROCESS(reason);
+            } catch {
+                revert COULD_NOT_PROCESS("ErrorSupply");
+            }
+           
+            _tokenApproveZero(tokenIn, cometAddress_USDC);
+            uint256 afterTokenAmount = getcollateralBalanceOfUSDC(tokenIn);
+            if (afterTokenAmount == beforeTokenAmount)
+                revert COULD_NOT_PROCESS("ErrorSupply");
+
+    }
+
+    function withdrawToken(address tokenOut,uint256 _amount) internal {
+         uint256 beforeTokenAmount = IERC20(tokenOut).balanceOf(address(this));
+             try Comet(cometAddress_USDC).withdraw(tokenOut, _amount) {
+            } catch Error(string memory reason) {
+                revert COULD_NOT_PROCESS(reason);
+            } catch {
+                revert COULD_NOT_PROCESS("ErrorWithdrawBorrow");
+            }
+            uint256 afterTokenAmount = IERC20(tokenOut).balanceOf(address(this));
+            if (afterTokenAmount == beforeTokenAmount)
+                revert COULD_NOT_PROCESS("ErrorWithdrawBorrow");
     }
 
     /*

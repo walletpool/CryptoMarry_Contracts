@@ -67,7 +67,8 @@ async function main() {
   CompoundV3FacetUSDC = await deploy(
     "CompoundV3FacetUSDC",
     forwarder.address,
-    cometAddress
+    cometAddress,
+    wethAddress
   );
 
   WhiteListAddr.push({
