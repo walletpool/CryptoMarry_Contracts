@@ -587,7 +587,7 @@ async function main() {
    txn = await instance.connect(accounts[6]).voteResponse(1, 1, false);
 
    const swapETH = await ethers.getContractAt('UniSwapV3Facet', instance.address);
-   txn = await swapETH.connect(accounts[5]).executeUniSwap(1,ethers.utils.parseUnits('20000',6),3000,0);
+   txn = await swapETH.connect(accounts[5]).executeUniSwap(1,ethers.utils.parseUnits('19000',6),3000,0);
 
    console.log("Swapping ETH to cETH...")
      //Supplying ETH
