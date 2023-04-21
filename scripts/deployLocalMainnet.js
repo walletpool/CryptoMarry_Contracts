@@ -552,7 +552,7 @@ async function main() {
   instance = await WaverImplementation.attach(txn[0].marriageContract);
 
   console.log("Connecting Apps...")
-  ///Connecting Compound and Uniswap V3
+  ///Connecting Compound and Uniswap V3, CompoundV2, CompoundV3
   const cut = []
   let tx;
   let receipt;
@@ -565,6 +565,11 @@ async function main() {
       facetAddress: UniSwapV3Facet.address,
       action: FacetCutAction.Add,
       functionSelectors: getSelectors(UniSwapV3Facet)
+    })
+    cut.push({
+      facetAddress: CompoundV3FacetUSDC.address,
+      action: FacetCutAction.Add,
+      functionSelectors: getSelectors(CompoundV3FacetUSDC)
     })
 
   const diamondCut = await ethers.getContractAt('DiamondCutFacet', instance.address);
@@ -587,7 +592,7 @@ async function main() {
    txn = await instance.connect(accounts[6]).voteResponse(1, 1, false);
 
    const swapETH = await ethers.getContractAt('UniSwapV3Facet', instance.address);
-   txn = await swapETH.connect(accounts[5]).executeUniSwap(1,ethers.utils.parseUnits('19000',6),3000,0);
+   txn = await swapETH.connect(accounts[5]).executeUniSwap(1,ethers.utils.parseUnits('18000',6),3000,0);
 
    console.log("Swapping ETH to cETH...")
      //Supplying ETH
@@ -623,6 +628,24 @@ async function main() {
      txn = await instance.connect(accounts[6]).voteResponse(3, 1, false);
      const stakeUSDC = await ethers.getContractAt('CompoundV2Facet', instance.address);
      txn = await stakeUSDC.connect(accounts[6]).compoundV2Supply(3);
+
+     //Supplying USDC to Compound 3 
+     console.log("Supplying USDC to Compound V3.")
+     txn = await instance.connect(accounts[5])
+     .createProposal(
+      '0x50726f706f73616c202300000000000000000000000000000000000000000000',
+       802,
+       CUSDCAddress,
+       usdcAddress,
+       ethers.utils.parseUnits('5000',6),
+       100,
+       false
+     );
+
+     txn = await instance.connect(accounts[6]).voteResponse(4, 1, false);
+     const stakeUSDCCompound3 = await ethers.getContractAt('CompoundV3FacetUSDC', instance.address);
+     txn = await stakeUSDCCompound3.connect(accounts[6]).executeSupplyCompoundV3USDC(4);
+
      console.log("Account setup completed!")
 }
 if (require.main === module) {

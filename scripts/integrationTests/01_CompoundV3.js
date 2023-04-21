@@ -309,7 +309,7 @@ describe("Compound III Integration Test", function () {
         //borrowing USDC
           //Getting Supply APR
         txn = await stakeWETH.callStatic.getSupplyAprUSDC();
-        console.log('APR:', txn);
+        console.log('APR:', ethers.utils.formatUnits(txn,18));
          //Getting USDC Balance 
         txn = await stakeWETH.callStatic.getBalanceOfUSDC();
         console.log('USDC Balance:', txn);
