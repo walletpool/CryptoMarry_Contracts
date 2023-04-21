@@ -4,7 +4,7 @@ const networks = require("./integrationTests/addresses.json");
 const {
   callExternalApi,
 } = require('./libraries/utils');
-const { getSelectors, FacetCutAction } = require('./libraries/diamond.js')
+const { getSelectors, FacetCutAction } = require('./libraries/diamond.js');
 
 async function deploy(name, ...params) {
   const Contract = await ethers.getContractFactory(name);
@@ -630,14 +630,14 @@ async function main() {
      txn = await stakeUSDC.connect(accounts[6]).compoundV2Supply(3);
 
      //Supplying USDC to Compound 3 
-     console.log("Supplying USDC to Compound V3.")
+     console.log("Supplying ETH to Compound V3.")
      txn = await instance.connect(accounts[5])
      .createProposal(
       '0x50726f706f73616c202300000000000000000000000000000000000000000000',
-       802,
+       800,
        CUSDCAddress,
-       usdcAddress,
-       ethers.utils.parseUnits('5000',6),
+       ZERO_ADDRESS,
+       ethers.utils.parseUnits('10',18),
        100,
        false
      );
