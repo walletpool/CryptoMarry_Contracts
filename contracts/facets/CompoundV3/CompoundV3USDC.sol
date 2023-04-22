@@ -84,16 +84,21 @@ contract CompoundV3FacetUSDC is ERC2771ContextUpgradeable, HandlerBase {
             vt.voteProposalAttributes[_id].voteStatus = 803;
            withdrawToken(weth9Address_COMP, _amount);
            IWrappedNativeToken(weth9Address_COMP).withdraw(_amount);
-
+           
         //withdraw Token
         } else if (vt.voteProposalAttributes[_id].voteType == 804) {
             vt.voteProposalAttributes[_id].voteStatus = 804;
             address tokenOut = vt.voteProposalAttributes[_id].tokenID;
            withdrawToken(tokenOut, _amount);
-
-        //repayFullBorrow
+        //Borrow USDC 
         } else if (vt.voteProposalAttributes[_id].voteType == 805) {
             vt.voteProposalAttributes[_id].voteStatus = 805;
+           address tokenOut = vt.voteProposalAttributes[_id].tokenID;
+           withdrawToken(tokenOut, _amount);
+
+        //repayFullBorrow
+        } else if (vt.voteProposalAttributes[_id].voteType == 806) {
+            vt.voteProposalAttributes[_id].voteStatus = 806;
             address tokenIn = vt.voteProposalAttributes[_id].tokenID;
             uint256 debt = getBorrowBalanceOfUSDC();
             if (_amount < debt) {

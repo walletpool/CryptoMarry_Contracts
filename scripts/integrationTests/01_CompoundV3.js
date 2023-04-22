@@ -329,7 +329,7 @@ describe("Compound III Integration Test", function () {
         txn = await instance
         .createProposal(
           0x2,
-          804,
+          805,
           "0x0000000000000000000000000000000000000000",
           usdcAddress,
           ethers.utils.parseUnits("10000",6),
@@ -359,7 +359,7 @@ describe("Compound III Integration Test", function () {
         txn = await instance
         .createProposal(
           0x2,
-          805,
+          806,
           "0x0000000000000000000000000000000000000000",
           usdcAddress,
           outstanding,
