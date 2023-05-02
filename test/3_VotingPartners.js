@@ -49,7 +49,6 @@ describe("Testing voting interactions", function () {
       instance
         .connect(accounts[2])
         .createProposal(
-          0x1,
           1,
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
@@ -68,7 +67,6 @@ describe("Testing voting interactions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-        0x1,
         1,
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
@@ -79,7 +77,6 @@ describe("Testing voting interactions", function () {
     txn = await instance
       .connect(accounts[1])
       .createProposal(
-        0x2,
         1,
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
@@ -105,7 +102,6 @@ describe("Testing voting interactions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-        0x2,
         1,
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
@@ -125,7 +121,6 @@ describe("Testing voting interactions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-        0x2,
         1,
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
@@ -143,7 +138,6 @@ describe("Testing voting interactions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-        0x2,
         1,
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
@@ -163,7 +157,6 @@ describe("Testing voting interactions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-        0x2,
         1,
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
@@ -188,7 +181,6 @@ describe("Testing voting interactions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-        0x2,
         1,
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
@@ -209,7 +201,6 @@ describe("Testing voting interactions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-        0x2,
         1,
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
@@ -233,7 +224,6 @@ describe("Testing voting interactions", function () {
       instance
         .connect(accounts[0])
         .createProposal(
-          0x4,
           4,
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
@@ -251,7 +241,6 @@ describe("Testing voting interactions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-        0x4,
         4,
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
@@ -271,7 +260,6 @@ describe("Testing voting interactions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-        0x4,
         3,
         accounts[3].address,
         "0x0000000000000000000000000000000000000000",
@@ -301,7 +289,6 @@ describe("Testing voting interactions", function () {
       await instance
         .connect(accounts[0])
         .createProposal(
-          0x4,
           3,
           accounts[3].address,
           "0x0000000000000000000000000000000000000000",
@@ -327,7 +314,6 @@ describe("Testing voting interactions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-        0x4,
         3,
         accounts[3].address,
         "0x0000000000000000000000000000000000000000",
@@ -353,7 +339,6 @@ describe("Testing voting interactions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-        0x4,
         3,
         accounts[3].address,
         "0x0000000000000000000000000000000000000000",
@@ -373,7 +358,6 @@ describe("Testing voting interactions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-        0x5,
         2,
         accounts[3].address,
         WavePortal7.address,
@@ -404,7 +388,6 @@ describe("Testing voting interactions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-        0x5,
         2,
         accounts[3].address,
         WavePortal7.address,
@@ -434,7 +417,6 @@ describe("Testing voting interactions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-        0x6,
         5,
         accounts[3].address,
         nftContract.address,
@@ -461,7 +443,6 @@ describe("Testing voting interactions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-        0x6,
         5,
         accounts[3].address,
         nftContract.address,

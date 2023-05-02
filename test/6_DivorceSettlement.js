@@ -34,7 +34,7 @@ describe("Divorce Settlement Functions", function () {
     const instance = await WaverImplementation.attach(txn[0].marriageContract);
 
     txn = await instance.connect(accounts[0]).createProposal(
-      0x7,
+      
       7,
       accounts[4].address,
       "0x0000000000000000000000000000000000000000",
@@ -44,7 +44,7 @@ describe("Divorce Settlement Functions", function () {
     )
 
     txn = await instance.connect(accounts[1]).createProposal(
-      0x7,
+       
       7,
       accounts[5].address,
       "0x0000000000000000000000000000000000000000",
@@ -87,7 +87,7 @@ describe("Divorce Settlement Functions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-      0x4,
+      
       4,
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
@@ -126,7 +126,7 @@ describe("Divorce Settlement Functions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-      0x4,
+       
       4,
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
@@ -148,7 +148,7 @@ describe("Divorce Settlement Functions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-      0x4,
+       
       4,
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
@@ -176,7 +176,7 @@ describe("Divorce Settlement Functions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-        0x4,
+         
         4,
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
@@ -199,7 +199,7 @@ describe("Divorce Settlement Functions", function () {
       instance
         .connect(accounts[0])
         .createProposal(
-          0x1,
+          
           1,
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
@@ -212,7 +212,7 @@ describe("Divorce Settlement Functions", function () {
       instance
         .connect(accounts[1])
         .createProposal(
-          0x1,
+           
           1,
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
@@ -225,7 +225,7 @@ describe("Divorce Settlement Functions", function () {
       instance
         .connect(accounts[4])
         .createProposal(
-          0x1,
+           
           1,
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
@@ -238,7 +238,7 @@ describe("Divorce Settlement Functions", function () {
       instance
         .connect(accounts[5])
         .createProposal(
-          0x1,
+           
           1,
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
@@ -255,7 +255,7 @@ describe("Divorce Settlement Functions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-        0x4,
+         
         4,
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
@@ -297,7 +297,7 @@ describe("Divorce Settlement Functions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-        0x3,
+        
         3,
         accounts[3].address,
         "0x0000000000000000000000000000000000000000",
@@ -320,7 +320,7 @@ describe("Divorce Settlement Functions", function () {
     txn = await instance
       .connect(accounts[0])
       .createProposal(
-        0x4,
+         
         4,
         "0x0000000000000000000000000000000000000000",
         "0x0000000000000000000000000000000000000000",
@@ -384,7 +384,7 @@ describe("Divorce Settlement Functions", function () {
     txn = await instance
     .connect(accounts[0])
     .createProposal(
-      0x4,
+       
       4,
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
@@ -447,7 +447,7 @@ describe("Divorce Settlement Functions", function () {
     txn = await instance
     .connect(accounts[0])
     .createProposal(
-      0x4,
+       
       4,
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
@@ -490,7 +490,7 @@ describe("Divorce Settlement Functions", function () {
     txn = await instance
     .connect(accounts[0])
     .createProposal(
-      0x4,
+       
       4,
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",
@@ -543,7 +543,7 @@ describe("Divorce Settlement Functions", function () {
     txn = await instance
     .connect(accounts[0])
     .createProposal(
-      0x4,
+       
       4,
       "0x0000000000000000000000000000000000000000",
       "0x0000000000000000000000000000000000000000",

@@ -332,7 +332,7 @@ describe("OneInch V5 Integration Test", function () {
     
         txn = await instance
         .createProposal(
-          0x2,
+           
           137,
           dstAddress,
           ZERO_ADDRESS,
@@ -380,7 +380,7 @@ describe("OneInch V5 Integration Test", function () {
      
          txn = await instance
          .createProposal(
-           0x2,
+            
            137,
            ZERO_ADDRESS,
            srcAddress,
@@ -425,7 +425,7 @@ describe("OneInch V5 Integration Test", function () {
       
           txn = await instance
           .createProposal(
-            0x2,
+             
             137,
             dstAddress,
             srcAddress,

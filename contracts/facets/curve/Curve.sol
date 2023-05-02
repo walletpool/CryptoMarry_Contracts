@@ -50,7 +50,6 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
      * @notice Through this method proposals for voting is created. 
      * @dev All params are required. tokenID for the native currency is 0x0 address. To create proposals it is necessary to 
      have LOVE tokens as it will be used as backing of the proposal. 
-     * @param _message String text on details of the proposal. 
      * @param _votetype Type of the proposal as it was listed in enum above. 
      * @param _voteends Timestamp on when the voting ends
      * @param _numTokens Number of LOVE tokens that is used to back this proposal. 
@@ -60,7 +59,6 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
      */
 
     function createProposalLiquidity(
-        bytes calldata _message,
         uint16 _votetype,
         uint256 _voteends,
         uint256 _numTokens,
@@ -74,7 +72,7 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
         address msgSender_ = _msgSender();
         VoteProposalLib.enforceUserHasAccess(msgSender_);
         VoteProposalLib.enforceMarried();
-        require(bytes(_message).length < 192);
+
         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
             .VoteTrackingStorage();
 
@@ -87,7 +85,6 @@ contract CurveFacet is ERC2771ContextUpgradeable, HandlerBase {
             id: vt.voteid,
             proposer: msgSender_,
             voteType: _votetype,
-            voteProposalText: _message,
             voteStatus: 1,
             voteends: _voteends,
             receiver: _pool,

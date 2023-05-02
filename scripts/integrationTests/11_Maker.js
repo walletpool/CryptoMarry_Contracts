@@ -298,7 +298,7 @@ describe("Maker Integration Test", function () {
           //Depositing ETH  
           txn = await instance
           .createProposal(
-            0x2,
+             
             132,
             ZERO_ADDRESS,
             MakerETHAddress,
@@ -316,7 +316,7 @@ describe("Maker Integration Test", function () {
            //Withdrawing ETH  
            txn = await instance
            .createProposal(
-             0x2,
+              
              134,
              ZERO_ADDRESS,
              MakerETHAddress,
@@ -334,7 +334,7 @@ describe("Maker Integration Test", function () {
             //Withdrawing DAI  
             txn = await instance
             .createProposal(
-              0x2,
+               
               136,
               "0x0000000000000000000000000000000000000001",
               MakerDaiAddress,
@@ -352,7 +352,7 @@ describe("Maker Integration Test", function () {
             //Paying back DAI  
             txn = await instance
             .createProposal(
-              0x2,
+               
               137,
               "0x0000000000000000000000000000000000000001",
               MakerDaiAddress,
@@ -370,7 +370,7 @@ describe("Maker Integration Test", function () {
              //Paying back DAI  
              txn = await instance
              .createProposal(
-               0x2,
+                
                137,
                "0x0000000000000000000000000000000000000001",
                MakerDaiAddress,
@@ -437,7 +437,7 @@ describe("Maker Integration Test", function () {
           //depositing USDC to newly created vault  
           txn = await instance
           .createProposal(
-            0x2,
+             
             133,
             usdcAddress,
             MakerUSDCAddress,
@@ -455,7 +455,7 @@ describe("Maker Integration Test", function () {
            //Withdrawing USDC  
            txn = await instance
            .createProposal(
-             0x2,
+              
              135,
              usdcAddress,
              MakerUSDCAddress,
@@ -474,7 +474,7 @@ describe("Maker Integration Test", function () {
             //Withdrawing DAI  
             txn = await instance
             .createProposal(
-              0x2,
+               
               136,
               usdcAddress,
               MakerDaiAddress,

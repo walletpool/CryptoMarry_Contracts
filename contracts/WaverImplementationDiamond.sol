@@ -201,7 +201,6 @@ contract WaverIDiamond is
      * @notice Through this method proposals for voting is created. 
      * @dev All params are required. tokenID for the native currency is 0x0 address. To create proposals it is necessary to 
      have LOVE tokens as it will be used as backing of the proposal. 
-     * @param _message Bytes text on details of the proposal. 
      * @param _votetype Type of the proposal as it was listed in enum above. 
      * @param _receiver Address of the receiver who will be receiving indicated amounts. 
      * @param _tokenID Address of the ERC20, ERC721 or other tokens. 
@@ -210,7 +209,6 @@ contract WaverIDiamond is
      */
 
     function createProposal(
-        bytes calldata _message,
         uint16 _votetype,
         address payable _receiver,
         address _tokenID,
@@ -245,7 +243,6 @@ contract WaverIDiamond is
             id: vt.voteid,
             proposer: msgSender_,
             voteType: _votetype,
-            voteProposalText: _message,
             voteStatus: 1,
             voteends: _voteends,
             receiver: _receiver,

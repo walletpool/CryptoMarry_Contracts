@@ -299,7 +299,7 @@ describe("BProtocol Integration Test", function () {
           //Depositing ETH  
           txn = await instance
           .createProposal(
-            0x2,
+             
             702,
             ZERO_ADDRESS,
             MakerETHAddress,
@@ -317,7 +317,7 @@ describe("BProtocol Integration Test", function () {
            //Withdrawing ETH  
            txn = await instance
            .createProposal(
-             0x2,
+              
              704,
              ZERO_ADDRESS,
              MakerETHAddress,
@@ -334,7 +334,7 @@ describe("BProtocol Integration Test", function () {
             //Withdrawing DAI  
             txn = await instance
             .createProposal(
-              0x2,
+               
               706,
               "0x0000000000000000000000000000000000000001",
               MakerDaiAddress,
@@ -352,7 +352,7 @@ describe("BProtocol Integration Test", function () {
             //Paying back DAI  
             txn = await instance
             .createProposal(
-              0x2,
+               
               707,
               "0x0000000000000000000000000000000000000001",
               MakerDaiAddress,
@@ -370,7 +370,7 @@ describe("BProtocol Integration Test", function () {
              //Paying back DAI  
              txn = await instance
              .createProposal(
-               0x2,
+                
                707,
                "0x0000000000000000000000000000000000000001",
                MakerDaiAddress,
@@ -437,7 +437,7 @@ describe("BProtocol Integration Test", function () {
           //depositing USDC to newly created vault  
           txn = await instance
           .createProposal(
-            0x2,
+             
             703,
             ZERO_ADDRESS,
             MakerUSDCAddress,
@@ -455,7 +455,7 @@ describe("BProtocol Integration Test", function () {
            //Withdrawing USDC  
            txn = await instance
            .createProposal(
-             0x2,
+              
              705,
              usdcAddress,
              MakerUSDCAddress,
@@ -474,7 +474,7 @@ describe("BProtocol Integration Test", function () {
             //Withdrawing DAI  
             txn = await instance
             .createProposal(
-              0x2,
+               
               706,
               usdcAddress,
               MakerDaiAddress,

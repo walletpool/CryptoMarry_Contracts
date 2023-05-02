@@ -49,7 +49,6 @@ describe("Adding Family Members Testing", function () {
     const { instance, accounts } = await loadFixture(deployTokenFixture);
     await expect(
       instance.connect(accounts[0]).createProposal(
-        0x7,
         7,
         accounts[0].address,
         "0x0000000000000000000000000000000000000000",
@@ -60,7 +59,6 @@ describe("Adding Family Members Testing", function () {
   ).to.reverted;
     await expect(
       instance.connect(accounts[1]).createProposal(
-        0x7,
         7,
         accounts[0].address,
         "0x0000000000000000000000000000000000000000",
@@ -70,7 +68,6 @@ describe("Adding Family Members Testing", function () {
       )).to.reverted;
     await expect(
       instance.connect(accounts[0]).createProposal(
-        0x7,
         7,
         accounts[1].address,
         "0x0000000000000000000000000000000000000000",
@@ -80,7 +77,6 @@ describe("Adding Family Members Testing", function () {
       )).to.reverted;
     await expect(
       instance.connect(accounts[1]).createProposal(
-        0x7,
         7,
         accounts[1].address,
         "0x0000000000000000000000000000000000000000",
@@ -109,7 +105,6 @@ describe("Adding Family Members Testing", function () {
     );
 
     txn = await instance.connect(accounts[1]).createProposal(
-      0x7,
       7,
       accounts[2].address,
       "0x0000000000000000000000000000000000000000",
@@ -119,7 +114,6 @@ describe("Adding Family Members Testing", function () {
     )
 
     txn = await instance.connect(accounts[1]).createProposal(
-      0x7,
       7,
       accounts[3].address,
       "0x0000000000000000000000000000000000000000",
@@ -137,7 +131,6 @@ describe("Adding Family Members Testing", function () {
 
     let txn;
     txn = await instance.connect(accounts[0]).createProposal(
-      0x7,
       7,
       accounts[2].address,
       "0x0000000000000000000000000000000000000000",
@@ -147,7 +140,6 @@ describe("Adding Family Members Testing", function () {
     )
 
     txn = await instance.connect(accounts[1]).createProposal(
-      0x7,
       7,
       accounts[3].address,
       "0x0000000000000000000000000000000000000000",
@@ -197,7 +189,6 @@ describe("Adding Family Members Testing", function () {
     txn = await WavePortal7.connect(accounts[3]).response(1, 0, 2);
 
     txn = await instance.connect(accounts[0]).createProposal(
-      0x7,
       7,
       accounts[4].address,
       "0x0000000000000000000000000000000000000000",
@@ -207,7 +198,6 @@ describe("Adding Family Members Testing", function () {
     )
 
     txn = await instance.connect(accounts[1]).createProposal(
-      0x7,
       7,
       accounts[5].address,
       "0x0000000000000000000000000000000000000000",
@@ -232,7 +222,6 @@ describe("Adding Family Members Testing", function () {
 
 
     txn = await instance2.connect(accounts[2]).createProposal(
-      0x7,
       7,
       accounts[6].address,
       "0x0000000000000000000000000000000000000000",
@@ -242,7 +231,6 @@ describe("Adding Family Members Testing", function () {
     )
 
     txn = await instance2.connect(accounts[3]).createProposal(
-      0x7,
       7,
       accounts[7].address,
       "0x0000000000000000000000000000000000000000",
@@ -314,7 +302,6 @@ describe("Adding Family Members Testing", function () {
       txn = await WavePortal7.connect(accounts[3]).response(1, 0, 2);
   
       txn = await instance.connect(accounts[0]).createProposal(
-        0x7,
         7,
         accounts[4].address,
         "0x0000000000000000000000000000000000000000",
@@ -324,7 +311,6 @@ describe("Adding Family Members Testing", function () {
       )
   
       txn = await instance.connect(accounts[1]).createProposal(
-        0x7,
         7,
         accounts[5].address,
         "0x0000000000000000000000000000000000000000",
@@ -349,7 +335,6 @@ describe("Adding Family Members Testing", function () {
   
   
       txn = await instance2.connect(accounts[2]).createProposal(
-        0x7,
         7,
         accounts[6].address,
         "0x0000000000000000000000000000000000000000",
@@ -359,7 +344,6 @@ describe("Adding Family Members Testing", function () {
       )
   
       txn = await instance2.connect(accounts[3]).createProposal(
-        0x7,
         7,
         accounts[7].address,
         "0x0000000000000000000000000000000000000000",
@@ -422,7 +406,6 @@ describe("Adding Family Members Testing", function () {
       txn = await WavePortal7.connect(accounts[3]).response(1, 0, 2);
   
       txn = await instance.connect(accounts[0]).createProposal(
-        0x7,
         7,
         accounts[4].address,
         "0x0000000000000000000000000000000000000000",
@@ -432,7 +415,6 @@ describe("Adding Family Members Testing", function () {
       )
   
       txn = await instance.connect(accounts[1]).createProposal(
-        0x7,
         7,
         accounts[5].address,
         "0x0000000000000000000000000000000000000000",
@@ -457,7 +439,6 @@ describe("Adding Family Members Testing", function () {
   
   
       txn = await instance2.connect(accounts[2]).createProposal(
-        0x7,
         7,
         accounts[4].address,
         "0x0000000000000000000000000000000000000000",
@@ -467,7 +448,6 @@ describe("Adding Family Members Testing", function () {
       )
   
       txn = await instance2.connect(accounts[3]).createProposal(
-        0x7,
         7,
         accounts[5].address,
         "0x0000000000000000000000000000000000000000",
@@ -532,7 +512,6 @@ describe("Adding Family Members Testing", function () {
       txn = await WavePortal7.connect(accounts[3]).response(1, 0, 2);
   
       txn = await instance.connect(accounts[0]).createProposal(
-        0x7,
         7,
         accounts[4].address,
         "0x0000000000000000000000000000000000000000",
@@ -542,7 +521,6 @@ describe("Adding Family Members Testing", function () {
       )
   
       txn = await instance.connect(accounts[1]).createProposal(
-        0x7,
         7,
         accounts[5].address,
         "0x0000000000000000000000000000000000000000",
@@ -568,7 +546,7 @@ describe("Adding Family Members Testing", function () {
   
   
       txn = await instance2.connect(accounts[2]).createProposal(
-        0x7,
+
         7,
         accounts[4].address,
         "0x0000000000000000000000000000000000000000",
@@ -578,7 +556,7 @@ describe("Adding Family Members Testing", function () {
       )
   
       txn = await instance2.connect(accounts[3]).createProposal(
-        0x7,
+  
         7,
         accounts[5].address,
         "0x0000000000000000000000000000000000000000",
@@ -625,7 +603,6 @@ describe("Adding Family Members Testing", function () {
       await loadFixture(deployTokenFixture);
 
       txn = await instance.connect(accounts[0]).createProposal(
-        0x7,
         7,
         accounts[4].address,
         "0x0000000000000000000000000000000000000000",
@@ -635,7 +612,6 @@ describe("Adding Family Members Testing", function () {
       )
   
       txn = await instance.connect(accounts[1]).createProposal(
-        0x7,
         7,
         accounts[5].address,
         "0x0000000000000000000000000000000000000000",
@@ -664,7 +640,6 @@ describe("Adding Family Members Testing", function () {
     );
 
     txn = await instance.connect(accounts[0]).createProposal(
-      0x7,
       7,
       accounts[4].address,
       "0x0000000000000000000000000000000000000000",
@@ -674,7 +649,6 @@ describe("Adding Family Members Testing", function () {
     )
 
     txn = await instance.connect(accounts[1]).createProposal(
-      0x7,
       7,
       accounts[5].address,
       "0x0000000000000000000000000000000000000000",
@@ -712,7 +686,6 @@ describe("Adding Family Members Testing", function () {
       await loadFixture(deployTokenFixture);
 
       txn = await instance.connect(accounts[0]).createProposal(
-        0x7,
         7,
         accounts[4].address,
         "0x0000000000000000000000000000000000000000",
@@ -722,7 +695,6 @@ describe("Adding Family Members Testing", function () {
       )
   
       txn = await instance.connect(accounts[1]).createProposal(
-        0x7,
         7,
         accounts[5].address,
         "0x0000000000000000000000000000000000000000",
@@ -747,7 +719,6 @@ describe("Adding Family Members Testing", function () {
     const instance2 = await WaverImplementation.attach(txn[0].marriageContract);
 
     await expect(instance2.connect(accounts[4]).createProposal(
-      0x7,
       7,
       accounts[4].address,
       "0x0000000000000000000000000000000000000000",
@@ -757,7 +728,6 @@ describe("Adding Family Members Testing", function () {
     )).to.reverted
 
     await expect(instance2.connect(accounts[5]).createProposal(
-      0x7,
       7,
       accounts[5].address,
       "0x0000000000000000000000000000000000000000",
@@ -767,7 +737,6 @@ describe("Adding Family Members Testing", function () {
     )).to.reverted
 
     txn = await instance2.connect(accounts[4]).createProposal(
-      0x7,
       7,
       accounts[6].address,
       "0x0000000000000000000000000000000000000000",
@@ -777,7 +746,6 @@ describe("Adding Family Members Testing", function () {
     )
 
     txn = await instance2.connect(accounts[5]).createProposal(
-      0x7,
       7,
       accounts[7].address,
       "0x0000000000000000000000000000000000000000",
@@ -794,7 +762,6 @@ describe("Adding Family Members Testing", function () {
     );
 
     txn = await instance.connect(accounts[0]).createProposal(
-      0x7,
       7,
       accounts[4].address,
       "0x0000000000000000000000000000000000000000",
@@ -804,7 +771,6 @@ describe("Adding Family Members Testing", function () {
     )
 
     txn = await instance.connect(accounts[1]).createProposal(
-      0x7,
       7,
       accounts[5].address,
       "0x0000000000000000000000000000000000000000",
@@ -824,7 +790,6 @@ describe("Adding Family Members Testing", function () {
       txn = await WavePortal7.connect(accounts[5]).joinFamily(2,1);
 
       txn = await instance.connect(accounts[0]).createProposal(
-        0x7,
         8,
         accounts[4].address,
         "0x0000000000000000000000000000000000000000",
@@ -834,7 +799,6 @@ describe("Adding Family Members Testing", function () {
       )
   
       txn = await instance.connect(accounts[1]).createProposal(
-        0x7,
         8,
         accounts[5].address,
         "0x0000000000000000000000000000000000000000",
@@ -867,7 +831,6 @@ describe("Adding Family Members Testing", function () {
     );
 
     txn = await instance.connect(accounts[0]).createProposal(
-      0x7,
       7,
       accounts[4].address,
       "0x0000000000000000000000000000000000000000",
@@ -877,7 +840,6 @@ describe("Adding Family Members Testing", function () {
     )
 
     txn = await instance.connect(accounts[1]).createProposal(
-      0x7,
       7,
       accounts[5].address,
       "0x0000000000000000000000000000000000000000",
@@ -898,7 +860,6 @@ describe("Adding Family Members Testing", function () {
       txn = await WavePortal7.connect(accounts[4]).joinFamily(2,1);
 
       txn = await instance.connect(accounts[0]).createProposal(
-        0x7,
         9,
         accounts[4].address,
         "0x0000000000000000000000000000000000000000",
@@ -931,7 +892,6 @@ describe("Adding Family Members Testing", function () {
     );
 
     txn = await instance.connect(accounts[0]).createProposal(
-      0x7,
       7,
       accounts[4].address,
       "0x0000000000000000000000000000000000000000",
@@ -941,7 +901,6 @@ describe("Adding Family Members Testing", function () {
     )
 
     txn = await instance.connect(accounts[1]).createProposal(
-      0x7,
       7,
       accounts[5].address,
       "0x0000000000000000000000000000000000000000",
@@ -961,7 +920,6 @@ describe("Adding Family Members Testing", function () {
       txn = await WavePortal7.connect(accounts[5]).joinFamily(2,1);
 
       txn = await instance.connect(accounts[0]).createProposal(
-        0x7,
         8,
         accounts[4].address,
         "0x0000000000000000000000000000000000000000",
@@ -971,7 +929,6 @@ describe("Adding Family Members Testing", function () {
       )
   
       txn = await instance.connect(accounts[1]).createProposal(
-        0x7,
         8,
         accounts[5].address,
         "0x0000000000000000000000000000000000000000",
@@ -998,7 +955,6 @@ describe("Adding Family Members Testing", function () {
 
 
          await expect( instance.connect(accounts[1]).createProposal(
-          0x7,
           8,
           accounts[5].address,
           "0x0000000000000000000000000000000000000000",

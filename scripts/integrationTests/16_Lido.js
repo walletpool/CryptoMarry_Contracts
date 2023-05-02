@@ -234,7 +234,7 @@ describe("Lido Integration Test", function () {
         //Depositing ETH
         txn = await instance
         .createProposal(
-          0x2,
+           
           899,
           ZERO_ADDRESS,
           ZERO_ADDRESS,

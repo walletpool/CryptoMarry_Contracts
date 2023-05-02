@@ -323,7 +323,7 @@ describe("Paraswap V5 Integration Test", function () {
     
         txn = await instance
         .createProposal(
-          0x2,
+           
           143,
           dstAddress,
           srcAddress,
@@ -371,7 +371,7 @@ describe("Paraswap V5 Integration Test", function () {
     
         txn = await instance
         .createProposal(
-          0x2,
+           
           143,
           dstAddress,
           srcAddress,
@@ -418,7 +418,7 @@ describe("Paraswap V5 Integration Test", function () {
     
         txn = await instance
         .createProposal(
-          0x2,
+           
           143,
           dstAddress,
           srcAddress,

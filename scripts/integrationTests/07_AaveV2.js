@@ -237,7 +237,7 @@ describe("AaveV2 Integration Test", function () {
         //Depositing USDC
         txn = await instance
         .createProposal(
-          0x2,
+           
           600,
           ZERO_ADDRESS,
           baseAssetAddress,
@@ -266,7 +266,7 @@ describe("AaveV2 Integration Test", function () {
         //Depositing ETH
         txn = await instance
         .createProposal(
-          0x2,
+           
           601,
           ZERO_ADDRESS,
           ZERO_ADDRESS,
@@ -298,7 +298,7 @@ describe("AaveV2 Integration Test", function () {
          //Withdrawing USDC
          txn = await instance
          .createProposal(
-           0x2,
+            
            602,
            ZERO_ADDRESS,
            baseAssetAddress,
@@ -321,7 +321,7 @@ describe("AaveV2 Integration Test", function () {
          //Withdrawing ETH
          txn = await instance
          .createProposal(
-           0x2,
+            
            603,
            ZERO_ADDRESS,
            ZERO_ADDRESS,
@@ -361,7 +361,7 @@ describe("AaveV2 Integration Test", function () {
         //Depositing USDC
         txn = await instance
         .createProposal(
-          0x2,
+           
           600,
           ZERO_ADDRESS,
           baseAssetAddress,
@@ -389,7 +389,7 @@ describe("AaveV2 Integration Test", function () {
          //Borrowing WETH
          txn = await instance
          .createProposal(
-           0x2,
+            
            604,
            ZERO_ADDRESS,
            wethAddress,
@@ -428,7 +428,7 @@ describe("AaveV2 Integration Test", function () {
          //borrowing ETH
          txn = await instance
          .createProposal(
-           0x2,
+            
            605,
            ZERO_ADDRESS,
            ZERO_ADDRESS,
@@ -452,7 +452,7 @@ describe("AaveV2 Integration Test", function () {
           debtNow = await stableDebtTokenAddress.callStatic.balanceOf(instance.address);
           txn = await instance
           .createProposal(
-            0x2,
+             
             607,
             ZERO_ADDRESS,
             ZERO_ADDRESS,

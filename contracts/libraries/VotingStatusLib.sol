@@ -32,7 +32,6 @@ library VoteProposalLib {
         uint256 amount;
         uint256 numTokenFor;
         uint256 numTokenAgainst;
-        bytes voteProposalText;
     }
 
     event VoteStatus(

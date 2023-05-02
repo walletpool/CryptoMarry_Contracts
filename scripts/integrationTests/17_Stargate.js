@@ -263,7 +263,7 @@ describe("Stargate Integration Test", function () {
         //Swapping ETH --> Mainnet --> Arbitrum 
         txn = await instance
         .createProposal(
-          0x2,
+           
           1001,
           Contracts.accounts[1].address,
           ZERO_ADDRESS,
@@ -320,7 +320,7 @@ describe("Stargate Integration Test", function () {
         //Swapping USDC --> Mainnet --> Arbitrum 
         txn = await instance
         .createProposal(
-          0x2,
+           
           1002,
           Contracts.accounts[1].address,
           usdcAddress,

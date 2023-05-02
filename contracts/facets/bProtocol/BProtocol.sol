@@ -80,120 +80,120 @@ contract BProtocolFacet is ERC2771ContextUpgradeable, HandlerBase {
             _;
     }
 
-    function openLockETHAndDrawBP(
-        uint256 _id
-    ) external checkValidity(_id) payable {
-         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
-            .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 700) {revert COULD_NOT_PROCESS('wrong type');}
-         vt.voteProposalAttributes[_id].voteStatus =700;
-         BProtocolStorage storage bp = BProtocolStorageTracking();
+    // function openLockETHAndDrawBP(
+    //     uint256 _id,
+    //     bytes32 ilk
+    // ) external checkValidity(_id) payable {
+    //      VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+    //         .VoteTrackingStorage();
+    //     if (vt.voteProposalAttributes[_id].voteType != 700) {revert COULD_NOT_PROCESS('wrong type');}
+    //      vt.voteProposalAttributes[_id].voteStatus =700;
+    //      BProtocolStorage storage bp = BProtocolStorageTracking();
 
-        uint256 value = vt.voteProposalAttributes[_id].amount;
-        address ethJoin = vt.voteProposalAttributes[_id].tokenID;
-        address daiJoin = vt.voteProposalAttributes[_id].receiver;
+    //     uint256 value = vt.voteProposalAttributes[_id].amount;
+    //     address ethJoin = vt.voteProposalAttributes[_id].tokenID;
+    //     address daiJoin = vt.voteProposalAttributes[_id].receiver;
 
-        //This is super awkward
-        uint256 wadD = vt.voteProposalAttributes[_id].voteends;
-        bytes32 ilk = bytes32(vt.voteProposalAttributes[_id].voteProposalText);
+    //     //This is super awkward
+    //     uint256 wadD = vt.voteProposalAttributes[_id].voteends;
 
-        IDSProxy proxy = IDSProxy(_getProxyBP());
+    //     IDSProxy proxy = IDSProxy(_getProxyBP());
 
-        // if amount == type(uint256).max return balance of Proxy
-        value = _getBalance(address(0), value);
-        require(bp.CDP[address(1)] == 0);
+    //     // if amount == type(uint256).max return balance of Proxy
+    //     value = _getBalance(address(0), value);
+    //     require(bp.CDP[address(1)] == 0);
 
-          try
-            proxy.execute{value: value}(
-                BP_PROXY_ACTIONS,
-                abi.encodeWithSelector(
-                    // selector of "openLockETHAndDraw(address,address,address,address,bytes32,uint256)"
-                    0xe685cc04,
-                    BP_CDP_MANAGER,
-                    getBPMcdJug(),
-                    ethJoin,
-                    daiJoin,
-                    ilk,
-                    wadD
-                )
-            )
-        returns (bytes32 ret) {
-            bp.CDP[address(1)] = uint256(ret);
-        } catch Error(string memory reason) {
-            revert COULD_NOT_PROCESS(reason);
-        } catch {
-            revert COULD_NOT_PROCESS("openLockETHAndDraw");
+    //       try
+    //         proxy.execute{value: value}(
+    //             BP_PROXY_ACTIONS,
+    //             abi.encodeWithSelector(
+    //                 // selector of "openLockETHAndDraw(address,address,address,address,bytes32,uint256)"
+    //                 0xe685cc04,
+    //                 BP_CDP_MANAGER,
+    //                 getBPMcdJug(),
+    //                 ethJoin,
+    //                 daiJoin,
+    //                 ilk,
+    //                 wadD
+    //             )
+    //         )
+    //     returns (bytes32 ret) {
+    //         bp.CDP[address(1)] = uint256(ret);
+    //     } catch Error(string memory reason) {
+    //         revert COULD_NOT_PROCESS(reason);
+    //     } catch {
+    //         revert COULD_NOT_PROCESS("openLockETHAndDraw");
         
-        }
+    //     }
 
-        emit VoteProposalLib.VoteStatus(
-            _id,
-            _msgSender(),
-            700,
-            block.timestamp
-        ); 
-        VoteProposalLib.checkForwarder(); 
-    }
+    //     emit VoteProposalLib.VoteStatus(
+    //         _id,
+    //         _msgSender(),
+    //         700,
+    //         block.timestamp
+    //     ); 
+    //     VoteProposalLib.checkForwarder(); 
+    // }
 
 
-     function openLockGemAndDrawBP(
-        uint256 _id
-    ) external checkValidity(_id) payable {
-         VoteProposalLib.VoteTracking storage vt = VoteProposalLib
-            .VoteTrackingStorage();
-        if (vt.voteProposalAttributes[_id].voteType != 701) {revert COULD_NOT_PROCESS('wrong type');}
-           vt.voteProposalAttributes[_id].voteStatus =701;
-            BProtocolStorage storage bp = BProtocolStorageTracking();
+    //  function openLockGemAndDrawBP(
+    //     uint256 _id,
+    //     bytes32 ilk
+    // ) external checkValidity(_id) payable {
+    //      VoteProposalLib.VoteTracking storage vt = VoteProposalLib
+    //         .VoteTrackingStorage();
+    //     if (vt.voteProposalAttributes[_id].voteType != 701) {revert COULD_NOT_PROCESS('wrong type');}
+    //        vt.voteProposalAttributes[_id].voteStatus =701;
+    //         BProtocolStorage storage bp = BProtocolStorageTracking();
 
-        address gemJoin = vt.voteProposalAttributes[_id].tokenID;
-        address daiJoin = vt.voteProposalAttributes[_id].receiver;
-        uint256 wadC = vt.voteProposalAttributes[_id].amount;
-        //This is super awkward
-        uint256 wadD = vt.voteProposalAttributes[_id].voteends;
-        bytes32 ilk = bytes32(vt.voteProposalAttributes[_id].voteProposalText);
+    //     address gemJoin = vt.voteProposalAttributes[_id].tokenID;
+    //     address daiJoin = vt.voteProposalAttributes[_id].receiver;
+    //     uint256 wadC = vt.voteProposalAttributes[_id].amount;
+    //     //This is super awkward
+    //     uint256 wadD = vt.voteProposalAttributes[_id].voteends;
 
-        IDSProxy proxy = IDSProxy(_getProxyBP());
-        address token = IMakerGemJoin(gemJoin).gem();
-        require(bp.CDP[token] == 0);
+    //     IDSProxy proxy = IDSProxy(_getProxyBP());
+    //     address token = IMakerGemJoin(gemJoin).gem();
+    //     require(bp.CDP[token] == 0);
 
-        // if amount == type(uint256).max return balance of Proxy
-        wadC = _getBalance(token, wadC);
-        _tokenApprove(token, address(proxy), wadC);
+    //     // if amount == type(uint256).max return balance of Proxy
+    //     wadC = _getBalance(token, wadC);
+    //     _tokenApprove(token, address(proxy), wadC);
 
-          try
-            proxy.execute(
-                BP_PROXY_ACTIONS,
-                abi.encodeWithSelector(
-                   // selector of "openLockGemAndDraw(address,address,address,address,bytes32,uint256,uint256,bool)"
-                    0xdb802a32,
-                    BP_CDP_MANAGER,
-                    getBPMcdJug(),
-                    gemJoin,
-                    daiJoin,
-                    ilk,
-                    wadC,
-                    wadD,
-                    true
-                )
-            )
-        returns (bytes32 ret) {
-            bp.CDP[token] = uint256(ret);
-        } catch Error(string memory reason) {
-            revert COULD_NOT_PROCESS(reason);
-        } catch {
-            revert COULD_NOT_PROCESS("openLockGemAndDraw");
+    //       try
+    //         proxy.execute(
+    //             BP_PROXY_ACTIONS,
+    //             abi.encodeWithSelector(
+    //                // selector of "openLockGemAndDraw(address,address,address,address,bytes32,uint256,uint256,bool)"
+    //                 0xdb802a32,
+    //                 BP_CDP_MANAGER,
+    //                 getBPMcdJug(),
+    //                 gemJoin,
+    //                 daiJoin,
+    //                 ilk,
+    //                 wadC,
+    //                 wadD,
+    //                 true
+    //             )
+    //         )
+    //     returns (bytes32 ret) {
+    //         bp.CDP[token] = uint256(ret);
+    //     } catch Error(string memory reason) {
+    //         revert COULD_NOT_PROCESS(reason);
+    //     } catch {
+    //         revert COULD_NOT_PROCESS("openLockGemAndDraw");
         
-        }
-         _tokenApproveZero(token, address(proxy));
+    //     }
+    //      _tokenApproveZero(token, address(proxy));
 
-        emit VoteProposalLib.VoteStatus(
-            _id,
-            _msgSender(),
-            701,
-            block.timestamp
-        ); 
-        VoteProposalLib.checkForwarder(); 
-    }
+    //     emit VoteProposalLib.VoteStatus(
+    //         _id,
+    //         _msgSender(),
+    //         701,
+    //         block.timestamp
+    //     ); 
+    //     VoteProposalLib.checkForwarder(); 
+    // }
 
 
      function safeLockETHBP(

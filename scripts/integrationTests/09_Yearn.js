@@ -236,7 +236,7 @@ describe("Yearn Integration Test", function () {
         //Depositing USDC
         txn = await instance
         .createProposal(
-          0x2,
+           
           210,
           USDCYVaultAddress,
           baseAssetAddress,
@@ -261,7 +261,7 @@ describe("Yearn Integration Test", function () {
         //Depositing ETH
         txn = await instance
         .createProposal(
-          0x2,
+           
           211,
           ETHYVaultAddress,
           ZERO_ADDRESS,
@@ -287,7 +287,7 @@ describe("Yearn Integration Test", function () {
          //Withdrawing USDC
          txn = await instance
          .createProposal(
-           0x2,
+            
            212,
            USDCYVaultAddress,
            baseAssetAddress,
@@ -312,7 +312,7 @@ describe("Yearn Integration Test", function () {
         //  //Withdrawing ETH
         //  txn = await instance
         //  .createProposal(
-        //    0x2,
+        //     
         //    603,
         //    ZERO_ADDRESS,
         //    ZERO_ADDRESS,

@@ -227,7 +227,7 @@ describe("Compound III Integration Test", function () {
    
       txn = await instance
       .createProposal(
-        0x2,
+         
         800, 
         "0x0000000000000000000000000000000000000000",
         wethAddress,
@@ -247,7 +247,7 @@ describe("Compound III Integration Test", function () {
         //Withdrawing my ETH
       txn = await instance
         .createProposal(
-          0x2,
+           
           803,
           "0x0000000000000000000000000000000000000000",
           wethAddress,
@@ -289,7 +289,7 @@ describe("Compound III Integration Test", function () {
 
         txn = await instance
         .createProposal(
-          0x2,
+           
           801, //Token Type
           "0x0000000000000000000000000000000000000000",
           wethAddress,
@@ -328,7 +328,7 @@ describe("Compound III Integration Test", function () {
 
         txn = await instance
         .createProposal(
-          0x2,
+           
           805,
           "0x0000000000000000000000000000000000000000",
           usdcAddress,
@@ -358,7 +358,7 @@ describe("Compound III Integration Test", function () {
          //repaying full USDC debt
         txn = await instance
         .createProposal(
-          0x2,
+           
           806,
           "0x0000000000000000000000000000000000000000",
           usdcAddress,
@@ -376,7 +376,7 @@ describe("Compound III Integration Test", function () {
           //Supply USDC to check! 
         txn = await instance
         .createProposal(
-          0x2,
+           
           802,
           "0x0000000000000000000000000000000000000000",
           usdcAddress,
@@ -394,7 +394,7 @@ describe("Compound III Integration Test", function () {
           //Withdrawing my WETH
         txn = await instance
           .createProposal(
-            0x2,
+             
             804,
             "0x0000000000000000000000000000000000000000",
             wethAddress,

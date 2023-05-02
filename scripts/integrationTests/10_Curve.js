@@ -261,7 +261,7 @@ describe("Curve Integration Test", function () {
 
         txn = await instanceCurve
         .createProposalLiquidity(
-          0x2,
+           
           416,
           100,
           1,
@@ -289,7 +289,7 @@ describe("Curve Integration Test", function () {
          //Withdrawing USDC 
          txn = await instance
          .createProposal(
-           0x2,
+            
            419,
            curvePoolDAIUSDCUSDT,
            usdcAddress,
@@ -336,7 +336,7 @@ describe("Curve Integration Test", function () {
          //Withdrawing USDC 
          txn = await instance
          .createProposal(
-           0x2,
+            
            410,
            usdtAddress,
            usdcAddress,

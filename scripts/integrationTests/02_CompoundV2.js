@@ -239,7 +239,7 @@ describe("Compound II Integration Test", function () {
         //Supplying ETH
         txn = await instance
         .createProposal(
-          0x2,
+           
           810,
           CETHAddress,
           "0x0000000000000000000000000000000000000000",
@@ -259,7 +259,7 @@ describe("Compound II Integration Test", function () {
         //Supplying USDC
         txn = await instance
         .createProposal(
-          0x2,
+           
           811,
           CUSDCAddress,
           usdcAddress,
@@ -282,7 +282,7 @@ describe("Compound II Integration Test", function () {
         //Redeeming cETH
         txn = await instance
         .createProposal(
-          0x2,
+           
           812,
           "0x0000000000000000000000000000000000000000",
           CETHAddress,
@@ -304,7 +304,7 @@ describe("Compound II Integration Test", function () {
         balanceCUSDC = await cusdc.callStatic.balanceOf(instance.address);
         txn = await instance
         .createProposal(
-          0x2,
+           
           814,
           usdcAddress,
           CUSDCAddress,
@@ -350,7 +350,7 @@ describe("Compound II Integration Test", function () {
          //Supplying ETH
          txn = await instance
          .createProposal(
-           0x2,
+            
            810,
            CETHAddress,
            "0x0000000000000000000000000000000000000000",
@@ -370,7 +370,7 @@ describe("Compound II Integration Test", function () {
          //Supplying USDC
          txn = await instance
          .createProposal(
-           0x2,
+            
            811,
            CUSDCAddress,
            usdcAddress,
@@ -391,7 +391,7 @@ describe("Compound II Integration Test", function () {
 
          txn = await instance
          .createProposal(
-           0x2,
+            
            816,
            usdcAddress,
            CUSDCAddress,
@@ -410,7 +410,7 @@ describe("Compound II Integration Test", function () {
 
          txn = await instance
          .createProposal(
-           0x2,
+            
            817,
            ZERO_ADDRESS,
            CETHAddress,
@@ -434,7 +434,7 @@ describe("Compound II Integration Test", function () {
 
            txn = await instance
            .createProposal(
-             0x2,
+              
              818,
              usdcAddress,
              CUSDCAddress,
@@ -456,7 +456,7 @@ describe("Compound II Integration Test", function () {
   
            txn = await instance
            .createProposal(
-             0x2,
+              
              819,
              wethAddress,
              CETHAddress,

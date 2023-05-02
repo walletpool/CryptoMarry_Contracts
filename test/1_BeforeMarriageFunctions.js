@@ -319,7 +319,6 @@ describe("Testing before marriage interactions", function () {
       instance
         .connect(accounts[0])
         .createProposal(
-          "0x7465737400000000000000000000000000000000000000000000000000000000",
           1,
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
@@ -332,7 +331,6 @@ describe("Testing before marriage interactions", function () {
       instance
         .connect(accounts[1])
         .createProposal(
-          "test1",
           1,
           "0x0000000000000000000000000000000000000000",
           "0x0000000000000000000000000000000000000000",
